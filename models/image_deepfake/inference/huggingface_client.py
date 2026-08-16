@@ -22,17 +22,21 @@ class HuggingFaceDeepfakeClient:
             try:
                 api = HfApi(token=self.api_key)
                 user_info = api.whoami()
-                self.user_name = user_info.get("name", "Authenticated User")
+                if isinstance(user_info, dict):
+                    self.user_name = user_info.get("name") or user_info.get("username") or user_info.get("fullname") or "Authenticated User"
+                else:
+                    self.user_name = getattr(user_info, "name", "Authenticated User")
             except Exception:
-                self.user_name = None
+                self.user_name = "HF User"
 
     def is_configured(self) -> bool:
         return bool(self.api_key and self.api_key.startswith("hf_"))
 
-    def predict(self, image_bytes: bytes) -> Dict[str, Any]:
+    def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "general_object") -> Dict[str, Any]:
         """
         Runs inference against Hugging Face deepfake models.
-        Returns normalized risk score, label, and confidence.
+        Gated by face presence: Face-specific classifiers (like dima806) are skipped
+        or routed appropriately when no human face is detected to prevent false 99.8% Real outputs on cartoons/art.
         """
         if not self.is_configured():
             return {
@@ -42,6 +46,20 @@ class HuggingFaceDeepfakeClient:
                 "hf_confidence": 0.0,
                 "model_name": self.model_name,
                 "note": "Hugging Face token not configured."
+            }
+
+        # Face-gating rule: Face-swap models (like dima806) only evaluate on photographic human faces and not on digital art/cartoons/animals
+        is_face_only_model = any(k in self.model_name.lower() for k in ["face", "portrait", "deepfake_vs_real"])
+        is_non_human_or_art = (not has_face and scene_type != "photograph_portrait") or (scene_type in ["anime_illustration", "digital_art"])
+        if is_face_only_model and is_non_human_or_art:
+            return {
+                "is_hf_applied": False,
+                "hf_risk_score": 50.0,
+                "hf_label": "unknown",
+                "hf_confidence": 0.0,
+                "model_name": self.model_name,
+                "user": self.user_name,
+                "note": f"Hugging Face ({self.model_name}) skipped: image does not contain a human face (scene: {scene_type}). Forensic evaluation routed to texture, micro-structure, and metadata engines."
             }
 
         headers = {

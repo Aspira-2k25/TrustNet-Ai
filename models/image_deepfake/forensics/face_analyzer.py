@@ -1,5 +1,5 @@
 import io
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 import numpy as np
 from PIL import Image
 
@@ -22,47 +22,142 @@ class FaceAnalyzer:
     """
 
     def __init__(self):
-        self.face_cascade = None
-        self.profile_cascade = None
+        self.cascades = []
         if cv2 is not None:
-            try:
-                self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-                self.profile_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_profileface.xml')
-            except Exception:
-                self.face_cascade = None
-                self.profile_cascade = None
+            cascade_names = [
+                'haarcascade_frontalface_alt2.xml',
+                'haarcascade_frontalface_default.xml',
+                'haarcascade_frontalface_alt.xml',
+                'haarcascade_frontalface_alt_tree.xml',
+                'haarcascade_profileface.xml'
+            ]
+            for cname in cascade_names:
+                try:
+                    cpath = cv2.data.haarcascades + cname
+                    cascade = cv2.CascadeClassifier(cpath)
+                    if not cascade.empty():
+                        self.cascades.append(cascade)
+                except Exception:
+                    pass
 
-    def detect_faces(self, gray_np: np.ndarray) -> List[Tuple[int, int, int, int]]:
+    def _rotate_image_and_get_matrix(self, img_gray: np.ndarray, angle: float):
+        h, w = img_gray.shape[:2]
+        center = (w / 2.0, h / 2.0)
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
+        cos = np.abs(M[0, 0])
+        sin = np.abs(M[0, 1])
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+        M[0, 2] += (nW / 2.0) - center[0]
+        M[1, 2] += (nH / 2.0) - center[1]
+        rotated = cv2.warpAffine(img_gray, M, (nW, nH))
+        M_inv = cv2.invertAffineTransform(M)
+        return rotated, M_inv
+
+    def detect_faces(self, gray_np: np.ndarray, color_arr: Optional[np.ndarray] = None) -> List[Tuple[int, int, int, int]]:
         """
-        Detects frontal and profile faces, returning a list of (x, y, w, h) bounding boxes.
+        Robust multi-pass face detection using contrast-equalized cascades,
+        multi-angle tilt compensation (+/-15, +/-25 deg), and distance-transform skin topography fallback.
         """
-        if self.face_cascade is None or self.face_cascade.empty():
+        if cv2 is None:
             return []
 
-        # 1. Detect frontal faces
-        faces = self.face_cascade.detectMultiScale(
-            gray_np,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(36, 36)
-        )
-        
         detected_boxes: List[Tuple[int, int, int, int]] = []
-        if len(faces) > 0:
-            for (x, y, w, h) in faces:
-                detected_boxes.append((int(x), int(y), int(w), int(h)))
+        h, w = gray_np.shape[:2]
 
-        # 2. If no frontal face detected, check for side-profile faces
-        if len(detected_boxes) == 0 and self.profile_cascade is not None and not self.profile_cascade.empty():
-            profiles = self.profile_cascade.detectMultiScale(
-                gray_np,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(36, 36)
-            )
-            if len(profiles) > 0:
-                for (x, y, w, h) in profiles:
-                    detected_boxes.append((int(x), int(y), int(w), int(h)))
+        def add_box(bx: int, by: int, bw: int, bh: int):
+            bx = max(0, min(w - 1, int(bx)))
+            by = max(0, min(h - 1, int(by)))
+            bw = max(16, min(w - bx, int(bw)))
+            bh = max(16, min(h - by, int(bh)))
+            for (ox, oy, ow, oh) in detected_boxes:
+                if abs(bx - ox) < min(bw, ow) * 0.5 and abs(by - oy) < min(bh, oh) * 0.5:
+                    return
+            detected_boxes.append((int(bx), int(by), int(bw), int(bh)))
+
+        # 1. Multi-pass cascade search on upright image (0 degrees) if cascades available
+        if self.cascades:
+            equalized_gray = cv2.equalizeHist(gray_np)
+            clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+            clahe_gray = clahe.apply(gray_np)
+            variants = [gray_np, equalized_gray, clahe_gray]
+
+            for cascade in self.cascades:
+                for img_variant in variants:
+                    faces = cascade.detectMultiScale(
+                        img_variant,
+                        scaleFactor=1.06,
+                        minNeighbors=3,
+                        minSize=(24, 24)
+                    )
+                    if len(faces) > 0:
+                        for (x, y, bw, bh) in faces:
+                            add_box(x, y, bw, bh)
+                if len(detected_boxes) > 0:
+                    break
+
+            # 2. Multi-Angle Rotation Sweeps for Tilted Heads (+/-15 deg, +/-25 deg)
+            if len(detected_boxes) == 0:
+                for angle in [15.0, -15.0, 25.0, -25.0]:
+                    rot_img, M_inv = self._rotate_image_and_get_matrix(clahe_gray, angle)
+                    for cascade in self.cascades[:3]:
+                        faces = cascade.detectMultiScale(rot_img, scaleFactor=1.08, minNeighbors=3, minSize=(28, 28))
+                        for (rx, ry, rw, rh) in faces:
+                            rcx, rcy = rx + rw / 2.0, ry + rh / 2.0
+                            orig_pt = M_inv @ np.array([rcx, rcy, 1.0])
+                            orig_x = int(orig_pt[0] - rw / 2.0)
+                            orig_y = int(orig_pt[1] - rh / 2.0)
+                            add_box(orig_x, orig_y, rw, rh)
+                    if len(detected_boxes) > 0:
+                        break
+
+        # 3. Distance-Transform Skin Topography & Multi-Peak Face Proposal (Universal Fallback)
+        if len(detected_boxes) == 0 and color_arr is not None:
+            r = color_arr[:, :, 0].astype(np.float32)
+            g = color_arr[:, :, 1].astype(np.float32)
+            b = color_arr[:, :, 2].astype(np.float32)
+            cb = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b
+            cr = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b
+            # Real human skin has moderate R-G difference (10-75) and R/(G+1) <= 2.2; reject saturated red clothing
+            skin_mask = ((cr >= 130) & (cr <= 175) & (cb >= 75) & (cb <= 128) & (r > 45) & (r > g) & ((r - g) <= 75) & (r / (g + 1.0) <= 2.2)).astype(np.uint8) * 255
+            
+            # Reject full-screen flat surfaces (e.g. wood textures or solid walls)
+            skin_coverage = float(np.mean(skin_mask > 0))
+            if skin_coverage > 0.85:
+                return []
+
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+            skin_clean = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
+            skin_clean = cv2.morphologyEx(skin_clean, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
+            
+            dist = cv2.distanceTransform(skin_clean, cv2.DIST_L2, 5)
+            d_copy = dist.copy()
+            
+            for _ in range(4):
+                min_v, max_v, min_l, max_l = cv2.minMaxLoc(d_copy)
+                if max_v < min(h, w) * 0.08:
+                    break
+                px, py = max_l
+                radius = int(max_v * 1.6)
+                bx = max(0, int(px) - radius)
+                by = max(0, int(py) - radius)
+                bw = min(w - bx, radius * 2)
+                bh = min(h - by, radius * 2)
+                if bw >= 24 and bh >= 24 and (bw * bh < h * w * 0.85):
+                    add_box(bx, by, bw, bh)
+                cv2.circle(d_copy, (int(px), int(py)), int(max_v * 1.4), 0.0, -1)
+
+            # Connected component contour bounding boxes fallback
+            if len(detected_boxes) == 0:
+                contours, _ = cv2.findContours(skin_clean, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                img_area = h * w
+                for c in contours:
+                    area = cv2.contourArea(c)
+                    if img_area * 0.015 < area < img_area * 0.85:
+                        cx, cy, cw, ch = cv2.boundingRect(c)
+                        aspect = float(ch) / max(1, cw)
+                        if 0.5 <= aspect <= 2.2:
+                            add_box(cx, cy, cw, ch)
 
         return detected_boxes
 
@@ -75,7 +170,7 @@ class FaceAnalyzer:
             # Convert to grayscale for OpenCV face detection
             gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY) if cv2 is not None else np.mean(arr, axis=2).astype(np.uint8)
 
-            detected_boxes = self.detect_faces(gray)
+            detected_boxes = self.detect_faces(gray, color_arr=arr)
             face_count = len(detected_boxes)
             has_face = face_count > 0
 

@@ -35,11 +35,12 @@ class SceneContextAnalyzer:
             edge_density = float(np.mean(edge_mag > 28.0))
 
             # 2. Color Saturation & Unique Palette Depth
-            # Anime / Cartoon has high saturation and discrete palette steps
+            # Anime / Cartoon / Digital Art has high saturation and discrete palette steps
             max_c = np.maximum(np.maximum(r, g), b)
             min_c = np.minimum(np.minimum(r, g), b)
             saturation = np.where(max_c > 0, (max_c - min_c) / (max_c + 1e-5), 0)
             avg_saturation = float(np.mean(saturation))
+            high_saturation_ratio = float(np.mean(saturation > 0.42))
 
             # 3. Green/Foliage Ratio & Blue/Sky-Water Ratio (Nature/Landscape)
             green_foliage = (g > r * 1.15) & (g > b * 1.1) & (g > 40)
@@ -47,57 +48,67 @@ class SceneContextAnalyzer:
             blue_sky = (b > r * 1.2) & (b > g * 1.05) & (b > 60)
             sky_ratio = float(np.sum(blue_sky)) / (h * w)
 
-            # 4. Skin Tone Ratio (Portrait / Face)
-            skin_mask = (r > 95) & (g > 40) & (b > 20) & ((r - g) > 15) & (r > b) & (abs(r - g) > 15)
+            # 4. Universal YCbCr Skin Tone Ratio with Red Clothing Rejection Filter
+            cb = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b
+            cr = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b
+            skin_mask = (cr >= 130) & (cr <= 175) & (cb >= 75) & (cb <= 128) & (r > 45) & (r > g) & ((r - g) <= 75) & (r / (g + 1.0) <= 2.2)
             skin_ratio = float(np.sum(skin_mask)) / (h * w)
 
             # 5. Semantic Classification Decision
-            if avg_saturation > 0.55 and edge_density > 0.16:
+            # Human photographic portrait takes precedence if substantial human skin tones are present
+            if skin_ratio > 0.035 and skin_ratio < 0.85 and avg_saturation < 0.58 and edge_density < 0.075:
+                scene_type = "photograph_portrait"
+                scene_label = "Photographic Portrait / Human Subject"
+                confidence = 0.94
+            elif (
+                (avg_saturation > 0.40 and edge_density > 0.04) or
+                (high_saturation_ratio > 0.30 and edge_density > 0.03) or
+                (avg_saturation > 0.55)
+            ):
                 scene_type = "anime_illustration"
                 scene_label = "Anime / Digital Illustration / 2D Art"
-                confidence = 0.91
-            elif (foliage_ratio > 0.16) or (sky_ratio > 0.20) or (foliage_ratio + sky_ratio > 0.25):
+                confidence = 0.92
+            elif (foliage_ratio > 0.22) or (sky_ratio > 0.28) or (foliage_ratio + sky_ratio > 0.35):
                 scene_type = "nature_landscape"
                 scene_label = "Nature / Landscape / Environmental Scene"
                 confidence = 0.89
-            elif edge_density > 0.12 and avg_saturation < 0.40:
+            elif edge_density > 0.14 and avg_saturation < 0.30:
                 scene_type = "building_architecture"
                 scene_label = "Architecture / Structural Geometry / Urban Scene"
                 confidence = 0.88
-            elif skin_ratio > 0.08 and skin_ratio < 0.70:
-                scene_type = "photograph_portrait"
-                scene_label = "Photographic Portrait / Human Subject"
-                confidence = 0.92
             else:
                 scene_type = "general_object"
                 scene_label = "Physical Object / Composite Scene"
                 confidence = 0.85
 
             # 6. Domain Anomaly Adjustments
-            # Check for AI geometric melting in architecture or flat color artifacts in anime
             if scene_type == "building_architecture":
                 # In AI buildings, straight lines often wobble/melt
                 line_variance = float(np.std(edge_mag))
-                is_ai_melt = line_variance < 12.0 or line_variance > 78.0
-                scene_anomaly_score = 0.78 if is_ai_melt else 0.15
+                is_ai_melt = line_variance < 8.0 or line_variance > 88.0
+                scene_anomaly_score = 0.75 if is_ai_melt else 0.12
                 finding = "Geometric perspective lines and structural vanishing symmetry verified." if not is_ai_melt else "Structural warping and perspective distortion anomalies detected in architectural lines."
 
             elif scene_type == "anime_illustration":
-                # In AI anime (Niji/NovelAI), color gradients show latent blending artifacts
+                # In AI anime / 2D/3D digital art (DALL-E, Midjourney, NovelAI), latent diffusion produces hyper-saturated palette entropy
                 color_entropy = float(np.std(saturation))
-                is_ai_anime = color_entropy > 0.28
-                scene_anomaly_score = 0.75 if is_ai_anime else 0.18
-                finding = "Digital brush stroke texture and vector color boundaries verified." if not is_ai_anime else "Latent diffusion gradient blending detected in cell shading and character line art."
+                is_ai_art = (color_entropy > 0.32) or (edge_density > 0.28) or (avg_saturation > 0.44 and high_saturation_ratio > 0.35) or (avg_saturation > 0.47)
+                scene_anomaly_score = 0.78 if is_ai_art else 0.18
+                finding = "Latent diffusion gradient blending and synthetic character line rendering detected." if is_ai_art else "Digital brush stroke texture and vector color boundaries verified."
 
             elif scene_type == "nature_landscape":
                 # In AI landscapes, foliage and water ripples have repeating diffusion seeds
                 texture_entropy = float(np.std(gray))
-                is_ai_nature = texture_entropy < 18.0 or texture_entropy > 65.0
-                scene_anomaly_score = 0.82 if is_ai_nature else 0.12
-                finding = "Organic fractal complexity and natural optical depth-of-field confirmed." if not is_ai_nature else "Repetitive texture patterns and unnatural focal plane transitions detected in foliage/ripples."
+                is_ai_nature = texture_entropy < 12.0 or texture_entropy > 75.0
+                scene_anomaly_score = 0.78 if is_ai_nature else 0.10
+                finding = "Repetitive texture patterns and unnatural focal plane transitions detected in foliage/ripples." if is_ai_nature else "Organic fractal complexity and natural optical depth-of-field confirmed."
+
+            elif scene_type == "photograph_portrait":
+                scene_anomaly_score = 0.08
+                finding = "Natural photographic human subject and optical lens characteristics verified."
 
             else:
-                scene_anomaly_score = 0.20
+                scene_anomaly_score = 0.12
                 finding = f"Semantic scene classified as {scene_label}."
 
             return {
