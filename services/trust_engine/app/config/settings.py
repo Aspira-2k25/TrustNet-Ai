@@ -7,7 +7,7 @@ class TrustEngineSettings(BaseSettings):
     ENVIRONMENT: str = Field(default="dev")
     LOG_LEVEL: str = Field(default="INFO")
     KAFKA_BOOTSTRAP_SERVERS: str = Field(
-        default="localhost:9092",
+        default="localhost:9094",
         description="Kafka bootstrap servers connection string"
     )
     KAFKA_CONSUMER_GROUP: str = Field(

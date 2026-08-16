@@ -1,6 +1,6 @@
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type ScanStatus = 'PENDING' | 'SUCCESS' | 'FAILED';
-export type ClassificationVerdict = 'AUTHENTIC' | 'SUSPICIOUS' | 'AI_GENERATED';
+export type ClassificationVerdict = 'AUTHENTIC' | 'LIKELY_AUTHENTIC' | 'UNCERTAIN' | 'LIKELY_AI_MANIPULATED' | 'SUSPICIOUS' | 'AI_GENERATED';
 
 export interface EvidenceItem {
   feature_or_region: string;

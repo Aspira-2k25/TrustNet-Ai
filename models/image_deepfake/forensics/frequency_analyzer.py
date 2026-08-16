@@ -10,7 +10,7 @@ class FrequencyAnalyzer:
     
     Natural optical camera images follow a strict physical power-law distribution in the
     frequency domain: the radially averaged power spectrum decays monotonically as P(r) ~ 1 / r^alpha,
-    where alpha is typically in the range [1.8, 2.4].
+    where alpha is typically in the range [1.8, 3.4].
     
     In contrast, generative AI architectures (GANs with transposed convolutions, Latent Diffusion models,
     and neural upsamplers) exhibit two distinct physical frequency violations:
@@ -19,9 +19,9 @@ class FrequencyAnalyzer:
        spectral energy bumps where the generative model fails to match optical lens diffraction roll-off.
     """
 
-    def _compute_radial_profile(self, magnitude_spectrum: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _compute_radial_profile(self, power_spectrum: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Computes the 1D radially averaged power spectrum profile."""
-        h, w = magnitude_spectrum.shape
+        h, w = power_spectrum.shape
         cy, cx = h // 2, w // 2
         
         y, x = np.ogrid[:h, :w]
@@ -35,7 +35,7 @@ class FrequencyAnalyzer:
         for radius in range(1, max_radius):
             mask = (r == radius)
             if np.any(mask):
-                radial_profile[radius] = np.mean(magnitude_spectrum[mask])
+                radial_profile[radius] = np.mean(power_spectrum[mask])
                 radial_counts[radius] = 1
                 
         valid = radial_counts > 0
@@ -53,19 +53,20 @@ class FrequencyAnalyzer:
             f = np.fft.fft2(img_arr)
             fshift = np.fft.fftshift(f)
             abs_shift = np.abs(fshift) + 1e-8
-            magnitude_spectrum = 20 * np.log(abs_shift)
+            power_spectrum = abs_shift ** 2
+            log_magnitude_spectrum = 20 * np.log10(abs_shift)
 
             # 1. Measure center vs high-frequency periphery energy ratio
-            h, w = magnitude_spectrum.shape
+            h, w = log_magnitude_spectrum.shape
             cy, cx = h // 2, w // 2
             
             # Low-frequency center box (radius 32)
-            low_freq = magnitude_spectrum[cy-32:cy+32, cx-32:cx+32]
+            low_freq = log_magnitude_spectrum[cy-32:cy+32, cx-32:cx+32]
             
             # High-frequency perimeter
             mask = np.ones((h, w), dtype=bool)
             mask[cy-48:cy+48, cx-48:cx+48] = False
-            high_freq = magnitude_spectrum[mask]
+            high_freq = log_magnitude_spectrum[mask]
 
             low_mean = float(np.mean(low_freq))
             high_mean = float(np.mean(high_freq))
@@ -77,15 +78,16 @@ class FrequencyAnalyzer:
             high_to_low_ratio = high_mean / (low_mean + 1e-6)
 
             # 3. Radial Power-Law Decay Analysis (Natural Image 1/f^alpha Baseline)
-            radii, radial_profile = self._compute_radial_profile(magnitude_spectrum)
+            # Computed on true natural-log power spectrum ln(P(r))
+            radii, radial_profile = self._compute_radial_profile(power_spectrum)
             
-            # Fit log(P(r)) vs log(r) in mid-to-high frequencies (r in [8, 96])
+            # Fit ln(P(r)) vs ln(r) in mid-to-high frequencies (r in [8, 96])
             fit_mask = (radii >= 8) & (radii <= 96)
             if np.sum(fit_mask) > 10:
                 log_r = np.log(radii[fit_mask].astype(np.float32))
-                log_p = radial_profile[fit_mask]
+                log_p = np.log(radial_profile[fit_mask] + 1e-8)
                 
-                # Linear regression: log_p = -alpha * log_r + c
+                # Linear regression: ln(P(r)) = -alpha * ln(r) + C
                 poly = np.polyfit(log_r, log_p, 1)
                 spectral_decay_slope = float(-poly[0])
                 
@@ -94,28 +96,30 @@ class FrequencyAnalyzer:
                 spectral_residual = float(np.mean((log_p - fitted) ** 2))
             else:
                 spectral_decay_slope = 2.0
-                spectral_residual = 0.5
+                spectral_residual = 0.05
 
             # Evaluation against Natural Image Physics:
-            # - Optical camera decay slope alpha: typically 1.6 to 2.8
+            # - Optical camera decay slope alpha: typically 1.6 to 3.4
             # - AI generative flattening slope: alpha < 1.35 (abnormally flat high frequencies)
-            # - Synthetic non-monotonic bump residual: spectral_residual > 3.2
-            is_slope_anomalous = (spectral_decay_slope < 1.35) or (spectral_decay_slope > 3.4)
-            is_residual_anomalous = spectral_residual > 3.5
-            is_peak_anomalous = (peak_count > 220) and (high_to_low_ratio > 0.72)
+            # - Synthetic non-monotonic bump residual: spectral_residual > 0.45
+            is_slope_anomalous = (spectral_decay_slope < 1.35) or (spectral_decay_slope > 4.8)
+            is_residual_anomalous = spectral_residual > 0.45
+            is_peak_anomalous = (peak_count > 250) and (high_to_low_ratio > 0.78) and is_residual_anomalous
 
-            is_synthetic_pattern = is_peak_anomalous or (is_slope_anomalous and is_residual_anomalous)
+            is_synthetic_pattern = (is_slope_anomalous and is_residual_anomalous) or is_peak_anomalous
 
-            # Score synthesis
-            peak_score = min(1.0, max(0.0, (peak_count - 120) / 400.0))
-            if high_to_low_ratio <= 0.72:
-                peak_score *= 0.45
+            # Continuous anomaly mapping
+            peak_score = min(1.0, max(0.0, (peak_count - 150) / 400.0))
+            if high_to_low_ratio <= 0.75:
+                peak_score *= 0.40
 
             slope_score = min(1.0, max(0.0, (1.8 - spectral_decay_slope) / 0.8)) if spectral_decay_slope < 1.8 else 0.0
             
-            spectral_anomaly_score = max(peak_score, slope_score * 0.85) if is_synthetic_pattern else (
-                min(0.35, max(0.04, peak_score * 0.6 + slope_score * 0.4))
-            )
+            if is_synthetic_pattern:
+                spectral_anomaly_score = max(0.65, min(0.95, max(peak_score, slope_score)))
+            else:
+                # Natural optical frequency roll-off
+                spectral_anomaly_score = float(round(min(0.32, max(0.03, peak_score * 0.5 + slope_score * 0.3)), 3))
 
             finding_text = (
                 "Periodic grid artifacts and high-frequency radial power-law deviation detected in 2D DFT spectrum."
@@ -127,7 +131,7 @@ class FrequencyAnalyzer:
                 "spectral_anomaly_score": float(round(spectral_anomaly_score, 3)),
                 "peak_count": peak_count,
                 "spectral_decay_slope": float(round(spectral_decay_slope, 2)),
-                "spectral_residual": float(round(spectral_residual, 2)),
+                "spectral_residual": float(round(spectral_residual, 3)),
                 "is_synthetic_pattern": is_synthetic_pattern,
                 "status": "APPLIED",
                 "finding": finding_text,
@@ -136,10 +140,10 @@ class FrequencyAnalyzer:
 
         except Exception as e:
             return {
-                "spectral_anomaly_score": 0.1,
+                "spectral_anomaly_score": 0.05,
                 "peak_count": 0,
                 "spectral_decay_slope": 2.0,
-                "spectral_residual": 0.5,
+                "spectral_residual": 0.05,
                 "is_synthetic_pattern": False,
                 "status": "FALLBACK",
                 "finding": f"Frequency analysis fallback: {str(e)}",

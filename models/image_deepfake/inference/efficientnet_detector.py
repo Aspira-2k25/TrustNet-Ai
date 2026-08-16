@@ -170,34 +170,61 @@ class EfficientNetDetector(BaseDetector):
             total_weight = sum(w for _, w in anomaly_weights)
             weighted_anomaly = sum(s * w for s, w in anomaly_weights) / max(1e-6, total_weight)
 
-            # Evidential Max-Pooling Floor: A single strong forensic or ML detection (e.g. HF ViT 90% or FFT 85%)
-            # must not be diluted into false 'Authentic' by passive analyzers.
+            # Evidential Max-Pooling Floor:
+            # When a single high-reliability detection occurs (e.g. Hugging Face ViT >= 0.75 or confirmed Face X-Ray >= 0.75),
+            # prevent dilution into false 'Authentic'.
             max_active_signal = max((s for s, _ in anomaly_weights), default=0.0)
-            if max_active_signal >= 0.70:
-                weighted_anomaly = max(weighted_anomaly, max_active_signal * 0.85)
+            is_hf_real = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) <= 15.0)
 
-            # Count multi-vector strong synthetic indicators
+            # Count genuinely independent strong synthetic indicators across distinct physical domains
             strong_signals = []
-            if freq_res.get("is_synthetic_pattern") or freq_res["spectral_anomaly_score"] >= 0.50:
-                strong_signals.append("2D Fourier periodic grid artifacts / 1/f^alpha deviation")
-            if pixel_res.get("is_morphing_detected") or pixel_res["pixel_morphing_score"] >= 0.55:
-                strong_signals.append("Sub-pixel CFA demosaicing discontinuity")
-            if gabor_res.get("is_texture_anomalous") or gabor_res["gabor_anomaly_score"] >= 0.55:
-                strong_signals.append("Multi-scale Gabor filter bank texture anomaly")
-            if noise_res.get("is_synthetic_noise") or noise_res["noise_anomaly_score"] >= 0.55:
-                strong_signals.append("Non-physical sensor noise distribution")
-            if face_res.get("is_manipulated_face") or face_res.get("boundary_anomaly_score", 0) >= 0.50:
-                strong_signals.append("Facial boundary blending discontinuity (Face X-Ray)")
-            if physics_res.get("is_physics_violation") or physics_res.get("physics_anomaly_score", 0) >= 0.50:
-                strong_signals.append("Asymmetrical corneal specular reflection vectors")
-            if geometry_res.get("is_geometry_violation") or geometry_res.get("geometry_anomaly_score", 0) >= 0.50:
-                strong_signals.append("Geometric structural asymmetry / missing contact shadow")
-            if hf_res.get("is_hf_applied", False) and float(hf_res.get("hf_risk_score", 0.0)) >= 65.0:
-                strong_signals.append(f"Hugging Face {self.hf_client.model_name} high fake probability")
+            strong_domains = set()
 
+            if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.60:
+                strong_signals.append("2D Fourier periodic grid artifacts / 1/f^alpha deviation")
+                strong_domains.add("frequency")
+
+            if pixel_res.get("is_morphing_detected") and pixel_res.get("pixel_morphing_score", 0) >= 0.60:
+                strong_signals.append("Sub-pixel CFA demosaicing discontinuity")
+                strong_domains.add("sensor_microstructure")
+
+            if gabor_res.get("is_texture_anomalous") and gabor_res.get("gabor_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Multi-scale Gabor filter bank texture anomaly")
+                strong_domains.add("spatial_texture")
+
+            if noise_res.get("is_synthetic_noise") and noise_res.get("noise_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Non-physical sensor noise distribution")
+                strong_domains.add("sensor_microstructure")
+
+            if ela_res.get("is_anomalous") and ela_res.get("ela_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Non-uniform Error Level Analysis surface across foreground and background")
+                strong_domains.add("compression_splicing")
+
+            if face_res.get("is_manipulated_face") and face_res.get("boundary_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Facial boundary blending discontinuity (Face X-Ray)")
+                strong_domains.add("face_anatomy")
+
+            if physics_res.get("is_physics_violation") and physics_res.get("physics_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Asymmetrical corneal specular reflection vectors")
+                strong_domains.add("physical_optics_geometry")
+
+            if geometry_res.get("is_geometry_violation") and geometry_res.get("geometry_anomaly_score", 0) >= 0.60:
+                strong_signals.append("Geometric structural asymmetry / missing contact shadow")
+                strong_domains.add("physical_optics_geometry")
+
+            if hf_res.get("is_hf_applied", False) and float(hf_res.get("hf_risk_score", 0.0)) >= 70.0:
+                strong_signals.append(f"Hugging Face {self.hf_client.model_name} high fake probability")
+                strong_domains.add("learned_deep_learning")
+
+            strong_domain_count = len(strong_domains)
             strong_signal_count = len(strong_signals)
             if meta_res.get("is_ai_signature_found"):
                 strong_signal_count += 2
+                strong_domains.add("provenance_metadata")
+                strong_domain_count += 2
+
+            if max_active_signal >= 0.75 and not is_hf_real:
+                weighted_anomaly = max(weighted_anomaly, max_active_signal * 0.85)
 
             # Cross-Domain Consistency Score (CDCF): Measures cross-modal agreement
             # across Spatial (Gabor/CFA/Noise), Frequency (FFT), Compression (ELA), and ML (HF)
@@ -212,15 +239,27 @@ class EfficientNetDetector(BaseDetector):
             cross_domain_spread = float(np.std(domain_scores))
             cross_domain_consistency = float(round(max(0.60, min(0.98, 1.0 - cross_domain_spread * 0.45)), 2))
 
-            # Multi-Vector Corroboration Calibration:
-            if meta_res.get("is_ai_signature_found"):
+            # Multi-Vector Corroboration Calibration (Requires >= 2 Distinct Physical Domains):
+            is_hf_fake = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) >= 75.0)
+            is_contradiction = False
+
+            # Two-Way Contradiction Detection:
+            # 1. Learned Model says REAL, but 2+ distinct physical forensic domains detect strong anomalies
+            if is_hf_real and strong_domain_count >= 2:
+                is_contradiction = True
+                weighted_anomaly = max(0.48, min(0.62, weighted_anomaly))
+            # 2. Learned Model says FAKE, but all forensic domains confirm authentic camera optics
+            elif is_hf_fake and strong_domain_count == 0 and max_active_signal <= 0.25:
+                is_contradiction = True
+                weighted_anomaly = max(0.46, min(0.58, weighted_anomaly))
+            elif meta_res.get("is_ai_signature_found"):
                 weighted_anomaly = max(0.92, weighted_anomaly)
-            elif strong_signal_count >= 2:
+            elif strong_domain_count >= 2:
                 weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
-            elif strong_signal_count == 1 and max_active_signal >= 0.70:
+            elif strong_domain_count == 1 and max_active_signal >= 0.75 and not is_hf_real:
                 weighted_anomaly = max(0.65, min(0.95, weighted_anomaly))
-            elif strong_signal_count == 0 and max_active_signal < 0.40:
-                weighted_anomaly = min(0.35, weighted_anomaly)
+            elif strong_domain_count == 0 and max_active_signal < 0.45:
+                weighted_anomaly = min(0.32, weighted_anomaly)
 
             # Calculate Native Score P(REAL) in [0.01, 0.99]
             native_score = float(round(max(0.01, min(0.99, 1.0 - weighted_anomaly)), 4))
@@ -231,8 +270,62 @@ class EfficientNetDetector(BaseDetector):
             score_spread = float(np.std(active_scores)) if len(active_scores) > 1 else 0.1
             confidence = float(round(max(0.70, min(0.98, 0.92 - score_spread * 0.35)), 2))
 
-            label = "fake" if risk_score >= 50.0 else "real"
-            verdict = "AI_GENERATED" if risk_score >= 75.0 else ("SUSPICIOUS" if risk_score >= 45.0 else "AUTHENTIC")
+            # 4-Level Semantic Result Structure:
+            # - AUTHENTIC: Risk < 25 (Low evidence of manipulation)
+            # - LIKELY_AUTHENTIC: 25 <= Risk < 45 (Mostly consistent with real capture)
+            # - UNCERTAIN: 45 <= Risk < 65 or contradiction (Signals disagree / insufficient evidence)
+            # - LIKELY_AI_MANIPULATED: Risk >= 65 (Multiple independent signals indicate synthetic content)
+            if is_contradiction or (45.0 <= risk_score < 65.0):
+                verdict = "UNCERTAIN"
+                label = "uncertain"
+            elif risk_score >= 65.0:
+                verdict = "LIKELY_AI_MANIPULATED"
+                label = "fake"
+            elif risk_score >= 25.0:
+                verdict = "LIKELY_AUTHENTIC"
+                label = "real"
+            else:
+                verdict = "AUTHENTIC"
+                label = "real"
+
+            # Dynamic "Why This Result" Explanations:
+            why_reasons: List[str] = []
+            if is_contradiction:
+                why_reasons.append("Conflicting Evidence: Learned transformer model and local physical forensic analyzers disagree. Manual verification recommended.")
+
+            if hf_res.get("is_hf_applied", False):
+                hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
+                if hf_risk_val <= 15.0:
+                    why_reasons.append(f"Vision Transformer AI model strongly indicates authentic photography ({100-hf_risk_val:.1f}% real confidence).")
+                elif hf_risk_val >= 70.0:
+                    why_reasons.append(f"Vision Transformer AI model indicates high synthetic deepfake probability ({hf_risk_val:.1f}% risk).")
+
+            if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.50:
+                why_reasons.append("2D Fourier spectrum exhibits periodic grid spikes / un-natural frequency energy concentration.")
+            else:
+                why_reasons.append("2D Fourier power spectrum follows natural optical lens 1/f^alpha roll-off.")
+
+            if pixel_res.get("is_morphing_detected") and pixel_res.get("pixel_morphing_score", 0) >= 0.50:
+                why_reasons.append("Sub-pixel Bayer CFA correlation broken (indicates synthetic diffusion/upscaling).")
+            else:
+                why_reasons.append("Sub-pixel Bayer CFA demosaicing and micro-edge continuity verified.")
+
+            if ela_res.get("is_anomalous") and ela_res.get("ela_anomaly_score", 0) >= 0.50:
+                why_reasons.append("Error Level Analysis detected non-uniform compression disparities consistent with splicing.")
+            else:
+                why_reasons.append("Error Level Analysis confirms homogeneous single-source compression.")
+
+            if face_res.get("has_face"):
+                if face_res.get("is_manipulated_face"):
+                    why_reasons.append("Face X-Ray boundary analysis detected localized blending step gradients.")
+                else:
+                    why_reasons.append(f"Seamless facial skin tone and boundary transitions verified across {face_res.get('face_count')} face(s).")
+
+            if meta_res.get("is_ai_signature_found"):
+                why_reasons.append(f"Deterministic AI generator footprint detected in metadata ({meta_res.get('generator_name')}).")
+
+            # Keep top 4 most informative reasons
+            why_reasons = why_reasons[:4]
 
             # 6. Structured Evidence Items
             evidence: List[EvidenceItem] = []
@@ -414,6 +507,8 @@ class EfficientNetDetector(BaseDetector):
                 "face_count": face_res.get("face_count", 0),
                 "cross_domain_consistency": cross_domain_consistency,
                 "gabor_anomaly_score": gabor_res.get("gabor_anomaly_score", 0.0),
+                "why_reasons": why_reasons,
+                "is_contradiction": is_contradiction,
                 "spectral_decay_slope": freq_res.get("spectral_decay_slope", 2.0),
                 "hf_model": hf_res.get("model_name"),
                 "hf_risk_score": hf_res.get("hf_risk_score"),

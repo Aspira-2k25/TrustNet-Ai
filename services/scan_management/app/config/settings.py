@@ -10,7 +10,7 @@ class ScanSettings(BaseSettings):
         description="Database connection URL"
     )
     KAFKA_BOOTSTRAP_SERVERS: str = Field(
-        default="localhost:9092",
+        default="localhost:9094",
         description="Kafka bootstrap servers connection string"
     )
     STORAGE_DIR: str = Field(

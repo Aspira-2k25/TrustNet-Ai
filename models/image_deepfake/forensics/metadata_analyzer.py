@@ -1,5 +1,5 @@
 import io
-from typing import Dict, Any, Tuple
+from typing import Dict, Any
 from PIL import Image, ExifTags
 
 class MetadataAnalyzer:
@@ -9,7 +9,6 @@ class MetadataAnalyzer:
     of known AI image generators.
     """
     
-    # Known exact string matches or substrings often found in EXIF 'Software' or 'CreatorTool'
     AI_SOFTWARE_SIGNATURES = [
         "midjourney",
         "stable diffusion",
@@ -59,12 +58,12 @@ class MetadataAnalyzer:
             exif_data = image.getexif()
             
             if not exif_data:
-                # No EXIF data at all
+                # Absence of EXIF is standard on web/messaging/webcam media (neutral baseline 0.05)
                 return {
                     "is_ai_signature_found": False,
                     "is_exif_missing": True,
-                    "metadata_anomaly_score": 0.35, # Suspicious, but not deterministically AI (social media strips EXIF)
-                    "finding": "EXIF metadata is completely stripped or missing.",
+                    "metadata_anomaly_score": 0.05,
+                    "finding": "Standard metadata surface (no external AI generation markers).",
                     "raw_software_tag": None
                 }
                 
@@ -93,33 +92,32 @@ class MetadataAnalyzer:
                 return {
                     "is_ai_signature_found": True,
                     "is_exif_missing": False,
-                    "metadata_anomaly_score": 1.0, # Deterministic 100% AI
+                    "metadata_anomaly_score": 1.0,
                     "finding": f"Deterministic AI Signature Found: {found_signature.title()}",
                     "raw_software_tag": generator_name,
                     "generator_name": generator_name,
                     "ai_tool": found_signature.title()
                 }
                 
-            # Check for authentic camera traces (if it has camera Make/Model or Focal Length)
+            # Check for authentic camera traces
             has_camera_hardware = bool(make or model or "FocalLength" in exif_dict or "ISOSpeedRatings" in exif_dict or "ApertureValue" in exif_dict)
             
             if has_camera_hardware:
                 return {
                     "is_ai_signature_found": False,
                     "is_exif_missing": False,
-                    "metadata_anomaly_score": 0.0, # Authentic camera properties exist
-                    "finding": f"Authentic camera hardware metadata detected (Make/Model).",
+                    "metadata_anomaly_score": 0.0,
+                    "finding": "Authentic camera hardware metadata detected (Make/Model).",
                     "raw_software_tag": software,
                     "generator_name": None,
                     "ai_tool": None
                 }
                 
-            # Has EXIF, but no camera data and no obvious AI signature (e.g. just Photoshop or empty)
             return {
                 "is_ai_signature_found": False,
                 "is_exif_missing": False,
-                "metadata_anomaly_score": 0.15,
-                "finding": "Basic EXIF exists but lacks optical camera hardware traces.",
+                "metadata_anomaly_score": 0.08,
+                "finding": "Basic EXIF header verified (no AI generator footprints detected).",
                 "raw_software_tag": software,
                 "generator_name": None,
                 "ai_tool": None
@@ -129,8 +127,8 @@ class MetadataAnalyzer:
             return {
                 "is_ai_signature_found": False,
                 "is_exif_missing": True,
-                "metadata_anomaly_score": 0.4,
-                "finding": f"Failed to parse EXIF metadata: {str(e)}",
+                "metadata_anomaly_score": 0.05,
+                "finding": f"Metadata extraction fallback: {str(e)}",
                 "raw_software_tag": None,
                 "generator_name": None,
                 "ai_tool": None
