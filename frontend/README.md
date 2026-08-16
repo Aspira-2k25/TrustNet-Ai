@@ -1,21 +1,59 @@
-# TRUST[NET] Frontend Security Workstation
+﻿# Trust Net Frontend (frontend)
 
-The frontend is a high-performance React application serving as the UI for the TrustNet AI cyber-forensics platform. It allows users to upload media, view scientific analysis breakdowns, and interact with an Explainable AI assistant.
+React + TypeScript + Vite frontend for the Trust Net forensic workstation.
 
-## Technology Stack
-- **Framework**: React 18, Vite
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS (with bespoke cyan/neon security aesthetics)
-- **Icons**: Lucide React
-- **AI Integration**: Puter.js (for GPT-4o Vision & Neural TTS)
+## Stack
 
-## Core Features & Logic
-1. **The Canvas Studio (Report View)**: The `ReportView.tsx` component acts as a scientific dashboard. It dynamically parses the `EvidenceItem` array returned from the backend and displays contribution bars for ELA, PRNU, FFT, Physics, and Geometry forensics.
-2. **Explainable AI Debriefing**: Uses the `PuterAIService` to take raw JSON telemetry from the deepfake engine and synthesize it into a human-readable threat analysis.
-3. **Multimodal Vision Analysis**: The UI securely converts local blobs into base64 images and sends them to the Puter AI Vision pipeline to verify if the physical rendering makes sense to a human observer.
+- React 19
+- TypeScript 6
+- Vite 8
+- Tailwind CSS 4
+- Lucide React
+- Optional Puter.js browser SDK integration
 
-## Running Locally
+## What It Does
+
+- Auth flows: login/register UI and token persistence in `localStorage`.
+- Scan upload flow for image analysis.
+- Dashboard and report views for forensic output.
+- Explainable AI debrief + optional TTS through Puter SDK.
+
+## API Integration
+
+- Base URL: `VITE_API_GATEWAY_URL` or `http://localhost:8000`
+- Main endpoints used:
+  - `POST /api/v1/auth/login`
+  - `POST /api/v1/auth/register`
+  - `POST /api/v1/scans/analyze`
+- Fallback behavior:
+  - If gateway analyze endpoint is unavailable, frontend tries `http://localhost:8003/detect/file`.
+
+## Development
+
 ```bash
 npm install
 npm run dev
 ```
+
+## Build And Lint
+
+```bash
+npm run build
+npm run lint
+npm run preview
+```
+
+## Environment
+
+Create `.env` in `frontend/` if needed:
+
+```env
+VITE_API_GATEWAY_URL=http://localhost:8000
+```
+
+## Key Source Paths
+
+- `src/App.tsx` - app shell and view switching
+- `src/services/api.ts` - backend API integration
+- `src/services/puterAI.ts` - explainability/TTS integration
+- `src/views/` - landing, dashboard, upload, report, auth screens

@@ -1,22 +1,36 @@
-# Shared Core & Foundation (`shared/`)
+﻿# Shared Package (shared)
 
-## 📌 Overview
-The `shared/` package contains cross-cutting contracts, Pydantic schemas, constants, logging utilities, and interfaces used across all microservices and ML models.
+Cross-service package for common contracts and utilities.
 
----
+## Purpose
 
-## 📁 Package Modules
-- `shared/auth/`: Zero-network-call JWT verification helper (`verify_token.py`).
-- `shared/config/`: `BaseSettings` base class for Pydantic configuration.
-- `shared/constants/`: Enums for `ModuleEnum`, `StatusEnum`, `NativeScoreSemanticsEnum`, and Kafka `Topics`.
-- `shared/interfaces/`: Abstract base classes (`BaseDetector`).
-- `shared/logging/`: Structured JSON log formatter and logger setup (`get_logger`).
-- `shared/schemas/`: Universal contracts (`DetectionResult`, `APIResponse`, `Events`, `EvidenceItem`).
-- `shared/utils/`: Standard UUID and ID generator helpers (`ids.py`).
+Avoid duplication between services by centralizing:
 
----
+- Pydantic schemas
+- Constants and enums
+- JWT verification helper
+- Logging setup
+- Base settings
+- Interface contracts
 
-## 🧪 Testing
+## Main Modules
+
+- `shared/auth/` - token verification helper
+- `shared/config/` - base settings class
+- `shared/constants/` - module/status/topic constants
+- `shared/interfaces/` - detector base interface
+- `shared/logging/` - structured logging setup
+- `shared/schemas/` - API response, events, detection result models
+- `shared/utils/` - id generation helpers
+
+## Install Editable During Development
+
 ```bash
-python -m pytest shared/tests/ -v
+pip install -e shared/
+```
+
+## Tests
+
+```bash
+python -m pytest shared/tests -v
 ```

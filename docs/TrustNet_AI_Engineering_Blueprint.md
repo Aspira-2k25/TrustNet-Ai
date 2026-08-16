@@ -54,7 +54,7 @@ Service Directory...............................................................
 
 Should Image, Audio, and Video be one service or three? ................................................................................................. 8 
 
-One combined 'DeepScan' service (rejected for production, acceptable for early MVP) ........................................... 9 
+One combined 'Trust Net' service (rejected for production, acceptable for early MVP) ........................................... 9
 
 Three separate services (recommended target, and worth building this way once Phase 4 starts) ............................ 9 
 
@@ -281,7 +281,7 @@ This phase runs in parallel with backend work — model training does not block 
 Phase 1 are honored. 
 
 • Follow the module build order in Part F exactly: Phishing and Scam Message first (lowest risk, fastest to real 
-numbers), then Fake Review, then DeepScan image → audio → video, with OSINT and Trust Fusion last. 
+numbers), then Fake Review, then Trust Net image → audio → video, with OSINT and Trust Fusion last. 
 
 • Every model, once trained, is wrapped behind the same inference interface (Part D, plugin architecture) before it 
 is considered 'done' — a model that only runs in a notebook is not integration-ready. 
@@ -600,7 +600,7 @@ TrustNet AI — Engineering Blueprint
 
 Three separate services, communicating only via Kafka events keyed by scan_id. Reasoning, compared directly: 
 
-One combined 'DeepScan' service (rejected for production, acceptable for early MVP) 
+One combined 'Trust Net' service (rejected for production, acceptable for early MVP) 
 
 • Advantage: fewer moving parts to wire up in week 6-8; one Dockerfile, one deployment. 
 

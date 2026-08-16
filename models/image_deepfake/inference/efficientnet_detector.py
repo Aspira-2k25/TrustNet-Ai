@@ -421,7 +421,7 @@ class EfficientNetDetector(BaseDetector):
             }
 
             risk_adjective = 'CRITICAL' if risk_score >= 75 else ('HIGH' if risk_score >= 50 else ('MEDIUM' if risk_score >= 25 else 'LOW'))
-            explanation_summary = f"DEEP[SCAN] analyzed this [{scene_label}] across {len(active_scores)} active forensic signals. Risk Score: {risk_score:.0f}/100 ({risk_adjective} RISK, Confidence: {confidence*100:.0f}%, Consistency: {cross_domain_consistency*100:.0f}%)."
+            explanation_summary = f"Trust Net analyzed this [{scene_label}] across {len(active_scores)} active forensic signals. Risk Score: {risk_score:.0f}/100 ({risk_adjective} RISK, Confidence: {confidence*100:.0f}%, Consistency: {cross_domain_consistency*100:.0f}%)."
 
             return DetectionResult(
                 scan_id=scan_id,
