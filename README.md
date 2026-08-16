@@ -66,13 +66,34 @@ source .venv/bin/activate
 
 ### 2. Install backend dependencies
 
-```bash
+Recommended one-step installer from the repository root:
+
+```powershell
+.\install-deps.bat
+```
+
+Or run the PowerShell script directly:
+
+```powershell
+.\install-deps.ps1
+```
+
+Manual install sequence, if you prefer to run the commands yourself:
+
+```powershell
 pip install -e shared/
+cd services/auth
 pip install -r services/auth/requirements.txt
+cd ..\scan_management
 pip install -r services/scan_management/requirements.txt
+cd ..\image_deepfake
 pip install -r services/image_deepfake/requirements.txt
+cd ..\trust_engine
 pip install -r services/trust_engine/requirements.txt
+cd ..\..
+cd gateway
 pip install -r gateway/requirements.txt
+cd ..
 ```
 
 ### 3. Install frontend dependencies
