@@ -18,14 +18,14 @@ class PhysicsEyeReflectionAnalyzer:
     """
     
     def __init__(self):
-        # We attempt to load OpenCV's default Haar cascades for eye detection
+        # We attempt to load OpenCV's default Haar cascades for eye detection if supported
         self.eye_cascade = None
-        if cv2 is not None:
+        if cv2 is not None and hasattr(cv2, 'CascadeClassifier'):
             try:
                 # Load haarcascade_eye.xml from cv2.data
                 self.eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
             except Exception:
-                pass
+                self.eye_cascade = None
 
     def analyze(self, image_bytes: bytes) -> Dict[str, Any]:
         """

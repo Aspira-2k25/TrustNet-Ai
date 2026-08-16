@@ -37,7 +37,9 @@ class PixelMorphingAnalyzer:
             # In authentic digital camera images, G channel predicts R and B via bilinear demosaicing:
             # G_est ≈ (R + B) / 2 + high_pass_correction
             # We measure residual error variance on even vs odd pixel lattices
-            even_odd_diff = np.abs(g[0::2, 0::2] - g[1::2, 1::2][:g[0::2, 0::2].shape[0], :g[0::2, 0::2].shape[1]])
+            min_h = min(g[0::2, 0::2].shape[0], g[1::2, 1::2].shape[0])
+            min_w = min(g[0::2, 0::2].shape[1], g[1::2, 1::2].shape[1])
+            even_odd_diff = np.abs(g[0::2, 0::2][:min_h, :min_w] - g[1::2, 1::2][:min_h, :min_w])
             cfa_residual = float(np.std(even_odd_diff))
 
             # 2. Micro-Edge Laplacian Jitter (2nd Order Spatial Derivative)

@@ -70,7 +70,7 @@ class EfficientNetDetector(BaseDetector):
         self.geometry_analyzer = GeometryPhysicsAnalyzer()
         self.hf_client = HuggingFaceDeepfakeClient()
 
-    def predict(self, input_data: bytes, scan_id: Optional[str] = None) -> DetectionResult:
+    def predict(self, input_data: bytes, scan_id: Optional[str] = None, filename: Optional[str] = None) -> DetectionResult:
         start_time = time.time()
         
         if scan_id is None:
@@ -79,7 +79,7 @@ class EfficientNetDetector(BaseDetector):
         try:
             # 1. Base Semantic & Metadata Extraction
             scene_res = self.scene_analyzer.analyze(input_data)
-            meta_res = self.metadata_analyzer.analyze(input_data)
+            meta_res = self.metadata_analyzer.analyze(input_data, filename=filename)
             
             scene_type = scene_res.get("scene_type", "general_object")
             scene_label = scene_res.get("scene_label", "General Media / Photographic Content")
@@ -115,8 +115,8 @@ class EfficientNetDetector(BaseDetector):
                 }
                 geometry_res = self.geometry_analyzer.analyze(input_data)
 
-            # External Transformer inference
-            hf_res = self.hf_client.predict(input_data)
+            # External Transformer inference (gated by face presence)
+            hf_res = self.hf_client.predict(input_data, has_face=has_face, scene_type=scene_type)
 
             # 4. Extract deep CNN feature embeddings via PyTorch EfficientNet-B0 backbone
             tensor = process_image_bytes(input_data).to(self.device)
@@ -128,10 +128,12 @@ class EfficientNetDetector(BaseDetector):
             anomaly_weights: List[Tuple[float, float]] = []
 
             # Frequency DFT (radial power-law baseline + periodic spikes)
-            anomaly_weights.append((freq_res["spectral_anomaly_score"], 0.20))
+            freq_w = 0.12 if is_digital_art else 0.20
+            anomaly_weights.append((freq_res["spectral_anomaly_score"], freq_w))
             
             # Sub-Pixel CFA & micro-jitter
-            anomaly_weights.append((pixel_res["pixel_morphing_score"], 0.16))
+            pixel_w = 0.12 if is_digital_art else 0.16
+            anomaly_weights.append((pixel_res["pixel_morphing_score"], pixel_w))
 
             # Multi-scale Gabor Texture Bank
             gabor_w = 0.08 if (is_digital_art or is_screenshot) else 0.16
@@ -157,13 +159,13 @@ class EfficientNetDetector(BaseDetector):
                 anomaly_weights.append((geometry_res["geometry_anomaly_score"], 0.18))
 
             # Semantic scene context
-            scene_w = 0.30 if is_digital_art else 0.12
+            scene_w = 0.35 if is_digital_art else 0.12
             anomaly_weights.append((scene_res["scene_anomaly_score"], scene_w))
 
-            # External Transformer Model (Hugging Face ViT)
+            # External Transformer Model (Hugging Face ViT - only when genuinely applied)
             if hf_res.get("is_hf_applied", False):
                 hf_anomaly = float(hf_res.get("hf_risk_score", 50.0)) / 100.0
-                hf_w = 0.45 if is_digital_art else 0.35
+                hf_w = 0.40 if is_digital_art else 0.30
                 anomaly_weights.append((hf_anomaly, hf_w))
 
             # Compute normalized weighted average
@@ -212,6 +214,10 @@ class EfficientNetDetector(BaseDetector):
                 strong_signals.append("Geometric structural asymmetry / missing contact shadow")
                 strong_domains.add("physical_optics_geometry")
 
+            if is_digital_art and scene_res.get("scene_anomaly_score", 0.0) >= 0.70:
+                strong_signals.append(f"AI Digital Art & Latent Diffusion Texture: {scene_res.get('finding')}")
+                strong_domains.add("generative_art_synthesis")
+
             if hf_res.get("is_hf_applied", False) and float(hf_res.get("hf_risk_score", 0.0)) >= 70.0:
                 strong_signals.append(f"Hugging Face {self.hf_client.model_name} high fake probability")
                 strong_domains.add("learned_deep_learning")
@@ -219,7 +225,7 @@ class EfficientNetDetector(BaseDetector):
             strong_domain_count = len(strong_domains)
             strong_signal_count = len(strong_signals)
             if meta_res.get("is_ai_signature_found"):
-                strong_signal_count += 2
+                strong_signal_count += 3
                 strong_domains.add("provenance_metadata")
                 strong_domain_count += 2
 
@@ -243,23 +249,23 @@ class EfficientNetDetector(BaseDetector):
             is_hf_fake = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) >= 75.0)
             is_contradiction = False
 
-            # Two-Way Contradiction Detection:
-            # 1. Learned Model says REAL, but 2+ distinct physical forensic domains detect strong anomalies
-            if is_hf_real and strong_domain_count >= 2:
+            # 1. Immediate override for deterministic AI provenance markers (ChatGPT / DALL-E / Midjourney / prompts in metadata)
+            if meta_res.get("is_ai_signature_found"):
+                weighted_anomaly = max(0.96, weighted_anomaly)
+                is_contradiction = False
+            # 2. Two-Way Contradiction Detection (when no deterministic signature is present):
+            elif is_hf_real and strong_domain_count >= 2:
                 is_contradiction = True
                 weighted_anomaly = max(0.48, min(0.62, weighted_anomaly))
-            # 2. Learned Model says FAKE, but all forensic domains confirm authentic camera optics
             elif is_hf_fake and strong_domain_count == 0 and max_active_signal <= 0.25:
                 is_contradiction = True
                 weighted_anomaly = max(0.46, min(0.58, weighted_anomaly))
-            elif meta_res.get("is_ai_signature_found"):
-                weighted_anomaly = max(0.92, weighted_anomaly)
             elif strong_domain_count >= 2:
                 weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
             elif strong_domain_count == 1 and max_active_signal >= 0.75 and not is_hf_real:
                 weighted_anomaly = max(0.65, min(0.95, weighted_anomaly))
             elif strong_domain_count == 0 and max_active_signal < 0.45:
-                weighted_anomaly = min(0.32, weighted_anomaly)
+                weighted_anomaly = min(0.20, weighted_anomaly)
 
             # Calculate Native Score P(REAL) in [0.01, 0.99]
             native_score = float(round(max(0.01, min(0.99, 1.0 - weighted_anomaly)), 4))
@@ -271,10 +277,6 @@ class EfficientNetDetector(BaseDetector):
             confidence = float(round(max(0.70, min(0.98, 0.92 - score_spread * 0.35)), 2))
 
             # 4-Level Semantic Result Structure:
-            # - AUTHENTIC: Risk < 25 (Low evidence of manipulation)
-            # - LIKELY_AUTHENTIC: 25 <= Risk < 45 (Mostly consistent with real capture)
-            # - UNCERTAIN: 45 <= Risk < 65 or contradiction (Signals disagree / insufficient evidence)
-            # - LIKELY_AI_MANIPULATED: Risk >= 65 (Multiple independent signals indicate synthetic content)
             if is_contradiction or (45.0 <= risk_score < 65.0):
                 verdict = "UNCERTAIN"
                 label = "uncertain"
@@ -290,29 +292,37 @@ class EfficientNetDetector(BaseDetector):
 
             # Dynamic "Why This Result" Explanations:
             why_reasons: List[str] = []
+
+            # 1. Deterministic AI Provenance Flag (Top priority)
+            if meta_res.get("is_ai_signature_found"):
+                why_reasons.append(f"Deterministic AI generator signature detected ({meta_res.get('generator_name')}).")
+
             if is_contradiction:
                 why_reasons.append("Conflicting Evidence: Learned transformer model and local physical forensic analyzers disagree. Manual verification recommended.")
 
             if hf_res.get("is_hf_applied", False):
                 hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
                 if hf_risk_val <= 15.0:
-                    why_reasons.append(f"Vision Transformer AI model strongly indicates authentic photography ({100-hf_risk_val:.1f}% real confidence).")
+                    why_reasons.append(f"Vision Transformer AI model indicates authentic photography ({100-hf_risk_val:.1f}% real confidence).")
                 elif hf_risk_val >= 70.0:
                     why_reasons.append(f"Vision Transformer AI model indicates high synthetic deepfake probability ({hf_risk_val:.1f}% risk).")
 
+            if is_digital_art and scene_res.get("scene_anomaly_score", 0.0) >= 0.60:
+                why_reasons.append(f"Scene analysis: {scene_res.get('finding')}")
+
             if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.50:
                 why_reasons.append("2D Fourier spectrum exhibits periodic grid spikes / un-natural frequency energy concentration.")
-            else:
+            elif not is_digital_art:
                 why_reasons.append("2D Fourier power spectrum follows natural optical lens 1/f^alpha roll-off.")
 
             if pixel_res.get("is_morphing_detected") and pixel_res.get("pixel_morphing_score", 0) >= 0.50:
                 why_reasons.append("Sub-pixel Bayer CFA correlation broken (indicates synthetic diffusion/upscaling).")
-            else:
+            elif not is_digital_art:
                 why_reasons.append("Sub-pixel Bayer CFA demosaicing and micro-edge continuity verified.")
 
             if ela_res.get("is_anomalous") and ela_res.get("ela_anomaly_score", 0) >= 0.50:
                 why_reasons.append("Error Level Analysis detected non-uniform compression disparities consistent with splicing.")
-            else:
+            elif not is_digital_art:
                 why_reasons.append("Error Level Analysis confirms homogeneous single-source compression.")
 
             if face_res.get("has_face"):
@@ -320,9 +330,6 @@ class EfficientNetDetector(BaseDetector):
                     why_reasons.append("Face X-Ray boundary analysis detected localized blending step gradients.")
                 else:
                     why_reasons.append(f"Seamless facial skin tone and boundary transitions verified across {face_res.get('face_count')} face(s).")
-
-            if meta_res.get("is_ai_signature_found"):
-                why_reasons.append(f"Deterministic AI generator footprint detected in metadata ({meta_res.get('generator_name')}).")
 
             # Keep top 4 most informative reasons
             why_reasons = why_reasons[:4]

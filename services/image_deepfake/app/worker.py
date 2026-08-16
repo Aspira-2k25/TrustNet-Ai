@@ -78,7 +78,13 @@ class ImageDeepfakeWorker:
                 error_message=error_err
             )
         else:
-            result = self.detector.predict(image_bytes, scan_id=scan_id)
+            filename = None
+            if event.payload.metadata and isinstance(event.payload.metadata, dict):
+                filename = event.payload.metadata.get("original_filename")
+            if not filename and storage_key:
+                filename = os.path.basename(storage_key)
+
+            result = self.detector.predict(image_bytes, scan_id=scan_id, filename=filename)
 
         completed_event = DetectorCompletedEvent(
             payload=result
