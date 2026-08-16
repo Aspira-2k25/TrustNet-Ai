@@ -1,0 +1,25 @@
+# Image Deepfake Model Configuration — EfficientNet-B0 Baseline
+model:
+  architecture: "efficientnet_b0"
+  pretrained: true
+  num_classes: 2
+  dropout_rate: 0.2
+
+dataset:
+  input_resolution: 224
+  batch_size: 32
+  num_workers: 4
+  face_crop_margin: 1.3
+
+training:
+  epochs: 20
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  optimizer: "AdamW"
+  scheduler: "CosineAnnealingLR"
+  early_stopping_patience: 5
+  mixed_precision: true
+
+loss:
+  type: "CrossEntropyLoss"
+  label_smoothing: 0.05

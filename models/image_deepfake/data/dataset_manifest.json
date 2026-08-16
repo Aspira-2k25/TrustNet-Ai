@@ -1,0 +1,35 @@
+{
+  "datasets": [
+    {
+      "name": "FaceForensics++",
+      "version": "c23_compressed",
+      "modalities": ["Deepfakes", "Face2Face", "FaceSwap", "NeuralTextures", "Real"],
+      "split_strategy": "subject_level_grouped",
+      "splits": {
+        "train_videos": 720,
+        "val_videos": 140,
+        "test_videos": 140
+      },
+      "subject_leakage_guarantee": "Zero cross-split video/identity overlap enforced by video sequence ID hashing."
+    },
+    {
+      "name": "Celeb-DF-v2",
+      "version": "v2",
+      "modalities": ["Celeb-real", "Celeb-synthesis", "YouTube-real"],
+      "split_strategy": "subject_level_grouped",
+      "splits": {
+        "test_videos": 518
+      },
+      "purpose": "Held-out cross-dataset generalizability benchmark."
+    }
+  ],
+  "preprocessing_pipeline": {
+    "face_detector": "RetinaFace / MTCNN fallback",
+    "bounding_box_margin": 1.3,
+    "input_resolution": [224, 224],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  }
+}

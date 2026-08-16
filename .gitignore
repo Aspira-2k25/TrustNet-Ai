@@ -1,0 +1,81 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# SQLite & Storage artifacts
+*.db
+*.sqlite
+*.sqlite3
+storage_uploads/
+quarantine/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML & Models
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.pb
+*.tflite
+*.h5
+*.hdf5
+*.joblib
+checkpoints/
+dataset/
+benchmark_results.json
+benchmark/benchmark_sanity_report.json
+benchmark/results_*.json
+benchmark/ablation_results.json
+models/*/experiments/
+models/*/data/*
+!models/*/data/.gitkeep
+!models/*/data/dataset_manifest.json
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/.next/
+frontend/build/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

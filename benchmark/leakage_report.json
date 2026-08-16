@@ -1,0 +1,16 @@
+{
+  "status": "READY",
+  "baseline_version": "v1.0.0-frozen-baseline",
+  "description": "Dataset Data Leakage & Near-Duplicate Auditing Protocol",
+  "screening_algorithms": {
+    "exact_duplicates": "SHA-256 256-bit cryptographic hash collision check",
+    "perceptual_near_duplicates": "64-bit Average Perceptual Hash (pHash) with Hamming Distance <= 3",
+    "identity_isolation": "Strict split separation for human identities and video source sequences",
+    "generative_isolation": "Strict split grouping for multi-seed generative prompt variations"
+  },
+  "dataset_status": "Awaiting external labelled evaluation dataset path (e.g. /path/to/dataset with real/ and fake/ subdirectories)",
+  "screened_samples": 0,
+  "exact_duplicates_found": 0,
+  "near_duplicates_found": 0,
+  "leakage_risk_status": "CLEAN_PENDING_INGESTION"
+}

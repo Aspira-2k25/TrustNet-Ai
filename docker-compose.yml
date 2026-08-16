@@ -1,0 +1,87 @@
+version: "3.8"
+
+services:
+  # =========================================================================
+  # Primary Message Broker: Apache Kafka (KRaft mode - no ZooKeeper needed)
+  # =========================================================================
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: trustnet_kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  # =========================================================================
+  # Primary Relational Store: PostgreSQL 15 (Auth & Scan metadata)
+  # =========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: trustnet_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: trustnet
+      POSTGRES_PASSWORD: trustnet_dev_password
+      POSTGRES_DB: trustnet_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # =========================================================================
+  # Document / Synthesis Store: MongoDB 7 (Trust scores & raw detections)
+  # =========================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: trustnet_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # =========================================================================
+  # Fast Cache / Session / Rate Limit: Redis 7
+  # =========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: trustnet_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # =========================================================================
+  # Object Storage: MinIO (S3 compatible media store)
+  # =========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: trustnet_minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    volumes:
+      - minio_data:/data
+
+volumes:
+  kafka_data:
+  postgres_data:
+  mongodb_data:
+  redis_data:
+  minio_data:

@@ -1,0 +1,16 @@
+# TrustNet AI — Fusion Engine Weights Configuration
+# Derived from held-out validation performance per Master Spec Section 5.2 Step 2.
+# Initial baseline weights (equal weighting across modules):
+weights:
+  image_deepfake: 0.25
+  phishing: 0.25
+  scam_message: 0.25
+  fake_review: 0.25
+  audio_deepfake: 0.25
+  video_deepfake: 0.25
+  osint: 0.25
+
+# Rules
+max_single_module_weight_ratio: 0.40
+contradiction_delta_threshold: 40.0
+contradiction_confidence_penalty: 0.75

@@ -1,0 +1,84 @@
+{
+  "release_version": "v1.0.0-frozen-baseline",
+  "frozen_date": "2026-08-16T14:25:00Z",
+  "status": "ENGINEERING_VALIDATED_BASELINE_FROZEN",
+  "python_environment": {
+    "python_version": "3.14.2",
+    "torch_version": "2.10.0+cpu",
+    "torchvision_version": "0.25.0+cpu",
+    "pillow_version": "12.1.1",
+    "opencv_version": "4.13.0",
+    "fastapi_version": "0.128.0",
+    "pydantic_version": "2.12.5",
+    "numpy_version": "2.4.2"
+  },
+  "detector_configuration": {
+    "engine_class": "models.image_deepfake.inference.efficientnet_detector.EfficientNetDetector",
+    "backbone_model": "torchvision.models.efficientnet_b0(weights=DEFAULT)",
+    "backbone_role": "Convolutional feature extractor & spatial representation diversity (1280-dim)",
+    "external_learned_classifier": {
+      "provider": "Hugging Face Hub API",
+      "model_id": "dima806/deepfake_vs_real_image_detection",
+      "timeout_seconds": 3.5,
+      "fusion_weight": 0.22,
+      "fallback_policy": "Omit from fusion weight denominator on timeout or missing credentials"
+    },
+    "fusion_weights": {
+      "huggingface_vit": 0.22,
+      "face_boundary_xray": 0.14,
+      "subpixel_cfa_morphing": 0.12,
+      "fft_spectral_residuals": 0.12,
+      "physics_corneal_parallax": 0.10,
+      "physics_3d_geometry": 0.10,
+      "ela_compression_error": 0.10,
+      "prnu_sensor_noise": 0.10,
+      "provenance_metadata_exif": 0.05,
+      "efficientnet_spatial_backbone": 0.05
+    },
+    "routing_rules": {
+      "face_present": {
+        "applied": ["face_boundary_xray", "physics_corneal_parallax"],
+        "skipped": ["physics_3d_geometry"]
+      },
+      "face_absent": {
+        "applied": ["physics_3d_geometry"],
+        "skipped": ["face_boundary_xray", "physics_corneal_parallax"]
+      },
+      "universal": [
+        "huggingface_vit",
+        "subpixel_cfa_morphing",
+        "fft_spectral_residuals",
+        "ela_compression_error",
+        "prnu_sensor_noise",
+        "provenance_metadata_exif",
+        "efficientnet_spatial_backbone"
+      ]
+    },
+    "corroboration_rule": {
+      "threshold": 0.70,
+      "minimum_strong_signals": 2,
+      "boost_multiplier": 1.15,
+      "minimum_boosted_anomaly": 0.72,
+      "maximum_boosted_anomaly": 0.98
+    },
+    "decision_thresholds": {
+      "authentic_max_risk": 44.99,
+      "suspicious_min_risk": 45.00,
+      "suspicious_max_risk": 74.99,
+      "ai_generated_min_risk": 75.00
+    },
+    "score_clamping": {
+      "min_real_probability": 0.01,
+      "max_real_probability": 0.99,
+      "min_risk_score": 1.0,
+      "max_risk_score": 99.0
+    }
+  },
+  "verification_status": {
+    "total_unit_and_integration_tests": 91,
+    "passing_tests": 91,
+    "failing_tests": 0,
+    "pass_rate_percentage": 100.0,
+    "reproducibility_variance_across_5_runs": 0.0
+  }
+}
