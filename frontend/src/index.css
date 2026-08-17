@@ -1,41 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: 222 47% 7%;
+  --background: 225 20% 7%;
   --foreground: 210 40% 98%;
 
-  --card: 222 47% 9%;
+  --card: 225 20% 9%;
   --card-foreground: 210 40% 98%;
 
-  --popover: 222 47% 9%;
+  --popover: 225 20% 9%;
   --popover-foreground: 210 40% 98%;
 
-  --primary: 217 91% 60%;
-  --primary-foreground: 222 47% 9%;
+  --primary: 239 84% 67%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 19% 18%;
+  --secondary: 220 13% 16%;
   --secondary-foreground: 210 40% 98%;
 
-  --muted: 217 19% 18%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 220 13% 16%;
+  --muted-foreground: 215 16% 57%;
 
-  --accent: 217 19% 18%;
+  --accent: 220 13% 16%;
   --accent-foreground: 210 40% 98%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 217 19% 18%;
-  --input: 217 19% 18%;
-  --ring: 224 76% 48%;
+  --border: 220 13% 16%;
+  --input: 220 13% 16%;
+  --ring: 239 84% 67%;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0b0f17;
+  background-color: #0f1117;
   color: #e2e8f0;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -47,18 +47,18 @@ code, pre, .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Custom Scrollbar for professional workstation view */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: #0f1117;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #252a37;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3b4252;
 }

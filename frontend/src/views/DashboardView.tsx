@@ -29,15 +29,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
   const getRiskBadge = (level?: RiskLevel) => {
     switch (level) {
       case 'LOW':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950/60 border border-emerald-800/50 text-emerald-400">LOW</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Low</span>;
       case 'MEDIUM':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950/60 border border-amber-800/50 text-amber-400">MEDIUM</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400">Medium</span>;
       case 'HIGH':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-950/60 border border-orange-800/50 text-[#ff5722]">HIGH</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-orange-500/10 border border-orange-500/20 text-orange-400">High</span>;
       case 'CRITICAL':
-        return <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950/60 border border-rose-800/50 text-rose-400">CRITICAL</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-red-500/10 border border-red-500/20 text-red-400">Critical</span>;
       default:
-        return <span className="px-2 py-0.5 rounded text-[11px] font-mono text-slate-500">—</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] text-slate-500">—</span>;
     }
   };
 
@@ -46,95 +46,95 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
       {/* Dashboard Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight mb-1">
+          <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
             Forensic Intelligence History
           </h1>
-          <p className="text-sm text-slate-400 font-mono text-xs">
+          <p className="text-sm text-slate-400">
             Real-time telemetry and audit logs of media classification requests.
           </p>
         </div>
 
         <button
           onClick={onNewScan}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-gradient-to-r from-[#ff4500] to-[#ff6b00] hover:from-[#ff5722] hover:to-[#ff7a1a] text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
         >
-          <Plus size={14} />
+          <Plus size={15} />
           <span>New Inspection</span>
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl p-5 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-[#13161f] border border-[#1e2231] rounded-xl p-5">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">Total Ingested</span>
-            <Activity size={16} className="text-slate-400" />
+            <span className="text-xs font-medium text-slate-400">Total Ingested</span>
+            <Activity size={16} className="text-slate-500" />
           </div>
-          <div className="text-2xl font-black font-mono text-white mb-1">{totalScans}</div>
-          <span className="text-[11px] text-slate-500 font-mono">Processed media assets</span>
+          <div className="text-2xl font-bold font-mono text-white mb-1">{totalScans}</div>
+          <span className="text-[11px] text-slate-500">Processed media assets</span>
         </div>
 
-        <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl p-5 shadow-sm">
+        <div className="bg-[#13161f] border border-[#1e2231] rounded-xl p-5">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <span className="text-xs font-semibold text-rose-400 uppercase tracking-wider font-mono">Manipulated Assets</span>
-            <ShieldAlert size={16} className="text-rose-400" />
+            <span className="text-xs font-medium text-red-400">Manipulated Assets</span>
+            <ShieldAlert size={16} className="text-red-400/60" />
           </div>
-          <div className="text-2xl font-black font-mono text-rose-400 mb-1">{threatScans}</div>
-          <span className="text-[11px] text-slate-500 font-mono">Risk score &ge; 50/100</span>
+          <div className="text-2xl font-bold font-mono text-red-400 mb-1">{threatScans}</div>
+          <span className="text-[11px] text-slate-500">Risk score ≥ 50/100</span>
         </div>
 
-        <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl p-5 shadow-sm">
+        <div className="bg-[#13161f] border border-[#1e2231] rounded-xl p-5">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider font-mono">Authentic Media</span>
-            <ShieldCheck size={16} className="text-emerald-400" />
+            <span className="text-xs font-medium text-emerald-400">Authentic Media</span>
+            <ShieldCheck size={16} className="text-emerald-400/60" />
           </div>
-          <div className="text-2xl font-black font-mono text-emerald-400 mb-1">{safeScans}</div>
-          <span className="text-[11px] text-slate-500 font-mono">Consistent sensor characteristics</span>
+          <div className="text-2xl font-bold font-mono text-emerald-400 mb-1">{safeScans}</div>
+          <span className="text-[11px] text-slate-500">Consistent sensor characteristics</span>
         </div>
 
-        <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl p-5 shadow-sm">
+        <div className="bg-[#13161f] border border-[#1e2231] rounded-xl p-5">
           <div className="flex items-center justify-between gap-2 mb-3">
-            <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wider font-mono">Mean Confidence</span>
-            <Clock size={16} className="text-cyan-400" />
+            <span className="text-xs font-medium text-indigo-400">Mean Confidence</span>
+            <Clock size={16} className="text-indigo-400/60" />
           </div>
-          <div className="text-2xl font-black font-mono text-cyan-400 mb-1">{avgConfidence}%</div>
-          <span className="text-[11px] text-slate-500 font-mono">Across active detectors</span>
+          <div className="text-2xl font-bold font-mono text-indigo-400 mb-1">{avgConfidence}%</div>
+          <span className="text-[11px] text-slate-500">Across active detectors</span>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl p-4 mb-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#13161f] border border-[#1e2231] rounded-xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
         {/* Search */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-[#06080d] border border-[#1b1f2c] min-w-[280px]">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0f1117] border border-[#1e2231] min-w-[280px]">
           <Search size={14} className="text-slate-500" />
           <input
             type="text"
             placeholder="Search by filename or scan ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs text-slate-200 placeholder:text-slate-500 w-full font-mono"
+            className="bg-transparent border-none outline-none text-sm text-slate-200 placeholder:text-slate-500 w-full"
           />
         </div>
 
         {/* Risk Filters */}
-        <div className="flex items-center gap-1.5 font-mono text-xs">
+        <div className="flex items-center gap-1 text-sm">
           {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => setSelectedFilter(filter)}
-              className={`px-3 py-1 rounded text-xs font-bold transition-colors ${selectedFilter === filter ? 'bg-orange-950/40 text-[#ff5722] border border-orange-800/60' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectedFilter === filter ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/25' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'}`}
             >
-              {filter}
+              {filter === 'ALL' ? 'All' : filter.charAt(0) + filter.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
       </div>
 
       {/* Scans Table */}
-      <div className="bg-[#0b0d14] border border-[#1b1f2c] rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left text-xs border-collapse font-mono">
+      <div className="bg-[#13161f] border border-[#1e2231] rounded-xl overflow-hidden">
+        <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="border-b border-[#1b1f2c] bg-[#08090f] text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+            <tr className="border-b border-[#1e2231] bg-[#0f1117] text-slate-400 font-medium text-xs">
               <th className="py-3 px-4">Scan ID</th>
               <th className="py-3 px-4">Media File</th>
               <th className="py-3 px-4">Classification</th>
@@ -144,15 +144,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
               <th className="py-3 px-4 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#161a25] text-slate-300">
+          <tbody className="divide-y divide-[#1e2231] text-slate-300 text-xs">
             {filteredScans.length > 0 ? (
               filteredScans.map((scan) => (
                 <tr
                   key={scan.id}
                   onClick={() => onSelectScan(scan)}
-                  className="hover:bg-[#11141e] cursor-pointer transition-colors"
+                  className="hover:bg-white/[0.02] cursor-pointer transition-colors"
                 >
-                  <td className="py-3 px-4 text-[#ff5722] font-semibold">
+                  <td className="py-3 px-4 text-indigo-400 font-mono font-medium">
                     {scan.id}
                   </td>
                   <td className="py-3 px-4 font-medium text-slate-200">
@@ -161,17 +161,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
                       <span>{scan.filename}</span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 font-bold text-white">
+                  <td className="py-3 px-4 font-semibold text-white">
                     {scan.result?.verdict || 'AUTHENTIC'}
                   </td>
-                  <td className="py-3 px-4 font-bold text-slate-100">
+                  <td className="py-3 px-4 font-mono font-medium text-slate-200">
                     {scan.trust_score?.trust_risk_score ?? '—'}/100
                   </td>
                   <td className="py-3 px-4">
                     {getRiskBadge(scan.trust_score?.risk_level)}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-800/40">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       {scan.status}
                     </span>
                   </td>
@@ -181,9 +181,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
                         e.stopPropagation();
                         onSelectScan(scan);
                       }}
-                      className="inline-flex items-center gap-1 text-xs text-[#ff5722] hover:text-orange-300 font-bold uppercase"
+                      className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
                     >
-                      <span>Studio</span>
+                      <span>View</span>
                       <ArrowUpRight size={13} />
                     </button>
                   </td>
