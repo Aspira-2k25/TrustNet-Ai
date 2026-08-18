@@ -56,14 +56,13 @@ class SceneContextAnalyzer:
 
             # 5. Semantic Classification Decision
             # Human photographic portrait takes precedence if substantial human skin tones are present
-            if skin_ratio > 0.035 and skin_ratio < 0.85 and avg_saturation < 0.58 and edge_density < 0.075:
+            if skin_ratio >= 0.03 and skin_ratio <= 0.85 and avg_saturation < 0.65:
                 scene_type = "photograph_portrait"
                 scene_label = "Photographic Portrait / Human Subject"
                 confidence = 0.94
             elif (
-                (avg_saturation > 0.40 and edge_density > 0.04) or
-                (high_saturation_ratio > 0.30 and edge_density > 0.03) or
-                (avg_saturation > 0.55)
+                (avg_saturation > 0.58 and high_saturation_ratio > 0.45 and skin_ratio < 0.03) or
+                (avg_saturation > 0.68 and edge_density > 0.06 and skin_ratio < 0.05)
             ):
                 scene_type = "anime_illustration"
                 scene_label = "Anime / Digital Illustration / 2D Art"
@@ -92,15 +91,15 @@ class SceneContextAnalyzer:
             elif scene_type == "anime_illustration":
                 # In AI anime / 2D/3D digital art (DALL-E, Midjourney, NovelAI), latent diffusion produces hyper-saturated palette entropy
                 color_entropy = float(np.std(saturation))
-                is_ai_art = (color_entropy > 0.32) or (edge_density > 0.28) or (avg_saturation > 0.44 and high_saturation_ratio > 0.35) or (avg_saturation > 0.47)
-                scene_anomaly_score = 0.78 if is_ai_art else 0.18
+                is_ai_art = (color_entropy > 0.35) and (avg_saturation > 0.60)
+                scene_anomaly_score = 0.75 if is_ai_art else 0.15
                 finding = "Latent diffusion gradient blending and synthetic character line rendering detected." if is_ai_art else "Digital brush stroke texture and vector color boundaries verified."
 
             elif scene_type == "nature_landscape":
                 # In AI landscapes, foliage and water ripples have repeating diffusion seeds
                 texture_entropy = float(np.std(gray))
                 is_ai_nature = texture_entropy < 12.0 or texture_entropy > 75.0
-                scene_anomaly_score = 0.78 if is_ai_nature else 0.10
+                scene_anomaly_score = 0.75 if is_ai_nature else 0.10
                 finding = "Repetitive texture patterns and unnatural focal plane transitions detected in foliage/ripples." if is_ai_nature else "Organic fractal complexity and natural optical depth-of-field confirmed."
 
             elif scene_type == "photograph_portrait":

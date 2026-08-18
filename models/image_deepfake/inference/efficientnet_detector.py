@@ -2,9 +2,12 @@ import time
 import uuid
 from typing import Optional, List, Tuple, Dict, Any
 from datetime import datetime, timezone
+from dotenv import load_dotenv
 import numpy as np
 import torch
 import torchvision.models as models
+
+load_dotenv()
 
 from shared.schemas.detection_result import (
     DetectionResult,
@@ -260,10 +263,15 @@ class EfficientNetDetector(BaseDetector):
             elif is_hf_fake and strong_domain_count == 0 and max_active_signal <= 0.25:
                 is_contradiction = True
                 weighted_anomaly = max(0.46, min(0.58, weighted_anomaly))
+            elif is_hf_real and strong_domain_count <= 1:
+                # Strong ViT authentic confirmation + low forensic anomalies
+                weighted_anomaly = min(0.20, weighted_anomaly)
             elif strong_domain_count >= 2:
+                # True Multi-Vector Corroboration across >= 2 independent physical domains
                 weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
             elif strong_domain_count == 1 and max_active_signal >= 0.75 and not is_hf_real:
-                weighted_anomaly = max(0.65, min(0.95, weighted_anomaly))
+                # Single isolated anomaly without multi-vector corroboration -> Capped at UNCERTAIN zone
+                weighted_anomaly = max(weighted_anomaly, min(0.52, max_active_signal * 0.68))
             elif strong_domain_count == 0 and max_active_signal < 0.45:
                 weighted_anomaly = min(0.20, weighted_anomaly)
 

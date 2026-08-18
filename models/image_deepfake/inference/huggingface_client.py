@@ -48,10 +48,11 @@ class HuggingFaceDeepfakeClient:
                 "note": "Hugging Face token not configured."
             }
 
-        # Face-gating rule: Face-swap models (like dima806) only evaluate on photographic human faces and not on digital art/cartoons/animals
+        # Face-gating rule: Face-swap models (like dima806) evaluate when human faces or photographic portraits are present,
+        # and skip strictly non-human scenes (landscapes, objects, screenshots) with 0 detected faces.
         is_face_only_model = any(k in self.model_name.lower() for k in ["face", "portrait", "deepfake_vs_real"])
-        is_non_human_or_art = (not has_face and scene_type != "photograph_portrait") or (scene_type in ["anime_illustration", "digital_art"])
-        if is_face_only_model and is_non_human_or_art:
+        is_strictly_non_human = (not has_face) and (scene_type not in ["photograph_portrait"])
+        if is_face_only_model and is_strictly_non_human:
             return {
                 "is_hf_applied": False,
                 "hf_risk_score": 50.0,
