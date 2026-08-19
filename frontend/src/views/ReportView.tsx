@@ -7,6 +7,7 @@ import {
 import type { ScanRecord } from '../types';
 import { puterAI } from '../services/puterAI';
 import { ForensicRadarChart } from '../components/ForensicRadarChart';
+import { exportForensicPDFReport } from '../services/pdfExporter';
 
 interface ReportViewProps {
   scan: ScanRecord;
@@ -207,25 +208,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   };
 
   const handleDownloadPDF = () => {
-    const reportData = {
-      scan_id: scan.id,
-      filename: scan.filename,
-      timestamp: scan.created_at,
-      risk_score: riskScore,
-      verdict: semanticVerdict,
-      consistency: `${consistencyPercent}%`,
-      why_reasons: whyReasons,
-      ai_explanation: aiExplanation || result?.explanation,
-      analyzers: result?.analyzers || [],
-      evidence: trustScore?.evidence || result?.evidence || []
-    };
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `TrustNet-ForensicReport-${scan.id}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    exportForensicPDFReport(scan);
   };
 
   const handleGenerateAIExplanation = async () => {
@@ -314,7 +297,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#2a2f3e] bg-white/[0.03] hover:bg-white/[0.06] text-white text-xs font-medium transition-colors"
             >
               <Download size={14} />
-              <span>Export JSON</span>
+              <span>Export PDF</span>
             </button>
           </div>
         </div>
