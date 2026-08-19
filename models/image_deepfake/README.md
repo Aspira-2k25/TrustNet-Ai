@@ -286,3 +286,57 @@ The formal scientific benchmark suite (`benchmark/benchmark_suite.py`) calculate
    $$\text{Brier} = \frac{1}{N} \sum_{i=1}^N (p_i - y_i)^2$$
 4. **Equal Error Rate (EER)**:
    $$\text{EER} = \text{FPR}(t^*) \quad \text{where } \text{FPR}(t^*) = 1 - \text{TPR}(t^*)$$
+
+---
+
+## 9. Academic Defense & Scientific Contribution ("What We Built vs External")
+
+| Component | Provider / Provenance | Scientific & Engineering Role |
+|---|---|---|
+| **Learned Face ViT** | External Pretrained (`dima806` via Hugging Face Hub) | $224 \times 224$ facial feature patch embedding; returns raw real/fake probabilities. Gated dynamically by TrustNet. |
+| **EfficientNet-B0 Backbone** | PyTorch / Torchvision ImageNet Weights | Extracted 1280-dim convolutional representations and backpropagated Layer-4 gradients for Grad-CAM. |
+| **2D Fourier DFT Spectrum Engine** | **BUILT BY US** (`forensics/frequency_analyzer.py`) | 2D FFT, radial power integration, logarithmic regression for $1/f^\alpha$ power-law slope, and periodic lattice spike detection. |
+| **Sub-Pixel Bayer CFA Engine** | **BUILT BY US** (`forensics/pixel_morphing_analyzer.py`) | Hardware sensor demosaicing continuity estimation $\Delta = \|G - (R+B)/2\|$ and 4th-order micro-jitter kurtosis. |
+| **Gabor Texture Wavelet Bank** | **BUILT BY US** (`forensics/gabor_analyzer.py`) | 4-orientation, 3-scale spatial filter bank with Shannon entropy $H_\theta$ quantification. |
+| **Error Level Analysis (ELA)** | **BUILT BY US** (`forensics/ela_analyzer.py`) | In-memory dual-compression DCT matrix difference and foreground/background error variance ratio. |
+| **PRNU Sensor Noise Extractor** | **BUILT BY US** (`forensics/noise_analyzer.py`) | $3 \times 3$ median filter spatial noise residual variance and kurtosis measurement against physical silicon sensor baseline. |
+| **Face X-Ray Boundary Gradient** | **BUILT BY US** (`forensics/face_analyzer.py`) | Multi-angle Haar cascades + $22\%$ expanded margin crops + Sobel step-gradient seam disparity. |
+| **Corneal Reflection Parallax** | **BUILT BY US** (`forensics/physics_eye_reflection_analyzer.py`) | Pupil highlight centroid vectorization and 2D unit vector cosine similarity $\cos \theta = \vec{v}_L \cdot \vec{v}_R$. |
+| **Domain-Aware Routing Engine** | **BUILT BY US** (`forensics/scene_analyzer.py`) | YCbCr epidermis segmentation + edge density gradient heuristics routing into 5 physical domains. |
+| **Evidential Fusion Engine** | **BUILT BY US** (`inference/efficientnet_detector.py`) | Multi-Vector Physical Corroboration ($\ge 2$ domains) and Two-Way Cross-Modal Contradiction handling. |
+| **Interactive Pixel Studio** | **BUILT BY US** (`frontend/src/views/ReportView.tsx`) | HTML5 Canvas client-side ELA / CFA real-time forensic visualization. |
+| **Microservice Architecture** | **BUILT BY US** (`gateway/`, `services/`, `docker-compose.yml`) | Distributed FastAPI services with Apache Kafka event streaming and PostgreSQL/MongoDB storage. |
+
+---
+
+## 10. Degraded Mode & Fallback Reliability Protocol
+
+If the external Hugging Face API is unreachable (network timeout, rate limit, HTTP 403/429/500, or missing token):
+1. `huggingface_client.py` sets `is_hf_applied = False`.
+2. `efficientnet_detector.py` **excludes the ViT weight completely** from both the numerator and denominator:
+   $$\text{Total Weight} = \sum_{i \in \text{Local Forensics}} w_i$$
+3. The system generates its verdict **100% locally from the 8 physical and optical forensic engines**.
+4. The system never fabricates dummy scores; the report explicitly flags `AI Model Hub: Unavailable (Local Forensics Active)`.
+
+---
+
+## 11. Professor Q&A Defense Reference
+
+* **Q: "Why should I consider this your project if the deep learning classifier is from Hugging Face?"**
+  * *Answer*: "The Hugging Face model is only a single feature extractor in our system. Deep neural models frequently suffer from concept drift and false positives when applied to unseen generators. Our core contribution is the **Physics-Informed Evidential Fusion Framework**: we designed eight deterministic physical and optical forensic algorithms (2D Fourier $1/f^\alpha$ slope, Bayer CFA residuals, corneal reflection parallax, and Face X-Ray gradient disparity), a domain-aware routing matrix, and a multi-vector corroboration logic that prevents false alarms."
+
+* **Q: "What happens if Hugging Face makes a mistake?"**
+  * *Answer*: "Hugging Face cannot unilaterally dictate the verdict. If it falsely predicts 99% Fake on a genuine photo, but our physical analyzers (FFT, CFA, ELA, and PRNU) detect natural optical physics, our **Two-Way Contradiction Filter** flags a conflict and routes the image to **UNCERTAIN** rather than issuing a false positive. If an attacker bypasses the neural network with adversarial noise, our physical Fourier and CFA engines catch the mathematical anomaly and maintain a high risk score."
+
+* **Q: "What is your primary research question?"**
+  * *Answer*: "Can coupling deterministic optical, signal, and sensor invariants with deep neural spatial representations reduce false positive rates and improve out-of-distribution generalization in synthetic media detection compared to standalone black-box classifiers?"
+
+---
+
+## 12. Quick Presentation Scripts
+
+* **30-Second Summary**:
+  "Standalone deepfake models fail when encountering unseen generators or compression. TrustNet solves this by fusing a Vision Transformer with eight local mathematical forensic algorithms—including 2D Fourier power-law decay, Bayer CFA demosaicing, and corneal reflection physics. Through domain-aware routing and multi-vector corroboration, TrustNet delivers reliable, explainable verdicts with built-in contradiction handling."
+
+* **1-Minute Summary**:
+  "Most synthetic media detectors rely on a single neural network that fails unpredictably under concept drift. TrustNet implements a multi-signal evidential verification framework across three distinct layers: learned neural representations via a Vision Transformer, micro-structural signal forensics via 2D Fourier transforms and Bayer CFA demosaicing, and physical optics via corneal light reflections and Face X-Ray boundary gradients. Our Evidential Fusion Engine dynamically weights these signals based on the image domain and requires corroboration across at least two independent physical domains before declaring an image manipulated, eliminating single-sensor false positives."
