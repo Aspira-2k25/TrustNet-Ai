@@ -235,7 +235,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0f17] text-slate-200">
+    <div className="min-h-screen flex flex-col bg-[#0f1117] text-slate-200">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -295,17 +295,16 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#161922] py-8 px-6 bg-[#08090d] mt-16">
+      <footer className="border-t border-[#1e2231] py-8 px-6 bg-[#0c0d12] mt-16">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-black text-white text-sm">TRUST</span>
-            <span className="font-black text-[#ff4500] text-sm">[NET]</span>
-            <span className="text-slate-500 text-xs font-mono">
+            <span className="font-bold text-white text-sm">TrustNet</span>
+            <span className="text-slate-500 text-xs font-normal">
               &bull; AI-Powered Forensic Intelligence &amp; Synthetic Media Defense
             </span>
           </div>
 
-          <div className="flex items-center gap-5 text-xs text-slate-500 font-mono">
+          <div className="flex items-center gap-5 text-xs text-slate-500">
             <span>Puter.js AI SDK</span>
             <span>2D Fourier FFT</span>
             <span>Fast ELA Detector</span>

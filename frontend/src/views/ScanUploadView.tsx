@@ -56,55 +56,44 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
     }
   };
 
+  const modalityTabs = [
+    { key: 'upload' as const, label: 'Upload', icon: <UploadCloud size={15} /> },
+    { key: 'url' as const, label: 'URL', icon: <LinkIcon size={14} /> },
+    { key: 'camera' as const, label: 'Camera', icon: <Camera size={14} /> },
+  ];
+
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 text-center">
+    <div className="max-w-5xl mx-auto px-6 py-14 text-center">
       {/* Header Badge */}
-      <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 text-[11px] font-mono font-bold tracking-widest text-[#ff5722] uppercase">
-        <span>⚡ // ANALYZE</span>
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
+        <Shield size={13} />
+        <span>Analyze</span>
       </div>
 
       {/* Main Title */}
-      <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">
-        Scan for <span className="text-[#ff5722]">Deepfakes</span>
+      <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
+        Scan for <span className="text-indigo-400">Deepfakes</span>
       </h1>
-      <p className="text-sm text-slate-400 max-w-lg mx-auto mb-8">
+      <p className="text-[15px] text-slate-400 max-w-lg mx-auto mb-10">
         Upload an image, video, or audio file for AI-powered forensic analysis and pixel-level artifact detection.
       </p>
 
       {/* Modality Selector Tabs */}
-      <div className="flex items-center justify-center gap-8 mb-6 border-b border-[#1c202d] pb-2 max-w-md mx-auto">
-        <button
-          onClick={() => setActiveModality('upload')}
-          className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider pb-2 relative transition-colors ${activeModality === 'upload' ? 'text-[#ff5722]' : 'text-slate-500 hover:text-slate-300'}`}
-        >
-          <UploadCloud size={16} />
-          <span>UPLOAD</span>
-          {activeModality === 'upload' && (
-            <span className="absolute bottom-[-9px] left-0 right-0 h-[2px] bg-[#ff5722]" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveModality('url')}
-          className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider pb-2 relative transition-colors ${activeModality === 'url' ? 'text-[#ff5722]' : 'text-slate-500 hover:text-slate-300'}`}
-        >
-          <LinkIcon size={14} />
-          <span>URL</span>
-          {activeModality === 'url' && (
-            <span className="absolute bottom-[-9px] left-0 right-0 h-[2px] bg-[#ff5722]" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveModality('camera')}
-          className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider pb-2 relative transition-colors ${activeModality === 'camera' ? 'text-[#ff5722]' : 'text-slate-500 hover:text-slate-300'}`}
-        >
-          <Camera size={14} />
-          <span>CAMERA</span>
-          {activeModality === 'camera' && (
-            <span className="absolute bottom-[-9px] left-0 right-0 h-[2px] bg-[#ff5722]" />
-          )}
-        </button>
+      <div className="flex items-center justify-center gap-1 mb-8 p-1 bg-[#13161f] border border-[#1e2231] rounded-xl max-w-xs mx-auto">
+        {modalityTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveModality(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 justify-center ${
+              activeModality === tab.key
+                ? 'text-white bg-indigo-600'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
 
       <input
@@ -119,43 +108,38 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         }}
       />
 
-      {/* Cyber-Dashed Dropzone with Cyan Corner Marks */}
-      <div className="relative max-w-2xl mx-auto mb-8">
-        {/* Cyan Corner Accents */}
-        <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
-        <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
-        <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
-        <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
-
+      {/* Clean Dropzone */}
+      <div className="max-w-2xl mx-auto mb-8">
         <div
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border border-dashed rounded-lg p-10 cursor-pointer transition-all bg-[#0a0c12]/80 ${isDragging ? 'border-[#ff5722] bg-orange-950/20' : 'border-[#1e2433] hover:border-slate-600'}`}
+          className={`border border-dashed rounded-2xl p-12 cursor-pointer transition-all bg-[#13161f]/60 ${isDragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2f3e] hover:border-slate-500'}`}
         >
           {previewUrl ? (
             <div className="flex flex-col items-center gap-4">
               <img
                 src={previewUrl}
                 alt="Upload Preview"
-                className="max-h-64 w-auto object-contain rounded border border-[#212634] shadow-xl"
+                className="max-h-64 w-auto object-contain rounded-xl border border-[#1e2231] shadow-lg"
               />
-              <div className="text-xs text-slate-300 font-mono">
-                <span className="text-white font-semibold">{selectedFile?.name}</span> ({selectedFile?.size ? (selectedFile.size / 1024).toFixed(1) : 0} KB)
+              <div className="text-sm text-slate-300">
+                <span className="text-white font-medium">{selectedFile?.name}</span>{' '}
+                <span className="text-slate-500">({selectedFile?.size ? (selectedFile.size / 1024).toFixed(1) : 0} KB)</span>
               </div>
-              <span className="text-xs text-[#ff5722] underline cursor-pointer">Choose a different file</span>
+              <span className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer">Choose a different file</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-[#11141e] border border-[#212634] flex items-center justify-center text-slate-400">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 <UploadCloud size={28} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white mb-1">
-                  Drag &amp; drop media file
+                <h3 className="text-base font-semibold text-white mb-1">
+                  Drag & drop media file
                 </h3>
-                <p className="text-xs font-mono text-slate-500">
+                <p className="text-sm text-slate-500">
                   JPG, PNG, MP4, AVI, WAV, MP3 — up to 100MB
                 </p>
               </div>
@@ -165,18 +149,18 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
       </div>
 
       {errorMessage && (
-        <div className="max-w-xl mx-auto flex items-center justify-center gap-2 p-3 rounded bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs mb-6">
+        <div className="max-w-xl mx-auto flex items-center justify-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm mb-6">
           <AlertTriangle size={15} />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Glowing Orange ANALYZE NOW Button */}
+      {/* Analyze Button */}
       <div className="flex flex-col items-center gap-3">
         <button
           onClick={handleAnalyze}
           disabled={!selectedFile || isProcessing}
-          className={`inline-flex items-center gap-2 px-10 py-3 rounded text-sm font-black uppercase tracking-widest transition-all ${!selectedFile || isProcessing ? 'bg-[#1a1e2a] text-slate-600 border border-[#23293a] cursor-not-allowed' : 'bg-gradient-to-r from-[#ff4500] to-[#ff6b00] hover:from-[#ff5722] hover:to-[#ff7a1a] text-white shadow-xl shadow-orange-500/30 hover:scale-[1.02]'}`}
+          className={`inline-flex items-center gap-2.5 px-10 py-3.5 rounded-xl text-sm font-semibold transition-all ${!selectedFile || isProcessing ? 'bg-[#1a1e2a] text-slate-600 border border-[#252a37] cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20'}`}
         >
           {isProcessing ? (
             <>
@@ -186,13 +170,13 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
           ) : (
             <>
               <Shield size={16} />
-              <span>ANALYZE NOW</span>
+              <span>Analyze Now</span>
             </>
           )}
         </button>
 
-        <span className="text-[11px] font-mono text-slate-500 mt-2">
-          Powered by AACS &mdash; Multi-signal parallel AI engines
+        <span className="text-xs text-slate-500 mt-2">
+          Powered by AACS — Multi-signal parallel AI engines
         </span>
       </div>
     </div>

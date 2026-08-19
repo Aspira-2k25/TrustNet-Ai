@@ -10,7 +10,6 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
     const riskScore = scan.trust_score?.trust_risk_score ?? scan.result?.risk_score ?? 15;
     const evidence = scan.trust_score?.evidence || [];
 
-    // Helper to find evidence contribution for a specific feature, scale 0-100
     const getEvidenceScore = (keyword: string, fallbackScore: number) => {
       const item = evidence.find(e => e.feature_or_region.includes(keyword) || (e.human_readable_note && e.human_readable_note.toLowerCase().includes(keyword)));
       if (item) return Math.min(100, Math.round(item.contribution * 100));
@@ -44,27 +43,27 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         subject: 'Semantic Context',
         score: getEvidenceScore('semantic', base > 50 ? 95 : 10),
       },
-    ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) })); // clamp 2-100
+    ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
   }, [scan]);
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center font-mono p-4 gap-3">
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-3">
       {data.map((item, idx) => (
         <div key={idx} className="w-full">
-          <div className="flex justify-between items-end mb-1">
-            <span className="text-[10px] text-slate-300 uppercase tracking-wider">{item.subject}</span>
-            <span className="text-[10px] font-bold text-cyan-400">{item.score}%</span>
+          <div className="flex justify-between items-end mb-1.5">
+            <span className="text-[11px] text-slate-400 font-medium">{item.subject}</span>
+            <span className="text-[11px] font-semibold text-indigo-400 font-mono">{item.score}%</span>
           </div>
-          <div className="w-full bg-[#1b202e] h-1.5 rounded-full overflow-hidden flex">
+          <div className="w-full bg-[#1a1e2b] h-1.5 rounded-full overflow-hidden flex">
             <div 
-              className={`h-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-[#ff3d00]' : item.score > 30 ? 'bg-yellow-400' : 'bg-cyan-500'}`}
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-red-400' : item.score > 30 ? 'bg-amber-400' : 'bg-indigo-400'}`}
               style={{ width: `${item.score}%` }} 
             />
           </div>
         </div>
       ))}
-      <div className="mt-4 pt-3 border-t border-[#1e2434] w-full text-center">
-        <div className="text-[9px] text-slate-500 tracking-widest uppercase">Multi-vector Synthesis</div>
+      <div className="mt-4 pt-3 border-t border-[#1e2231] w-full text-center">
+        <div className="text-[10px] text-slate-500 font-medium">Multi-vector Synthesis</div>
       </div>
     </div>
   );

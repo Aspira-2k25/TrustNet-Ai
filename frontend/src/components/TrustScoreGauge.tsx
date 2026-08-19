@@ -14,7 +14,7 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
   size = 200,
   label = 'Risk Score',
 }) => {
-  const strokeWidth = 12;
+  const strokeWidth = 10;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const normalizedScore = Math.min(100, Math.max(0, score));
@@ -23,28 +23,28 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
   const getColor = (level: RiskLevel) => {
     switch (level) {
       case 'LOW':
-        return '#10b981';
+        return '#34d399';
       case 'MEDIUM':
-        return '#f59e0b';
+        return '#fbbf24';
       case 'HIGH':
-        return '#f97316';
+        return '#fb923c';
       case 'CRITICAL':
-        return '#ef4444';
+        return '#f87171';
       default:
-        return '#6366f1';
+        return '#818cf8';
     }
   };
 
   const getBadgeClasses = (level: RiskLevel) => {
     switch (level) {
       case 'LOW':
-        return 'bg-emerald-950/60 text-emerald-400 border-emerald-800/50';
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'MEDIUM':
-        return 'bg-amber-950/60 text-amber-400 border-amber-800/50';
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
       case 'HIGH':
-        return 'bg-orange-950/60 text-orange-400 border-orange-800/50';
+        return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
       case 'CRITICAL':
-        return 'bg-rose-950/60 text-rose-400 border-rose-800/50';
+        return 'bg-red-500/10 text-red-400 border-red-500/20';
     }
   };
 
@@ -76,7 +76,6 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
             strokeLinecap="round"
             style={{
               transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease',
-              filter: `drop-shadow(0 0 10px ${themeColor}55)`,
             }}
           />
         </svg>
@@ -84,13 +83,13 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
         {/* Center Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span
-            className="font-mono font-black text-white leading-none"
+            className="font-mono font-bold text-white leading-none"
             style={{ fontSize: size * 0.26 }}
           >
             {normalizedScore}
           </span>
           <span
-            className="font-semibold text-slate-500 uppercase tracking-wider mt-1"
+            className="font-medium text-slate-500 uppercase tracking-wider mt-1"
             style={{ fontSize: size * 0.07 }}
           >
             {label}
@@ -99,8 +98,8 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
       </div>
 
       {/* Risk Level Badge */}
-      <div className={`px-4 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border ${getBadgeClasses(riskLevel)}`}>
-        {riskLevel} RISK
+      <div className={`px-3.5 py-1 rounded-full text-xs font-semibold border ${getBadgeClasses(riskLevel)}`}>
+        {riskLevel} Risk
       </div>
     </div>
   );
