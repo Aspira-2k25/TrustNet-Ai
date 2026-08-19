@@ -52,7 +52,7 @@ async def analyze_image_direct(
     file_bytes = await file.read()
 
     # Run real forensic model detector
-    detection_res = detector_instance.predict(file_bytes, scan_id=scan_id)
+    detection_res = detector_instance.predict(file_bytes, scan_id=scan_id, filename=file.filename)
     
     risk_score = detection_res.risk_score
     risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))
