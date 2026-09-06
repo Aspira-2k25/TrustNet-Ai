@@ -155,6 +155,18 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         </div>
       )}
 
+      {isProcessing && (
+        <div className="max-w-xl mx-auto p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm mb-6 flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 font-medium">
+            <RefreshCw size={16} className="animate-spin text-indigo-400" />
+            <span>Running Deep Forensics & LM Studio Vision Reasoning...</span>
+          </div>
+          <p className="text-xs text-slate-400 text-center">
+            Fusing 10 forensic layers (ELA, FFT, Gabor, PRNU, Face X-Ray) with local vision model. On CPU this typically takes 1–3 minutes. Please keep this tab open.
+          </p>
+        </div>
+      )}
+
       {/* Analyze Button */}
       <div className="flex flex-col items-center gap-3">
         <button
@@ -165,7 +177,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
           {isProcessing ? (
             <>
               <RefreshCw size={16} className="animate-spin" />
-              <span>Processing Media...</span>
+              <span>Analyzing Image Forensics...</span>
             </>
           ) : (
             <>

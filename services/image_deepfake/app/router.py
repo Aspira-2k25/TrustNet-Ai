@@ -22,7 +22,7 @@ async def detect_image_file(
     request_id = generate_request_id()
     image_bytes = await file.read()
     
-    result = worker.detector.predict(image_bytes, scan_id=scan_id or str(uuid.uuid4()))
+    result = worker.detector.predict(image_bytes, scan_id=scan_id or str(uuid.uuid4()), filename=file.filename)
     return APIResponse(
         data=result,
         meta=ResponseMeta(request_id=request_id)

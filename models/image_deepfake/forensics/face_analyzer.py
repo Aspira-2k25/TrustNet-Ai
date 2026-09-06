@@ -70,12 +70,23 @@ class FaceAnalyzer:
             by = max(0, min(h - 1, int(by)))
             bw = max(16, min(w - bx, int(bw)))
             bh = max(16, min(h - by, int(bh)))
+
+            # IoU-based non-maximum suppression
             for (ox, oy, ow, oh) in detected_boxes:
-                if abs(bx - ox) < min(bw, ow) * 0.5 and abs(by - oy) < min(bh, oh) * 0.5:
+                ix1 = max(bx, ox)
+                iy1 = max(by, oy)
+                ix2 = min(bx + bw, ox + ow)
+                iy2 = min(by + bh, oy + oh)
+                iw = max(0, ix2 - ix1)
+                ih = max(0, iy2 - iy1)
+                intersection = iw * ih
+                union = (bw * bh) + (ow * oh) - intersection
+                iou = intersection / max(1.0, float(union))
+                if iou > 0.35:
                     return
             detected_boxes.append((int(bx), int(by), int(bw), int(bh)))
 
-        # 1. Multi-pass cascade search on upright image (0 degrees) if cascades available
+        # 1. Multi-pass cascade search across image variants for all frontal & profile faces
         if self.cascades:
             equalized_gray = cv2.equalizeHist(gray_np)
             clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
@@ -93,10 +104,8 @@ class FaceAnalyzer:
                     if len(faces) > 0:
                         for (x, y, bw, bh) in faces:
                             add_box(x, y, bw, bh)
-                if len(detected_boxes) > 0:
-                    break
 
-            # 2. Multi-Angle Rotation Sweeps for Tilted Heads (+/-15 deg, +/-25 deg)
+            # 2. Multi-Angle Rotation Sweeps for Tilted/Angled Heads (+/-15 deg, +/-25 deg)
             if len(detected_boxes) == 0:
                 for angle in [15.0, -15.0, 25.0, -25.0]:
                     rot_img, M_inv = self._rotate_image_and_get_matrix(clahe_gray, angle)

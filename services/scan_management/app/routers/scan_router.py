@@ -21,8 +21,13 @@ from models.image_deepfake.inference.efficientnet_detector import EfficientNetDe
 router = APIRouter(prefix="/scans", tags=["Scans"])
 detector_instance = EfficientNetDetector()
 
-def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
-    """Extracts and verifies the user_id from the Authorization header."""
+def get_current_user_id(
+    authorization: Optional[str] = Header(None),
+    x_user_id: Optional[str] = Header(None)
+) -> str:
+    """Extracts and verifies the user_id from x-user-id or Authorization header."""
+    if x_user_id:
+        return x_user_id
     if not authorization or "mock_jwt_" in authorization:
         return "usr-researcher-1"
         
@@ -40,7 +45,8 @@ def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
 @router.post("/analyze", response_model=APIResponse[Dict[str, Any]])
 async def analyze_image_direct(
     file: UploadFile = File(...),
-    user_id: str = Depends(get_current_user_id)
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Direct synchronous deepfake forensic analysis endpoint.
@@ -57,6 +63,40 @@ async def analyze_image_direct(
     risk_score = detection_res.risk_score
     risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))
 
+    # Attempt saving scan record to DB history
+    try:
+        from services.scan_management.app.db_models.scan import Scan
+        db_scan = Scan(
+            id=scan_id,
+            user_id=user_id,
+            status="SUCCESS",
+            content_type="image",
+            filename=file.filename or "uploaded_media.jpg",
+            file_size_bytes=len(file_bytes),
+            mime_type=file.content_type or "image/jpeg"
+        )
+        db.add(db_scan)
+        await db.commit()
+    except Exception:
+        try:
+            await db.rollback()
+        except Exception:
+            pass
+
+    is_contradiction = bool(detection_res.metadata.get("is_contradiction", False)) if detection_res.metadata else False
+
+    vision_data = getattr(detection_res, "vision_analysis", None) or (detection_res.metadata.get("vision_analysis") if detection_res.metadata else None)
+
+    # Extract true image dimensions if decodable
+    width, height = 1024, 1024
+    try:
+        import io
+        from PIL import Image
+        with Image.open(io.BytesIO(file_bytes)) as img:
+            width, height = img.size
+    except Exception:
+        pass
+
     trust_score_data = {
         "scan_id": scan_id,
         "trust_risk_score": risk_score,
@@ -64,9 +104,13 @@ async def analyze_image_direct(
         "reporting_modules": ["image_deepfake"],
         "module_scores": {"image_deepfake": risk_score},
         "confidence": detection_res.confidence,
-        "contradiction_detected": False,
+        "contradiction_detected": is_contradiction,
+        "contradiction_flag": is_contradiction,
+        "contradiction_details": "Conflicting evidence detected between model and forensic engines." if is_contradiction else None,
         "evidence": [item.model_dump() for item in detection_res.evidence],
         "explanation": detection_res.explanation,
+        "vision_analysis": vision_data,
+        "metadata": {"vision_analysis": vision_data} if vision_data else {},
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
@@ -78,9 +122,10 @@ async def analyze_image_direct(
         "filename": file.filename or "uploaded_media.jpg",
         "file_size_bytes": len(file_bytes),
         "mime_type": file.content_type or "image/jpeg",
-        "dimensions": {"width": 1024, "height": 1024},
+        "dimensions": {"width": width, "height": height},
         "created_at": datetime.now(timezone.utc).isoformat(),
         "result": detection_res.model_dump(),
+        "vision_analysis": vision_data,
         "trust_score": trust_score_data
     }
 
@@ -147,11 +192,13 @@ async def create_url_scan(
 async def get_scan_status(
     scan_id: str,
     user_id: str = Depends(get_current_user_id),
+    x_user_role: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    scan = await service.get_scan(scan_id=scan_id, user_id=user_id if not user_id.startswith("demo_") else None)
+    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    scan = await service.get_scan(scan_id=scan_id, user_id=filter_user)
     
     return APIResponse(
         data={"scan_id": scan.id, "status": scan.status, "content_type": scan.content_type},
@@ -162,11 +209,13 @@ async def get_scan_status(
 async def get_scan_by_id(
     scan_id: str,
     user_id: str = Depends(get_current_user_id),
+    x_user_role: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    result = await service.get_scan(scan_id=scan_id, user_id=user_id if not user_id.startswith("demo_") else None)
+    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    result = await service.get_scan(scan_id=scan_id, user_id=filter_user)
     
     return APIResponse(
         data=result,
@@ -178,11 +227,13 @@ async def list_scans(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
     user_id: str = Depends(get_current_user_id),
+    x_user_role: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    result = await service.list_scans(user_id=user_id, page=page, limit=limit)
+    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    result = await service.list_scans(user_id=filter_user, page=page, limit=limit)
     
     return APIResponse(
         data=result,

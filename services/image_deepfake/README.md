@@ -1,4 +1,4 @@
-﻿# Image Deepfake Service (services/image_deepfake)
+# Image Deepfake Service (services/image_deepfake)
 
 Worker and direct API service for image-forensics inference.
 
@@ -11,8 +11,23 @@ Worker and direct API service for image-forensics inference.
 ## Responsibilities
 
 - Runs multi-signal image forensic detection via `EfficientNetDetector`.
-- Can consume Kafka events in background thread when enabled.
-- Publishes detector-completed events through worker pipeline.
+- Integrates 15 forensic modules:
+  - 2D Fourier (FFT) Power Spectrum (1/f^alpha natural lens decay)
+  - Sub-pixel Bayer CFA demosaicing & micro-morphing
+  - Multi-Scale Gabor Texture Filter Bank (8 kernels across 4 angles)
+  - JPEG Quantization Error Level Analysis (ELA)
+  - Camera Sensor Pattern Noise (PRNU)
+  - Face X-Ray Facial Boundary Step Gradients
+  - Corneal Specular Reflection Physics (3D lighting parallax)
+  - 3D Geometry Support & Symmetry
+  - Generative Watermark Icon Scanner (convexity defect pointedness)
+  - Social Recompression & 8x8 DCT Grid Boundary Analysis
+  - Provenance & AI Metadata Scanners (50+ known generator signatures)
+  - Vision Transformer (ViT) & EfficientNet-B0 Convolutional Backbone
+  - LM Studio Local Vision Semantic Reasoning (Qwen3-VL local inference)
+- Supports direct synchronous REST inference (`POST /detect/file`) with full CORS enabled.
+- Consumes Kafka events in background thread when `ENABLE_KAFKA_CONSUMER` is active.
+- Emits structured `DetectorCompletedEvent` events with full forensic telemetry.
 
 ## Kafka
 

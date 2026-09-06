@@ -55,8 +55,8 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
               <div className="text-slate-500 text-xs">FFT + ELA + PRNU</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-slate-300 mb-0.5">Puter.js AI</div>
-              <div className="text-slate-500 text-xs">Explainable Copilot</div>
+              <div className="text-lg font-bold text-slate-300 mb-0.5">LM Studio Vision</div>
+              <div className="text-slate-500 text-xs">Local Multimodal AI</div>
             </div>
           </div>
         </div>
@@ -133,9 +133,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
             <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 mb-4">
               <Eye size={18} />
             </div>
-            <h3 className="text-sm font-semibold text-white mb-1.5">4. Explainable AI</h3>
+            <h3 className="text-sm font-semibold text-white mb-1.5">4. Local Vision AI</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Puter.js neural debriefing, multimodal vision inspection, and interactive pixel intensity studio.
+              LM Studio local vision reasoning, multimodal inconsistency detection, and interactive pixel inspection studio.
             </p>
           </div>
         </div>

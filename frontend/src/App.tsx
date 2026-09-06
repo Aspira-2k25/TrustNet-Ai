@@ -53,10 +53,23 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Spatial feature divergence consistent with generative synthesis.' },
+        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 94%). Synthetically manipulated facial landmarks and eye reflections identified.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Periodic grid artifacts detected in 2D Discrete Fourier Transform spectrum.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Inconsistent 8x8 DCT compression error levels across local regions.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'APPLIED', finding: 'Blending boundary discontinuities identified along jawline and orbital regions.' },
       ],
+      vision_analysis: {
+        status: 'APPLIED',
+        model_name: 'qwen3-vl-4b-thinking',
+        visual_verdict: 'suspicious',
+        confidence: 0.94,
+        simple_explanation: 'Synthetically manipulated facial landmarks with boundary blending discontinuities and asymmetrical corneal reflections.',
+        observations: [
+          'High frequency blending discontinuities around jawline perimeter',
+          'Checkerboard convolution grid artifacts in frequency spectrum',
+          'Inconsistent pupil corneal specular highlights across left and right eyes'
+        ]
+      },
       processing_time_ms: 195,
       timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
     },
@@ -122,10 +135,23 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Natural texture distribution consistent with camera sensor capture.' },
+        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: authentic (confidence: 96%). Continuous sensor noise and realistic lens reflections verified.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Uniform radial frequency roll-off.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Homogeneous compression surface.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'APPLIED', finding: 'Consistent facial skin texture and natural specular eye reflections.' },
       ],
+      vision_analysis: {
+        status: 'APPLIED',
+        model_name: 'qwen3-vl-4b-thinking',
+        visual_verdict: 'authentic',
+        confidence: 0.96,
+        simple_explanation: 'Natural photographic portrait displaying consistent optical lens focus, continuous sub-pixel sensor noise, and realistic specular corneal reflections.',
+        observations: [
+          'Continuous sub-pixel Bayer sensor noise distribution across face and background',
+          'Natural optical depth-of-field roll-off without synthetic edge halos',
+          'Corneal reflections align with ambient key lighting'
+        ]
+      },
       processing_time_ms: 180,
       timestamp: new Date(Date.now() - 3600000 * 8).toISOString(),
     },
@@ -186,10 +212,23 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Spatial feature divergence consistent with diffusion model synthesis.' },
+        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 91%). Synthetic terrain textures and high-frequency roll-off anomalies detected.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Periodic grid artifacts in 2D DFT spectrum.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Non-uniform compression error surface.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'SKIPPED', reason: 'No human facial landmark identified; skipped to prevent false positives.' },
       ],
+      vision_analysis: {
+        status: 'APPLIED',
+        model_name: 'qwen3-vl-4b-thinking',
+        visual_verdict: 'suspicious',
+        confidence: 0.91,
+        simple_explanation: 'Generative diffusion synthetic artifacts detected in terrain textures and non-uniform atmospheric frequency distribution.',
+        observations: [
+          'Repetitive micro-texture patterns in distant foliage and rock formations',
+          'Absence of physical camera lens diffraction at high spatial frequencies',
+          'Inconsistent compression artifacts across foreground and sky regions'
+        ]
+      },
       processing_time_ms: 162,
       timestamp: new Date(Date.now() - 3600000 * 24).toISOString(),
     },
@@ -305,7 +344,7 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-5 text-xs text-slate-500">
-            <span>Puter.js AI SDK</span>
+            <span>LM Studio Local Vision</span>
             <span>2D Fourier FFT</span>
             <span>Fast ELA Detector</span>
             <span>FastAPI Core</span>

@@ -4,18 +4,43 @@ from dotenv import load_dotenv
 import httpx
 from huggingface_hub import HfApi
 
+from models.image_deepfake.inference.local_vit_detector import LocalViTDeepfakeDetector
+
 load_dotenv()
 
 class HuggingFaceDeepfakeClient:
     """
-    Hugging Face Deepfake Model Inference Client.
-    Connects to pre-trained deepfake classification models on Hugging Face Hub (e.g. dima806/deepfake_vs_real_image_detection).
+    Hugging Face Deepfake & General AI Image Inference Client.
+    Connects to pre-trained classification models on Hugging Face Hub:
+    - Face/Portrait specialist: dima806/deepfake_vs_real_image_detection
+    - General synthetic scene specialist: umm-maybe/AI-image-detector
+    Seamlessly falls back to local transformers execution on HTTP 402/403/rate limits.
     """
-    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model_name: Optional[str] = None,
+        face_model_name: Optional[str] = None,
+        general_model_name: Optional[str] = "DEFAULT"
+    ):
         self.api_key = (api_key or os.getenv("HUGGINGFACE_API_KEY", "")).strip()
-        self.model_name = (model_name or os.getenv("HF_DEEPFAKE_MODEL", "dima806/deepfake_vs_real_image_detection")).strip()
+        self.face_model_name = (face_model_name or model_name or os.getenv("HF_DEEPFAKE_MODEL", "dima806/deepfake_vs_real_image_detection")).strip()
+        self.model_name = self.face_model_name
+
+        # If a specific single model was requested without general_model_name, restrict to that model
+        if model_name is not None and general_model_name == "DEFAULT":
+            self.general_model_name = None
+        elif general_model_name == "DEFAULT":
+            self.general_model_name = os.getenv("HF_GENERAL_MODEL", "umm-maybe/AI-image-detector").strip()
+        else:
+            self.general_model_name = general_model_name.strip() if general_model_name else None
+
         self.user_name: Optional[str] = None
         self._validate_token()
+        self.local_detector = LocalViTDeepfakeDetector(
+            face_model_name=self.face_model_name,
+            general_model_name=self.general_model_name
+        )
 
     def _validate_token(self):
         if self.api_key and self.api_key.startswith("hf_"):
@@ -34,41 +59,36 @@ class HuggingFaceDeepfakeClient:
 
     def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "general_object") -> Dict[str, Any]:
         """
-        Runs inference against Hugging Face deepfake models.
-        Gated by face presence: Face-specific classifiers (like dima806) are skipped
-        or routed appropriately when no human face is detected to prevent false 99.8% Real outputs on cartoons/art.
+        Runs inference against Hugging Face deepfake and general synthetic image models.
+        Routes to face-specialist model (dima806) when face/portrait is detected,
+        and general-purpose synthetic image classifier (umm-maybe/AI-image-detector)
+        when strictly non-human (landscapes, anime, architecture, general objects).
         """
-        if not self.is_configured():
-            return {
-                "is_hf_applied": False,
-                "hf_risk_score": 50.0,
-                "hf_label": "unknown",
-                "hf_confidence": 0.0,
-                "model_name": self.model_name,
-                "note": "Hugging Face token not configured."
-            }
+        is_face_scenario = has_face or (scene_type in ["photograph_portrait"])
+        if is_face_scenario:
+            target_model = self.face_model_name
+        else:
+            if not self.general_model_name:
+                return {
+                    "is_hf_applied": False,
+                    "hf_risk_score": 50.0,
+                    "hf_label": "unknown",
+                    "hf_confidence": 0.0,
+                    "model_name": self.face_model_name,
+                    "user": self.user_name,
+                    "note": f"Hugging Face ({self.face_model_name}) skipped: image does not contain a human face (scene: {scene_type}). Forensic evaluation routed to texture, micro-structure, and metadata engines."
+                }
+            target_model = self.general_model_name
 
-        # Face-gating rule: Face-swap models (like dima806) evaluate when human faces or photographic portraits are present,
-        # and skip strictly non-human scenes (landscapes, objects, screenshots) with 0 detected faces.
-        is_face_only_model = any(k in self.model_name.lower() for k in ["face", "portrait", "deepfake_vs_real"])
-        is_strictly_non_human = (not has_face) and (scene_type not in ["photograph_portrait"])
-        if is_face_only_model and is_strictly_non_human:
-            return {
-                "is_hf_applied": False,
-                "hf_risk_score": 50.0,
-                "hf_label": "unknown",
-                "hf_confidence": 0.0,
-                "model_name": self.model_name,
-                "user": self.user_name,
-                "note": f"Hugging Face ({self.model_name}) skipped: image does not contain a human face (scene: {scene_type}). Forensic evaluation routed to texture, micro-structure, and metadata engines."
-            }
+        if not self.is_configured():
+            return self.local_detector.predict(image_bytes, has_face=has_face, scene_type=scene_type)
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "image/jpeg"
         }
 
-        endpoint_url = f"https://router.huggingface.co/hf-inference/models/{self.model_name}"
+        endpoint_url = f"https://router.huggingface.co/hf-inference/models/{target_model}"
 
         try:
             with httpx.Client(timeout=10.0) as client:
@@ -83,9 +103,9 @@ class HuggingFaceDeepfakeClient:
                     for item in data:
                         lbl = str(item.get("label", "")).upper()
                         score = float(item.get("score", 0.5))
-                        if "FAKE" in lbl or "SYNTHETIC" in lbl or "DEEPFAKE" in lbl:
+                        if any(k in lbl for k in ["FAKE", "SYNTHETIC", "DEEPFAKE", "AI", "ARTIFICIAL"]):
                             fake_score = score
-                        elif "REAL" in lbl or "ORIGINAL" in lbl or "AUTHENTIC" in lbl:
+                        elif any(k in lbl for k in ["REAL", "ORIGINAL", "AUTHENTIC", "HUMAN"]):
                             real_score = score
 
                 risk_score = round(fake_score * 100.0, 2)
@@ -97,39 +117,37 @@ class HuggingFaceDeepfakeClient:
                     "hf_risk_score": risk_score,
                     "hf_label": label,
                     "hf_confidence": round(confidence, 2),
-                    "model_name": self.model_name,
+                    "model_name": target_model,
                     "user": self.user_name,
-                    "note": f"Hugging Face ({self.model_name}) evaluated image with {confidence*100:.1f}% confidence (User: {self.user_name})."
+                    "note": f"Hugging Face ({target_model}) evaluated image with {confidence*100:.1f}% confidence (User: {self.user_name})."
                 }
 
-            elif res.status_code == 403:
-                # Token validated through HfApi; router fallback
-                return {
-                    "is_hf_applied": False,
-                    "hf_risk_score": 50.0,
-                    "hf_label": "unknown",
-                    "hf_confidence": 0.0,
-                    "model_name": self.model_name,
-                    "user": self.user_name,
-                    "note": f"Hugging Face API rate limited or forbidden (User: {self.user_name}). Deferring to local physics engines."
-                }
+            # If cloud returns 402/403 or rate-limits, execute local offline fallback
+            local_res = self.local_detector.predict(image_bytes, has_face=has_face, scene_type=scene_type)
+            if local_res.get("is_hf_applied"):
+                local_res["user"] = self.user_name
+                return local_res
 
-            else:
-                return {
-                    "is_hf_applied": False,
-                    "hf_risk_score": 50.0,
-                    "hf_label": "unknown",
-                    "hf_confidence": 0.0,
-                    "model_name": self.model_name,
-                    "note": f"Hugging Face HTTP {res.status_code}: {res.text[:100]}"
-                }
-
-        except Exception as e:
             return {
                 "is_hf_applied": False,
                 "hf_risk_score": 50.0,
                 "hf_label": "unknown",
                 "hf_confidence": 0.0,
-                "model_name": self.model_name,
+                "model_name": target_model,
+                "note": f"Hugging Face HTTP {res.status_code}: {res.text[:100]}"
+            }
+
+        except Exception as e:
+            local_res = self.local_detector.predict(image_bytes, has_face=has_face, scene_type=scene_type)
+            if local_res.get("is_hf_applied"):
+                local_res["user"] = self.user_name
+                return local_res
+
+            return {
+                "is_hf_applied": False,
+                "hf_risk_score": 50.0,
+                "hf_label": "unknown",
+                "hf_confidence": 0.0,
+                "model_name": target_model,
                 "note": f"Hugging Face inference error: {str(e)}"
             }

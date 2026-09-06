@@ -10,10 +10,25 @@ export interface EvidenceItem {
 
 export interface AnalyzerStatus {
   name: string;
-  category: 'primary_ml' | 'frequency' | 'compression' | 'face_forensics' | 'semantic_forensics' | 'micro_forensics' | 'sensor_forensics' | string;
-  status: 'APPLIED' | 'SKIPPED';
+  category: 'primary_ml' | 'frequency' | 'compression' | 'face_forensics' | 'semantic_forensics' | 'micro_forensics' | 'sensor_forensics' | 'local_vision_reasoning' | string;
+  status: 'APPLIED' | 'SKIPPED' | 'UNAVAILABLE' | string;
   reason?: string;
   finding?: string;
+}
+
+export interface VisionAnalysis {
+  status: 'APPLIED' | 'UNAVAILABLE' | string;
+  model_name?: string;
+  visual_verdict?: 'suspicious' | 'authentic' | 'inconclusive' | string;
+  confidence?: number;
+  observations?: string[];
+  suspicious_regions?: Array<{ region: string; reason: string }>;
+  supporting_evidence?: string[];
+  contradicting_evidence?: string[];
+  uncertainties?: string[];
+  simple_explanation?: string;
+  thinking_process?: string;
+  reason?: string;
 }
 
 export interface DetectionResult {
@@ -35,6 +50,7 @@ export interface DetectionResult {
   processing_time_ms: number;
   timestamp: string;
   explanation?: string;
+  vision_analysis?: VisionAnalysis;
   metadata?: Record<string, any>;
   error_code?: string;
   error_message?: string;
@@ -48,8 +64,12 @@ export interface TrustScoreResult {
   module_scores: Record<string, number>;
   confidence: number;
   contradiction_detected: boolean;
+  contradiction_flag?: boolean;
+  contradiction_details?: string;
   evidence: EvidenceItem[];
   explanation: string;
+  vision_analysis?: VisionAnalysis;
+  metadata?: Record<string, any>;
   timestamp: string;
 }
 
@@ -63,9 +83,12 @@ export interface ScanRecord {
   mime_type?: string;
   file_size?: number;
   file_size_bytes?: number;
+  dimensions?: { width: number; height: number };
   image_preview_url?: string;
   result?: DetectionResult;
   trust_score?: TrustScoreResult;
+  vision_analysis?: VisionAnalysis;
+  metadata?: Record<string, any>;
   created_at: string;
   updated_at?: string;
 }

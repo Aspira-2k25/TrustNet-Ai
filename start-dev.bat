@@ -13,8 +13,13 @@ if not exist ".venv" (
     exit /b 1
 )
 
-echo [1/3] Starting Apache Kafka 3.7 (Docker)...
-docker compose up -d kafka
+echo [1/3] Checking Apache Kafka 3.7 (Docker)...
+docker info >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    docker compose up -d kafka
+) else (
+    echo [NOTE] Docker is offline; microservices will run in standalone REST mode.
+)
 
 echo [2/3] Launching backend microservices in separate windows...
 start "API Gateway (8000)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn gateway.app.main:app --port 8000 --reload"

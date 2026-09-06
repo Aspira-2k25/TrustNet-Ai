@@ -1,5 +1,7 @@
 import time
 import uuid
+import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, List, Tuple, Dict, Any
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -26,9 +28,15 @@ from models.image_deepfake.forensics.pixel_morphing_analyzer import PixelMorphin
 from models.image_deepfake.forensics.gabor_analyzer import GaborTextureAnalyzer
 from models.image_deepfake.forensics.scene_analyzer import SceneContextAnalyzer
 from models.image_deepfake.forensics.metadata_analyzer import MetadataAnalyzer
+from models.image_deepfake.forensics.watermark_analyzer import WatermarkIconAnalyzer, WatermarkAnalyzer
+from models.image_deepfake.forensics.recompression_analyzer import RecompressionAnalyzer
 from models.image_deepfake.forensics.physics_eye_reflection_analyzer import PhysicsEyeReflectionAnalyzer
 from models.image_deepfake.forensics.geometry_physics_analyzer import GeometryPhysicsAnalyzer
 from models.image_deepfake.inference.huggingface_client import HuggingFaceDeepfakeClient
+from models.image_deepfake.inference.local_vit_detector import LocalViTDeepfakeDetector
+from models.image_deepfake.inference.lm_studio_vision_client import LMStudioVisionClient
+
+logger = logging.getLogger("trustnet.detector")
 
 
 class BaseDetector:
@@ -69,9 +77,13 @@ class EfficientNetDetector(BaseDetector):
         self.gabor_analyzer = GaborTextureAnalyzer()
         self.scene_analyzer = SceneContextAnalyzer()
         self.metadata_analyzer = MetadataAnalyzer()
+        self.watermark_analyzer = WatermarkIconAnalyzer()
+        self.recompression_analyzer = RecompressionAnalyzer()
         self.physics_analyzer = PhysicsEyeReflectionAnalyzer()
         self.geometry_analyzer = GeometryPhysicsAnalyzer()
         self.hf_client = HuggingFaceDeepfakeClient()
+        self.local_vit = LocalViTDeepfakeDetector()
+        self.lm_studio_client = LMStudioVisionClient()
 
     def predict(self, input_data: bytes, scan_id: Optional[str] = None, filename: Optional[str] = None) -> DetectionResult:
         start_time = time.time()
@@ -80,27 +92,45 @@ class EfficientNetDetector(BaseDetector):
             scan_id = str(uuid.uuid4())
 
         try:
-            # 1. Base Semantic & Metadata Extraction
-            scene_res = self.scene_analyzer.analyze(input_data)
-            meta_res = self.metadata_analyzer.analyze(input_data, filename=filename)
-            
+            # 1. Base Semantic, Provenance & Independent Forensic Analyzers (Parallel Thread Pool)
+            with ThreadPoolExecutor(max_workers=6) as executor:
+                future_scene = executor.submit(self.scene_analyzer.analyze, input_data)
+                future_meta = executor.submit(self.metadata_analyzer.analyze, input_data, filename)
+                future_watermark = executor.submit(self.watermark_analyzer.analyze, input_data)
+                future_recomp = executor.submit(self.recompression_analyzer.analyze, input_data)
+                future_face = executor.submit(self.face_analyzer.analyze, input_data)
+                future_freq = executor.submit(self.freq_analyzer.analyze, input_data)
+                future_pixel = executor.submit(self.pixel_analyzer.analyze, input_data)
+                future_gabor = executor.submit(self.gabor_analyzer.analyze, input_data)
+                future_ela = executor.submit(self.ela_analyzer.analyze, input_data)
+                future_noise = executor.submit(self.noise_analyzer.analyze, input_data)
+
+                scene_res = future_scene.result()
+                meta_res = future_meta.result()
+                watermark_res = future_watermark.result()
+                recompression_res = future_recomp.result()
+                face_res = future_face.result()
+                freq_res = future_freq.result()
+                pixel_res = future_pixel.result()
+                gabor_res = future_gabor.result()
+                ela_res = future_ela.result()
+                noise_res = future_noise.result()
+
+            logger.info("[FORENSICS] Metadata complete")
+            logger.info("[FORENSICS] Compression complete")
+            logger.info("[FORENSICS] ELA complete")
+            logger.info("[FORENSICS] Noise analysis complete")
+
+            already_recompressed = bool(recompression_res.get("already_recompressed", False))
             scene_type = scene_res.get("scene_type", "general_object")
             scene_label = scene_res.get("scene_label", "General Media / Photographic Content")
             is_digital_art = scene_type in ["anime_illustration", "digital_art"]
             is_screenshot = scene_type == "screenshot"
 
             # 2. Face Detection & Gating
-            face_res = self.face_analyzer.analyze(input_data)
             has_face = bool(face_res.get("has_face", False))
 
-            # 3. Conditional Forensic Analyzers Execution
-            freq_res = self.freq_analyzer.analyze(input_data)
-            pixel_res = self.pixel_analyzer.analyze(input_data)
-            gabor_res = self.gabor_analyzer.analyze(input_data)
-            ela_res = self.ela_analyzer.analyze(input_data)
-            noise_res = self.noise_analyzer.analyze(input_data)
-
-            # Optics / Geometry conditional branch
+            # 3. Optics / Geometry conditional branch
             if has_face:
                 physics_res = self.physics_analyzer.analyze(input_data)
                 geometry_res = {
@@ -118,36 +148,65 @@ class EfficientNetDetector(BaseDetector):
                 }
                 geometry_res = self.geometry_analyzer.analyze(input_data)
 
-            # External Transformer inference (gated by face presence)
+            # External Transformer inference (dual-model: face specialist vs general synthetic detector + local fallback)
             hf_res = self.hf_client.predict(input_data, has_face=has_face, scene_type=scene_type)
+            if not hf_res.get("is_hf_applied"):
+                hf_res = self.local_vit.predict(input_data, has_face=has_face, scene_type=scene_type)
 
-            # 4. Extract deep CNN feature embeddings via PyTorch EfficientNet-B0 backbone
+            # 4. LM Studio Local Vision Reasoning with Compact Forensic Evidence
+            compact_evidence = {
+                "has_face": has_face,
+                "face_count": face_res.get("face_count", 0),
+                "face_boundary_anomaly_score": face_res.get("boundary_anomaly_score", 0.0),
+                "physics_anomaly_score": physics_res.get("physics_anomaly_score", 0.0),
+                "geometry_anomaly_score": geometry_res.get("geometry_anomaly_score", 0.0),
+                "spectral_anomaly_score": freq_res.get("spectral_anomaly_score", 0.0),
+                "ela_anomaly_score": ela_res.get("ela_anomaly_score", 0.0),
+                "noise_anomaly_score": noise_res.get("noise_anomaly_score", 0.0),
+                "pixel_morphing_score": pixel_res.get("pixel_morphing_score", 0.0),
+                "gabor_anomaly_score": gabor_res.get("gabor_anomaly_score", 0.0),
+                "is_watermark_found": watermark_res.get("is_watermark_found", False),
+                "already_recompressed": already_recompressed,
+                "metadata_ai_found": meta_res.get("is_ai_signature_found", False),
+            }
+            vision_res = self.lm_studio_client.analyze(
+                image_bytes=input_data,
+                forensic_evidence=compact_evidence,
+                scene_type=scene_type
+            )
+
+            # 5. Extract deep CNN feature embeddings via PyTorch EfficientNet-B0 backbone
             tensor = process_image_bytes(input_data).to(self.device)
             with torch.no_grad():
                 features = self.model.features(tensor)
                 feature_variance = float(torch.var(features).item())
 
-            # 5. Scientific Multi-Signal Conditional Fusion
+            # 6. Scientific Multi-Signal Conditional Fusion
             anomaly_weights: List[Tuple[float, float]] = []
 
+            # Adaptive Recompression Scaling: When heavy social recompression (8x8 DCT) is detected,
+            # single-generation physical heuristics (FFT, CFA, Gabor, ELA, PRNU) are flattened.
+            # Downweight this cluster by 0.50x and shift authority to ML classifiers, watermark, and scene.
+            phys_scale = 0.50 if already_recompressed else 1.0
+
             # Frequency DFT (radial power-law baseline + periodic spikes)
-            freq_w = 0.12 if is_digital_art else 0.20
+            freq_w = (0.12 if is_digital_art else 0.20) * phys_scale
             anomaly_weights.append((freq_res["spectral_anomaly_score"], freq_w))
             
             # Sub-Pixel CFA & micro-jitter
-            pixel_w = 0.12 if is_digital_art else 0.16
+            pixel_w = (0.12 if is_digital_art else 0.16) * phys_scale
             anomaly_weights.append((pixel_res["pixel_morphing_score"], pixel_w))
 
             # Multi-scale Gabor Texture Bank
-            gabor_w = 0.08 if (is_digital_art or is_screenshot) else 0.16
+            gabor_w = (0.08 if (is_digital_art or is_screenshot) else 0.16) * phys_scale
             anomaly_weights.append((gabor_res["gabor_anomaly_score"], gabor_w))
 
-            # Compression ELA: De-emphasized for digital art / screenshots
-            ela_w = 0.05 if (is_digital_art or is_screenshot) else 0.12
+            # Compression ELA: De-emphasized for digital art / screenshots / recompressed
+            ela_w = (0.05 if (is_digital_art or is_screenshot) else 0.12) * phys_scale
             anomaly_weights.append((ela_res["ela_anomaly_score"], ela_w))
 
-            # Sensor Pattern Noise: De-emphasized for non-camera digital graphics
-            noise_w = 0.04 if (is_digital_art or is_screenshot) else 0.10
+            # Sensor Pattern Noise: De-emphasized for non-camera digital graphics / recompressed
+            noise_w = (0.04 if (is_digital_art or is_screenshot) else 0.10) * phys_scale
             anomaly_weights.append((noise_res["noise_anomaly_score"], noise_w))
 
             # Facial boundary & Corneal optics (Only when applied)
@@ -161,29 +220,50 @@ class EfficientNetDetector(BaseDetector):
             if geometry_res.get("status") == "APPLIED":
                 anomaly_weights.append((geometry_res["geometry_anomaly_score"], 0.18))
 
-            # Semantic scene context
-            scene_w = 0.35 if is_digital_art else 0.12
+            # Semantic scene context: weight shifted up when recompressed
+            scene_w = 0.35 if is_digital_art else (0.22 if already_recompressed else 0.12)
             anomaly_weights.append((scene_res["scene_anomaly_score"], scene_w))
 
-            # External Transformer Model (Hugging Face ViT - only when genuinely applied)
+            # External / Local Vision Transformer Model
             if hf_res.get("is_hf_applied", False):
                 hf_anomaly = float(hf_res.get("hf_risk_score", 50.0)) / 100.0
-                hf_w = 0.40 if is_digital_art else 0.30
+                hf_w = (0.45 if already_recompressed else 0.35) if is_digital_art else (0.42 if already_recompressed else 0.30)
                 anomaly_weights.append((hf_anomaly, hf_w))
+
+            # LM Studio Local Vision Reasoning (Only when applied)
+            vision_anomaly = 0.50
+            if vision_res.get("status") == "APPLIED":
+                verdict_str = vision_res.get("visual_verdict", "inconclusive").lower()
+                vision_conf = float(vision_res.get("confidence", 0.75))
+                if verdict_str == "suspicious":
+                    vision_anomaly = max(0.60, min(0.95, vision_conf))
+                elif verdict_str == "authentic":
+                    vision_anomaly = max(0.05, min(0.40, 1.0 - vision_conf))
+                else:
+                    vision_anomaly = 0.50
+                
+                vision_w = 0.20 if is_digital_art else 0.18
+                anomaly_weights.append((vision_anomaly, vision_w))
+
+            # Pixel-Level Corner Watermark Icon Scanner (standard weighted vote: 0.15)
+            anomaly_weights.append((float(watermark_res.get("watermark_anomaly_score", 0.0)), 0.15))
 
             # Compute normalized weighted average
             total_weight = sum(w for _, w in anomaly_weights)
             weighted_anomaly = sum(s * w for s, w in anomaly_weights) / max(1e-6, total_weight)
 
-            # Evidential Max-Pooling Floor:
-            # When a single high-reliability detection occurs (e.g. Hugging Face ViT >= 0.75 or confirmed Face X-Ray >= 0.75),
-            # prevent dilution into false 'Authentic'.
+            # Evidential Max-Pooling Floor & Strong Signals
             max_active_signal = max((s for s, _ in anomaly_weights), default=0.0)
             is_hf_real = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) <= 15.0)
 
             # Count genuinely independent strong synthetic indicators across distinct physical domains
             strong_signals = []
             strong_domains = set()
+
+            # Watermark corroboration (participates as normal strong signal/domain, NO hard override)
+            if watermark_res.get("is_watermark_found") and watermark_res.get("watermark_anomaly_score", 0.0) >= 0.60:
+                strong_signals.append(f"Visual watermark icon detected ({watermark_res.get('watermark_location')})")
+                strong_domains.add("visual_provenance")
 
             if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.60:
                 strong_signals.append("2D Fourier periodic grid artifacts / 1/f^alpha deviation")
@@ -222,8 +302,21 @@ class EfficientNetDetector(BaseDetector):
                 strong_domains.add("generative_art_synthesis")
 
             if hf_res.get("is_hf_applied", False) and float(hf_res.get("hf_risk_score", 0.0)) >= 70.0:
-                strong_signals.append(f"Hugging Face {self.hf_client.model_name} high fake probability")
+                model_name_str = hf_res.get("model_name") or "Transformer"
+                strong_signals.append(f"Vision Transformer ({model_name_str}) high synthetic probability")
                 strong_domains.add("learned_deep_learning")
+
+            if vision_res.get("status") == "APPLIED":
+                v_verdict = vision_res.get("visual_verdict", "inconclusive").lower()
+                v_conf = float(vision_res.get("confidence", 0.0))
+                if v_verdict == "suspicious" and v_conf >= 0.70:
+                    model_tag = vision_res.get("model_name") or "Local Vision"
+                    strong_signals.append(f"LM Studio Local Vision ({model_tag}) visual anomaly detection")
+                    strong_domains.add("visual_semantic_reasoning")
+
+            # Distinct physical domain count (excludes learned neural classifiers and vision model)
+            physical_domains = strong_domains - {"learned_deep_learning", "visual_semantic_reasoning"}
+            physical_domain_count = len(physical_domains)
 
             strong_domain_count = len(strong_domains)
             strong_signal_count = len(strong_signals)
@@ -231,12 +324,13 @@ class EfficientNetDetector(BaseDetector):
                 strong_signal_count += 3
                 strong_domains.add("provenance_metadata")
                 strong_domain_count += 2
+                physical_domain_count += 2
 
             if max_active_signal >= 0.75 and not is_hf_real:
                 weighted_anomaly = max(weighted_anomaly, max_active_signal * 0.85)
 
             # Cross-Domain Consistency Score (CDCF): Measures cross-modal agreement
-            # across Spatial (Gabor/CFA/Noise), Frequency (FFT), Compression (ELA), and ML (HF)
+            # across Spatial (Gabor/CFA/Noise), Frequency (FFT), Compression (ELA), ML (HF), and Vision
             domain_scores = [
                 (pixel_res["pixel_morphing_score"] + gabor_res["gabor_anomaly_score"] + noise_res["noise_anomaly_score"]) / 3.0,
                 freq_res["spectral_anomaly_score"],
@@ -244,36 +338,64 @@ class EfficientNetDetector(BaseDetector):
             ]
             if hf_res.get("is_hf_applied"):
                 domain_scores.append(float(hf_res.get("hf_risk_score", 50.0)) / 100.0)
+            if vision_res.get("status") == "APPLIED":
+                domain_scores.append(vision_anomaly)
 
             cross_domain_spread = float(np.std(domain_scores))
             cross_domain_consistency = float(round(max(0.60, min(0.98, 1.0 - cross_domain_spread * 0.45)), 2))
 
             # Multi-Vector Corroboration Calibration (Requires >= 2 Distinct Physical Domains):
             is_hf_fake = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) >= 75.0)
+            is_vision_real = (vision_res.get("status") == "APPLIED" and 
+                              vision_res.get("visual_verdict") == "authentic" and 
+                              float(vision_res.get("confidence", 0.0)) >= 0.75)
+            is_vision_fake = (vision_res.get("status") == "APPLIED" and 
+                              vision_res.get("visual_verdict") == "suspicious" and 
+                              float(vision_res.get("confidence", 0.0)) >= 0.75)
+            ai_model_flags_fake = is_hf_fake or is_vision_fake
+            ai_model_confirms_real = is_hf_real or is_vision_real
             is_contradiction = False
 
             # 1. Immediate override for deterministic AI provenance markers (ChatGPT / DALL-E / Midjourney / prompts in metadata)
             if meta_res.get("is_ai_signature_found"):
                 weighted_anomaly = max(0.96, weighted_anomaly)
                 is_contradiction = False
-            # 2. Two-Way Contradiction Detection (when no deterministic signature is present):
-            elif is_hf_real and strong_domain_count >= 2:
-                is_contradiction = True
-                weighted_anomaly = max(0.48, min(0.62, weighted_anomaly))
-            elif is_hf_fake and strong_domain_count == 0 and max_active_signal <= 0.25:
-                is_contradiction = True
-                weighted_anomaly = max(0.46, min(0.58, weighted_anomaly))
-            elif is_hf_real and strong_domain_count <= 1:
-                # Strong ViT authentic confirmation + low forensic anomalies
-                weighted_anomaly = min(0.20, weighted_anomaly)
-            elif strong_domain_count >= 2:
-                # True Multi-Vector Corroboration across >= 2 independent physical domains
-                weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
-            elif strong_domain_count == 1 and max_active_signal >= 0.75 and not is_hf_real:
-                # Single isolated anomaly without multi-vector corroboration -> Capped at UNCERTAIN zone
-                weighted_anomaly = max(weighted_anomaly, min(0.52, max_active_signal * 0.68))
-            elif strong_domain_count == 0 and max_active_signal < 0.45:
-                weighted_anomaly = min(0.20, weighted_anomaly)
+            else:
+                # 2. Two-Way Contradiction Detection & Calibration (when no deterministic signature is present):
+                # (a) AI says Real, but an AI watermark icon was detected:
+                # (b) AI says Real, but >= 2 independent physical forensic domains corroborate manipulation:
+                # (c) AI says Fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
+                has_watermark_conflict = ai_model_confirms_real and bool(watermark_res.get("is_watermark_found")) and float(watermark_res.get("watermark_anomaly_score", 0.0)) >= 0.60
+                has_multi_domain_conflict = ai_model_confirms_real and (physical_domain_count >= 2)
+
+                if has_watermark_conflict or has_multi_domain_conflict:
+                    is_contradiction = True
+                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
+                elif ai_model_flags_fake and physical_domain_count == 0:
+                    # Clean camera capture with 0 physical anomalies, but an AI model flagged suspicious:
+                    # Classify as conflicting evidence / uncertainty, do NOT declare fake!
+                    is_contradiction = True
+                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
+                elif (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
+                    # ViT and Vision model directly contradict each other:
+                    is_contradiction = True
+                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
+                elif ai_model_confirms_real and physical_domain_count <= 1:
+                    # Strong authentic confirmation + at most 1 minor isolated camera noise/texture artifact
+                    weighted_anomaly = min(0.20, weighted_anomaly)
+                elif (is_hf_fake and is_vision_fake) or (ai_model_flags_fake and physical_domain_count >= 1):
+                    # Either both models agree it's fake, or model fake is corroborated by at least 1 physical domain
+                    weighted_anomaly = max(0.70, weighted_anomaly)
+                elif physical_domain_count >= 2:
+                    # True Multi-Vector Corroboration across >= 2 independent physical domains
+                    weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
+                elif physical_domain_count == 1 and max_active_signal >= 0.75 and not ai_model_confirms_real:
+                    # Single isolated anomaly without multi-vector corroboration -> Capped at UNCERTAIN zone
+                    weighted_anomaly = max(weighted_anomaly, min(0.50, max_active_signal * 0.68))
+                elif physical_domain_count == 0 and max_active_signal < 0.45:
+                    weighted_anomaly = min(0.20, weighted_anomaly)
+
+            logger.info("[FUSION] Evidence combined")
 
             # Calculate Native Score P(REAL) in [0.01, 0.99]
             native_score = float(round(max(0.01, min(0.99, 1.0 - weighted_anomaly)), 4))
@@ -285,10 +407,14 @@ class EfficientNetDetector(BaseDetector):
             confidence = float(round(max(0.70, min(0.98, 0.92 - score_spread * 0.35)), 2))
 
             # 4-Level Semantic Result Structure:
-            if is_contradiction or (45.0 <= risk_score < 65.0):
+            # 0.00 - 24.99: AUTHENTIC (Green)
+            # 25.00 - 47.99: LIKELY_AUTHENTIC (Sky/Cyan)
+            # 48.00 - 52.00: UNCERTAIN (Amber, only true dead-splits or contradictions)
+            # 52.01 - 100.0: LIKELY_AI_MANIPULATED (Red)
+            if is_contradiction or (48.0 <= risk_score <= 52.0):
                 verdict = "UNCERTAIN"
                 label = "uncertain"
-            elif risk_score >= 65.0:
+            elif risk_score > 52.0:
                 verdict = "LIKELY_AI_MANIPULATED"
                 label = "fake"
             elif risk_score >= 25.0:
@@ -306,7 +432,17 @@ class EfficientNetDetector(BaseDetector):
                 why_reasons.append(f"Deterministic AI generator signature detected ({meta_res.get('generator_name')}).")
 
             if is_contradiction:
-                why_reasons.append("Conflicting Evidence: Learned transformer model and local physical forensic analyzers disagree. Manual verification recommended.")
+                why_reasons.append("Conflicting Evidence: Learned AI models and local physical forensic analyzers disagree. Manual verification recommended.")
+
+            # Vision Reasoning (LM Studio Local Vision)
+            if vision_res.get("status") == "APPLIED":
+                simple_exp = vision_res.get("simple_explanation")
+                if simple_exp:
+                    why_reasons.append(f"Visual reasoning: {simple_exp}")
+                elif vision_res.get("observations"):
+                    why_reasons.append(f"Visual reasoning: {vision_res['observations'][0]}")
+            else:
+                why_reasons.append("Vision analysis unavailable. Result is based on available forensic checks.")
 
             if hf_res.get("is_hf_applied", False):
                 hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
@@ -342,7 +478,7 @@ class EfficientNetDetector(BaseDetector):
             # Keep top 4 most informative reasons
             why_reasons = why_reasons[:4]
 
-            # 6. Structured Evidence Items
+            # 7. Structured Evidence Items
             evidence: List[EvidenceItem] = []
             
             if self.enable_explainability and self.grad_cam is not None:
@@ -356,11 +492,18 @@ class EfficientNetDetector(BaseDetector):
                 human_readable_note=f"EfficientNet-B0 extracted 1280-dim convolutional feature embeddings (spatial variance: {feature_variance:.2f})."
             ))
 
+            if vision_res.get("status") == "APPLIED":
+                evidence.append(EvidenceItem(
+                    feature_or_region=f"lm_studio_vision ({vision_res.get('visual_verdict', 'inconclusive')})",
+                    contribution=float(round(vision_anomaly, 2)),
+                    human_readable_note=vision_res.get("simple_explanation") or f"Visual reasoning identified: {'; '.join(vision_res.get('observations', [])[:2])}"
+                ))
+
             if hf_res.get("is_hf_applied", False):
                 evidence.append(EvidenceItem(
                     feature_or_region="huggingface_transformer",
                     contribution=float(round(hf_res.get("hf_risk_score", 50.0) / 100.0, 2)),
-                    human_readable_note=hf_res.get("note", f"Evaluated against Hugging Face {self.hf_client.model_name}.")
+                    human_readable_note=hf_res.get("note", f"Evaluated against Hugging Face {getattr(self.hf_client, 'face_model_name', getattr(self.hf_client, 'model_name', 'Transformer'))}.")
                 ))
 
             evidence.append(EvidenceItem(
@@ -368,6 +511,13 @@ class EfficientNetDetector(BaseDetector):
                 contribution=float(round(scene_res["scene_anomaly_score"], 2)),
                 human_readable_note=f"Scene classified as [{scene_res['scene_label']}]: {scene_res['finding']}"
             ))
+
+            if watermark_res.get("is_watermark_found"):
+                evidence.append(EvidenceItem(
+                    feature_or_region=f"visual_watermark_icon ({watermark_res.get('watermark_location', 'corner')})",
+                    contribution=float(round(watermark_res.get("watermark_anomaly_score", 0.85) * 0.15, 2)),
+                    human_readable_note=watermark_res.get("finding", "Visual watermark icon detected in image corner.")
+                ))
 
             if meta_res.get("metadata_anomaly_score", 0) > 0.1:
                 evidence.append(EvidenceItem(
@@ -427,7 +577,7 @@ class EfficientNetDetector(BaseDetector):
                     human_readable_note=geometry_res["finding"]
                 ))
 
-            # 7. Complete Analyzers Telemetry List
+            # 8. Complete Analyzers Telemetry List
             analyzers = [
                 {
                     "name": "EfficientNet-B0 Convolutional Backbone",
@@ -436,7 +586,20 @@ class EfficientNetDetector(BaseDetector):
                     "finding": f"Extracted 1280-dim convolutional spatial representations (variance: {feature_variance:.2f}). Deepfake head pending dedicated training."
                 },
                 {
-                    "name": f"Hugging Face AI Hub ({self.hf_client.model_name})",
+                    "name": f"LM Studio Local Vision ({vision_res.get('model_name', 'Qwen-VL')})",
+                    "category": "local_vision_reasoning",
+                    "status": vision_res.get("status", "UNAVAILABLE"),
+                    "reason": None if vision_res.get("status") == "APPLIED" else "LM Studio local endpoint not running or model not loaded; forensic analysis completed using deterministic scanners.",
+                    "finding": vision_res.get("simple_explanation") or (
+                        f"Visual verdict: {vision_res.get('visual_verdict', 'inconclusive')} "
+                        f"(confidence: {vision_res.get('confidence', 0.0)*100:.0f}%). "
+                        f"{len(vision_res.get('observations', []))} visual observation(s)."
+                        if vision_res.get("status") == "APPLIED"
+                        else "Vision analysis unavailable. Result is based on available forensic checks."
+                    )
+                },
+                {
+                    "name": f"Hugging Face AI Hub ({hf_res.get('model_name', self.hf_client.face_model_name)})",
                     "category": "primary_ml",
                     "status": "APPLIED" if hf_res.get("is_hf_applied") else "SKIPPED",
                     "reason": None if hf_res.get("is_hf_applied") else "Hugging Face API unavailable or rate-limited; deferred to local forensic engines.",
@@ -453,6 +616,20 @@ class EfficientNetDetector(BaseDetector):
                     "category": "metadata_forensics",
                     "status": "APPLIED",
                     "finding": meta_res["finding"]
+                },
+                {
+                    "name": "Visual Watermark Icon Scanner",
+                    "category": "visual_provenance",
+                    "status": watermark_res.get("status", "APPLIED"),
+                    "reason": None if watermark_res.get("is_watermark_found") else "No corner watermark icon signature detected.",
+                    "finding": watermark_res.get("finding")
+                },
+                {
+                    "name": "Social Re-Compression & DCT Grid Analyzer",
+                    "category": "compression_history",
+                    "status": recompression_res.get("status", "APPLIED"),
+                    "reason": None if already_recompressed else "Single-generation or uncompressed capture.",
+                    "finding": recompression_res.get("finding")
                 },
                 {
                     "name": "Sub-Pixel CFA & Micro-Particle Morphing Analyzer",
@@ -527,11 +704,22 @@ class EfficientNetDetector(BaseDetector):
                 "spectral_decay_slope": freq_res.get("spectral_decay_slope", 2.0),
                 "hf_model": hf_res.get("model_name"),
                 "hf_risk_score": hf_res.get("hf_risk_score"),
-                "hf_status": "applied" if hf_res.get("is_hf_applied") else "skipped"
+                "hf_status": "applied" if hf_res.get("is_hf_applied") else "skipped",
+                "watermark_found": bool(watermark_res.get("is_watermark_found")),
+                "watermark_location": watermark_res.get("watermark_location"),
+                "watermark_anomaly_score": float(watermark_res.get("watermark_anomaly_score", 0.0)),
+                "already_recompressed": bool(already_recompressed),
+                "recompression_score": float(recompression_res.get("recompression_score", 0.0)),
+                "blockiness_ratio": float(recompression_res.get("blockiness_ratio", 1.0)),
+                "lm_studio_status": vision_res.get("status", "UNAVAILABLE"),
+                "lm_studio_model": vision_res.get("model_name"),
+                "vision_analysis": vision_res
             }
 
             risk_adjective = 'CRITICAL' if risk_score >= 75 else ('HIGH' if risk_score >= 50 else ('MEDIUM' if risk_score >= 25 else 'LOW'))
             explanation_summary = f"Trust Net analyzed this [{scene_label}] across {len(active_scores)} active forensic signals. Risk Score: {risk_score:.0f}/100 ({risk_adjective} RISK, Confidence: {confidence*100:.0f}%, Consistency: {cross_domain_consistency*100:.0f}%)."
+
+            logger.info(f"[RESULT] Final verdict generated: {verdict} (Risk: {risk_score}%, Confidence: {confidence*100:.0f}%)")
 
             return DetectionResult(
                 scan_id=scan_id,
@@ -550,6 +738,7 @@ class EfficientNetDetector(BaseDetector):
                 has_face=has_face,
                 verdict=verdict,
                 explanation=explanation_summary,
+                vision_analysis=vision_res,
                 metadata=metadata_payload,
                 processing_time_ms=processing_time_ms,
                 timestamp=datetime.now(timezone.utc).isoformat()
