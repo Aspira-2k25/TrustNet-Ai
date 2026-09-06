@@ -361,39 +361,47 @@ class EfficientNetDetector(BaseDetector):
                 weighted_anomaly = max(0.96, weighted_anomaly)
                 is_contradiction = False
             else:
-                # 2. Two-Way Contradiction Detection & Calibration (when no deterministic signature is present):
-                # (a) AI says Real, but an AI watermark icon was detected:
-                # (b) AI says Real, but >= 2 independent physical forensic domains corroborate manipulation:
-                # (c) AI says Fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
-                has_watermark_conflict = ai_model_confirms_real and bool(watermark_res.get("is_watermark_found")) and float(watermark_res.get("watermark_anomaly_score", 0.0)) >= 0.60
-                has_multi_domain_conflict = ai_model_confirms_real and (physical_domain_count >= 2)
+                # 2. Evidential Multimodal Corroboration & Calibration:
+                # (a) Facial boundary discontinuity is direct physical proof of face-swap / synthetic composition:
+                if face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
+                    weighted_anomaly = max(0.68, weighted_anomaly)
+                    if is_hf_real:
+                        is_contradiction = True
 
-                if has_watermark_conflict or has_multi_domain_conflict:
-                    is_contradiction = True
-                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-                elif ai_model_flags_fake and physical_domain_count == 0:
-                    # Clean camera capture with 0 physical anomalies, but an AI model flagged suspicious:
-                    # Classify as conflicting evidence / uncertainty, do NOT declare fake!
-                    is_contradiction = True
-                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-                elif (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
-                    # ViT and Vision model directly contradict each other:
-                    is_contradiction = True
-                    weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-                elif ai_model_confirms_real and physical_domain_count <= 1:
-                    # Strong authentic confirmation + at most 1 minor isolated camera noise/texture artifact
-                    weighted_anomaly = min(0.20, weighted_anomaly)
-                elif (is_hf_fake and is_vision_fake) or (ai_model_flags_fake and physical_domain_count >= 1):
-                    # Either both models agree it's fake, or model fake is corroborated by at least 1 physical domain
+                # (b) Visual Reasoning (LM Studio Vision):
+                elif is_vision_fake:
+                    # Vision model detected generative textures, unnatural lighting, or anatomy anomalies
                     weighted_anomaly = max(0.70, weighted_anomaly)
+                    if is_hf_real:
+                        is_contradiction = True
+
+                # (c) Two or more independent physical domains corroborate manipulation:
                 elif physical_domain_count >= 2:
-                    # True Multi-Vector Corroboration across >= 2 independent physical domains
-                    weighted_anomaly = max(0.75, min(0.98, weighted_anomaly * 1.15))
-                elif physical_domain_count == 1 and max_active_signal >= 0.75 and not ai_model_confirms_real:
-                    # Single isolated anomaly without multi-vector corroboration -> Capped at UNCERTAIN zone
-                    weighted_anomaly = max(weighted_anomaly, min(0.50, max_active_signal * 0.68))
-                elif physical_domain_count == 0 and max_active_signal < 0.45:
+                    weighted_anomaly = max(0.72, min(0.98, weighted_anomaly * 1.15))
+                    if is_hf_real:
+                        is_contradiction = True
+
+                # (d) Both AI models flag fake, or model fake is corroborated by at least 1 physical domain:
+                elif (is_hf_fake and is_vision_fake) or (ai_model_flags_fake and physical_domain_count >= 1):
+                    weighted_anomaly = max(0.70, weighted_anomaly)
+
+                # (e) Model says fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
+                elif ai_model_flags_fake and physical_domain_count == 0 and not is_vision_fake:
+                    is_contradiction = True
+                    # Do not force fake; keep in cautious borderline zone
+                    weighted_anomaly = max(0.48, min(0.54, weighted_anomaly))
+
+                # (f) Clear authentic capture: model confirms real and no physical boundary anomalies:
+                elif ai_model_confirms_real and physical_domain_count <= 1 and not face_res.get("is_manipulated_face"):
                     weighted_anomaly = min(0.20, weighted_anomaly)
+
+                # (g) Natural lens and sensor verified with zero physical anomalies:
+                elif physical_domain_count == 0 and max_active_signal < 0.45 and not is_vision_fake:
+                    weighted_anomaly = min(0.18, weighted_anomaly)
+
+                # (h) Flag contradiction between neural classifiers if they strongly disagree:
+                if (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
+                    is_contradiction = True
 
             logger.info("[FUSION] Evidence combined")
 
@@ -409,9 +417,9 @@ class EfficientNetDetector(BaseDetector):
             # 4-Level Semantic Result Structure:
             # 0.00 - 24.99: AUTHENTIC (Green)
             # 25.00 - 47.99: LIKELY_AUTHENTIC (Sky/Cyan)
-            # 48.00 - 52.00: UNCERTAIN (Amber, only true dead-splits or contradictions)
+            # 48.00 - 54.00: UNCERTAIN (Amber, only true dead-splits where evidence is genuinely balanced)
             # 52.01 - 100.0: LIKELY_AI_MANIPULATED (Red)
-            if is_contradiction or (48.0 <= risk_score <= 52.0):
+            if (46.0 <= risk_score <= 54.0) and is_contradiction:
                 verdict = "UNCERTAIN"
                 label = "uncertain"
             elif risk_score > 52.0:

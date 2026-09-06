@@ -36,7 +36,7 @@ class LMStudioVisionClient:
     ):
         self.base_url = (base_url or os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")).rstrip("/")
         self.configured_model = model_name or os.getenv("LM_STUDIO_MODEL", "")
-        self.timeout = int(timeout or os.getenv("LM_STUDIO_TIMEOUT_SECONDS", "200"))
+        self.timeout = int(timeout or os.getenv("LM_STUDIO_TIMEOUT_SECONDS", "360"))
         self.max_tokens = int(os.getenv("LM_STUDIO_MAX_TOKENS", "500"))
         self._cached_discovered_model: Optional[str] = None
 
@@ -119,9 +119,10 @@ class LMStudioVisionClient:
 
         # 2. High-efficiency system prompt
         system_prompt = (
-            "You are an image-forensics visual reasoning assistant. You are not the final authority.\n"
-            "Analyze only what can reasonably be inferred from the provided image.\n"
-            "Keep internal thinking very brief (under 25 words) and immediately output the JSON object:\n"
+            "You are an expert image-forensics visual reasoning assistant.\n"
+            "Analyze whether the image is authentic camera capture or generated/manipulated by AI.\n"
+            "Look for: synthetic skin smoothing, diffuse AI lighting, anatomical blending, ear/eye reflections, or diffusion textures.\n"
+            "Keep internal thinking very brief (under 15 words) and immediately output strict JSON:\n"
             "{\n"
             '  "visual_verdict": "suspicious" | "authentic" | "inconclusive",\n'
             '  "confidence": <float between 0.0 and 1.0>,\n'
@@ -149,7 +150,7 @@ class LMStudioVisionClient:
                 "type": "text",
                 "text": (
                     f"Forensic Context: {evidence_summary_str}\n"
-                    "Inspect this image for synthetic generator artifacts or manipulations. Output strict JSON only."
+                    "Inspect this image for synthetic AI generator artifacts or manipulations. Output strict JSON only."
                 )
             },
             {

@@ -156,6 +156,11 @@ class WatermarkIconAnalyzer:
                 contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                 corner_area = corner_gray.shape[0] * corner_gray.shape[1]
 
+                # If the corner is densely covered in textures (> 18 contours), it is natural
+                # fabric (e.g. saree embroidery), hair, foliage, or background noise, NOT an isolated watermark.
+                if len(contours) > 18:
+                    continue
+
                 for c in contours:
                     if len(c) < 5:
                         continue  # convexityDefects needs enough points to be meaningful

@@ -55,6 +55,8 @@ class HuggingFaceDeepfakeClient:
                 self.user_name = "HF User"
 
     def is_configured(self) -> bool:
+        if getattr(self, "_api_depleted", False):
+            return False
         return bool(self.api_key and self.api_key.startswith("hf_"))
 
     def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "general_object") -> Dict[str, Any]:
@@ -121,6 +123,9 @@ class HuggingFaceDeepfakeClient:
                     "user": self.user_name,
                     "note": f"Hugging Face ({target_model}) evaluated image with {confidence*100:.1f}% confidence (User: {self.user_name})."
                 }
+
+            if res.status_code in [402, 403]:
+                self._api_depleted = True
 
             # If cloud returns 402/403 or rate-limits, execute local offline fallback
             local_res = self.local_detector.predict(image_bytes, has_face=has_face, scene_type=scene_type)
