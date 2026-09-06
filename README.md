@@ -72,10 +72,11 @@ When the evaluation panel or professor asks to show the exact code implementatio
 |---|---|---|---|
 | **"Score kaise calculate ho raha hai? Formula dikhao."** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L185-L254) | **Lines 185–254** | Dynamic weights list `anomaly_weights` and normalized weighted sum formula: $A_{\text{weighted}} = \frac{\sum (s_i \cdot w_i)}{\sum w_i}$. |
 | **"WhatsApp/Social media compression par heuristics fail kyu nahi hoti?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L190-L191) | **Lines 190–191** | `phys_scale = 0.50 if already_recompressed else 1.0`. Fragile heuristics downweight by 50% and authority shifts to ViT and metadata. |
-| **"Contradiction detection aur false positive prevention kahan hai?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L357-L397) | **Lines 357–397** | Two-way contradiction logic. If AI says fake but physical anomalies == 0, score clamps to `[0.48, 0.52]` (UNCERTAIN) to protect real photos. |
-| **"Verdict thresholds (4 levels) kahan decide ho rahe hain?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L410-L426) | **Lines 410–426** | 4-Level Semantic Verdict: `AUTHENTIC` (<25%), `LIKELY_AUTHENTIC` (25-48%), `UNCERTAIN` (48-52%), `LIKELY_AI_MANIPULATED` (>52%). |
+| **"Contradiction detection aur evidential authority kahan hai?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L357-L405) | **Lines 357–405** | Evidential authority: Decisive boundary seams ($\ge 0.65$) or Vision LLM elevate risk to $\ge 68\%$ (`LIKELY_AI_MANIPULATED`) without forced 50% squashing. Clean camera images stay $\le 20\%$ (`AUTHENTIC`). Contradiction is logged as an explainability alert. |
+| **"Verdict thresholds (4 levels) kahan decide ho rahe hain?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L417-L435) | **Lines 417–435** | 4-Level Semantic Verdict: `AUTHENTIC` (<25%), `LIKELY_AUTHENTIC` (25-48%), `UNCERTAIN` (48-54%), `LIKELY_AI_MANIPULATED` (>52%). |
 | **"AI Metadata / Watermark ka immediate override kahan hai?"** | [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L360-L363) | **Lines 360–363** | `if meta_res.get("is_ai_signature_found"): weighted_anomaly = max(0.96, ...)`. Cryptographic ground truth locks risk to $\ge 96.0\%$. |
 | **"LM Studio Vision Local Inference kaise integrate hai?"** | [`models/image_deepfake/inference/lm_studio_vision_client.py`](models/image_deepfake/inference/lm_studio_vision_client.py#L114-L176) | **Lines 114–176** | Local streaming API call, image copy capped to <150KB JPEG, `<think>` reasoning tags stripped, and structured JSON validated. |
+| **"Watermark fabric false-positive rejection kahan hai?"** | [`models/image_deepfake/forensics/watermark_analyzer.py`](models/image_deepfake/forensics/watermark_analyzer.py#L100-L106) | **Lines 100–106** | `if len(contours) > 18: continue`. Rejects dense embroidery/saree textures from false watermark triggers. |
 | **"Trust Engine ka cross-service fusion kahan hota hai?"** | [`services/trust_engine/app/services/fusion_engine.py`](services/trust_engine/app/services/fusion_engine.py#L52-L122) | **Lines 52–122** | 4-step evidential fusion algorithm, module caps (40%), contradiction delta penalty ($40.0\Delta \implies 25\%$ penalty). |
 | **"Explainable Grad-CAM heatmap kahan banta hai?"** | [`models/image_deepfake/explainability/grad_cam.py`](models/image_deepfake/explainability/grad_cam.py#L37-L89) | **Lines 37–89** | PyTorch backward hook on layer-4 conv feature maps generates spatial saliency heatmap. |
 | **"Frontend me offline speech aur report debrief kahan hai?"** | [`frontend/src/views/ReportView.tsx`](frontend/src/views/ReportView.tsx#L30-L85) | **Lines 30–85** | 4-level UI badges, LM Studio Local Vision debrief card, `window.speechSynthesis` offline narration. |
@@ -96,7 +97,7 @@ When the evaluation panel or professor asks to show the exact code implementatio
 | **3D Geometry & Perspective** | `0.18` | `0.18` | Hough line transform checking vanishing lines and structural building symmetry |
 | **Vision Transformer (ViT)** | `0.30` | `0.42` | Global patch-level self-attention deep learning model trained on 140,000 crops |
 | **LM Studio Local Vision** | `0.18` | `0.18` | Visual semantic reasoning (anatomy coherence, lighting, edge realism) |
-| **Watermark Icon Scanner** | `0.15` | `0.15` | Convexity defect pointedness check for DALL-E/Midjourney platform glyphs |
+| **Watermark Icon Scanner** | `0.15` | `0.15` | Convexity defect pointedness check with fabric density filter (`contours <= 18`) |
 | **Semantic Scene Context** | `0.12` | `0.22` | Dynamic domain weight adjustment (Anime, Digital Art, Screenshot, Nature, Portrait) |
 
 ---
@@ -106,8 +107,8 @@ When the evaluation panel or professor asks to show the exact code implementatio
 #### Q1: "Why did you combine physics forensics with Deep Learning instead of using just CNN/ViT?"
 > **Answer:** *"Pure deep learning models suffer from high false-positive rates on real photos and break under compression because they are black boxes. TrustNet couples learned representations with 12 deterministic mathematical invariants derived from optical physics (lens diffraction, Bayer CFA demosaicing, and corneal reflection parallax). This ensures that an image is flagged only when multiple independent physical domains corroborate the manipulation."*
 
-#### Q2: "What is Two-Way Contradiction Detection and how does it prevent false positives?"
-> **Answer:** *"If a deep neural model predicts 'Fake' but all 8 physical forensic analyzers confirm natural camera capture (0 physical anomalies), the system does not declare it fake. Instead, it triggers a Contradiction Flag and clamps the score into the 48%–52% UNCERTAIN zone with a note recommending manual review. This guarantees clean real photos are never wrongly labeled as deepfakes."*
+#### Q2: "What is Evidential Authority and how does it handle conflicting signals?"
+> **Answer:** *"Instead of artificially squashing conflicting detections into a 50% UNCERTAIN band, TrustNet respects decisive physical evidence: if Face X-Ray boundary discontinuity is detected ($\ge 0.65$) or the Local Vision LLM identifies generative skin textures, risk properly elevates to $\ge 68\%$ (`LIKELY_AI_MANIPULATED`). Real camera photos with intact sensor noise remain $\le 20\%$ (`AUTHENTIC`). Contradiction is logged as an explainability alert to maintain full scientific transparency."*
 
 #### Q3: "What is the role of LM Studio Local Vision and why did you remove Puter.js?"
 > **Answer:** *"Puter.js was a third-party cloud script that leaked user media to external servers and required an active internet connection. We replaced it with a local-first OpenAI-compatible vision client running `unsloth/Qwen3-VL-4B-Thinking-GGUF` at `http://localhost:1234/v1`. It acts as a visual reasoning assistant — analyzing fine textures, anatomy boundaries, and lighting anomalies — with zero cloud cost, 100% data privacy, and graceful offline fallback."*
@@ -119,6 +120,94 @@ When the evaluation panel or professor asks to show the exact code implementatio
 > **Answer:** *"Grad-CAM computes partial derivatives of the predicted class score with respect to convolutional layer-4 feature maps in EfficientNet-B0. It generates a 2D spatial saliency heatmap that visually highlights the exact image regions (e.g. periocular boundary, jawline blending seams) that contributed to the verdict."*
 
 ---
+
+## 🏛️ Comprehensive Architecture & Algorithms Catalog (Full Platform)
+
+TrustNet AI is designed as a unified multimodal trust and security intelligence platform covering 4 key threat vectors:
+
+```
++---------------------------------------------------------------------------------------------------------+
+|                                        TrustNet AI Architecture                                         |
++---------------------------------------------------------------------------------------------------------+
+| [User] --> [Frontend (React 19)] --> [API Gateway (8000)] --> [Backend Services] --> [Event Bus (Kafka)] |
++---------------------------------------------------------------------------------------------------------+
+|  [1. Phishing Detection]   | [2. Scam Message]    | [3. Fake Review]     | [4. Multimodal Deepfake]     |
+|  - URL, Domain, SSL        | - Text, Keywords     | - Semantic Sim.      |  * Image: ELA, PRNU, ViT     |
+|  - WHOIS, HTML, JS         | - Urgency, Semantic  | - Behaviour, Sentim. |  * Audio: MFCC, Wav2Vec2     |
+|  - LightGBM, RF, XGB, BERT | - RoBERTa, DistilBERT| - SBERT, Isol.Forest |  * Video: LipSync, rPPG, EAR |
++---------------------------------------------------------------------------------------------------------+
+|                                    [Trust Score Engine (Port 8004)]                                     |
+|                   Weighted Fusion + Contradiction Detection + Explainable AI (0-100)                     |
++---------------------------------------------------------------------------------------------------------+
+```
+
+### Module 1: Phishing Detection (Web & URL Threat Intelligence)
+- **Features & Signals:**
+  - **Lexical Analysis:** URL length, Shannon entropy, subdomain depth, and Levenshtein edit distance against top Alexa 10k legitimate domains to detect typosquatting (e.g. `goog1e.com`).
+  - **Domain & SSL Invariants:** WHOIS registration age (domains $< 48$ hours old have high malicious propensity), certificate authority verification, and SSL expiry.
+  - **HTML/JS DOM Parsing:** Hidden `<iframe>` tags, external `<form action>` target URLs, password input fields without HTTPS, and obfuscated JavaScript execution patterns.
+- **Algorithms & ML Models:**
+  - **LightGBM / XGBoost / Random Forest:** Gradient boosted tree ensemble trained on 80+ tabular lexical and network features for sub-5ms classification.
+  - **BERT:** Transformer language model to encode URL paths and HTML title tags for contextual social engineering intent.
+- **Output:** Phishing Risk Score ($0.0 - 100.0\%$).
+
+### Module 2: Scam Message Detection (SMS, WhatsApp, Email NLP)
+- **Features & Signals:**
+  - **Keyword & Trigger Patterns:** Regex and TF-IDF extraction of financial pressure words ("Lottery", "KYC blocked", "UPI pin", "Account suspended").
+  - **Psychological Urgency Metric:** NLP heuristic that quantifies artificial panic phrases ("act within 1 hour", "legal penalty").
+  - **Semantic Intent Classification:** Identifies whether the message coerces the recipient into an external action (clicking link, sending money).
+- **Algorithms & ML Models:**
+  - **DistilBERT / RoBERTa:** Fine-tuned sequence classification transformers that analyze context rather than naive keyword matching, capturing evasive spelling and obfuscated scam phrasing.
+- **Output:** Scam Probability Score ($0.0 - 100.0\%$).
+
+### Module 3: Fake Review Detection (E-Commerce & App Store Fraud)
+- **Features & Signals:**
+  - **Semantic Duplication (Astroturfing Rings):** Sentence-BERT (SBERT) generates 768-dimensional dense vectors for reviews. If multiple accounts post reviews with Cosine Similarity $> 0.90$, they are grouped into an automated review syndicate.
+  - **Behavioral & Temporal Burstiness:** Measures unnatural velocity (e.g., 50 reviews in 30 minutes on a low-traffic product), reviewer account age, and review distribution variance.
+  - **Sentiment-Rating Disparity:** Natural language sentiment vs numerical star rating contradiction (e.g., negative text with a 5-star rating).
+- **Algorithms & ML Models:**
+  - **Isolation Forest:** Unsupervised anomaly detection algorithm that isolates irregular review bursts with few tree partitions.
+  - **XGBoost:** Supervised classifier trained on reviewer tenure, verified purchase tags, and sentiment alignment.
+- **Output:** Authenticity Score ($0.0 - 100.0\%$).
+
+### Module 4: Multimodal Deepfake Detection (Image · Audio · Video)
+
+#### 4.1 Image Deepfake Detection (✅ Active & Production-Ready in Repo)
+- **Physics Forensics:**
+  - **2D Fourier Spectrum (FFT):** Radial power-law decay ($1/f^\alpha$) vs periodic GAN/diffusion lattice spikes.
+  - **Bayer CFA Demosaicing:** Hardware sensor demosaicing continuity ($\Delta = \|G - (R+B)/2\|$).
+  - **Multi-Scale Gabor Filter:** Texture orientation entropy across 4 angles ($0^\circ, 45^\circ, 90^\circ, 135^\circ$).
+  - **Error Level Analysis (ELA):** JPEG 8x8 DCT re-compression variance between spliced foreground and background.
+  - **Sensor Pattern Noise (PRNU):** Silicon photo-response non-uniformity fingerprint extraction.
+  - **Face X-Ray:** Boundary seam step gradients along facial perimeter.
+  - **Corneal Specular Reflection:** 3D lighting vector parallax across both pupils.
+  - **Watermark Scanner with Fabric Rejection:** Corner glyph pointedness check with contour density thresholding (`len(contours) > 18` rejects fabric/saree embroidery).
+- **Deep Learning & Visual Reasoning:**
+  - **EfficientNet-B0 Backbone:** Convolutional spatial feature extractor.
+  - **Local Vision Transformer (ViT):** Patch self-attention trained on 140k FaceForensics++ crops with offline fallback.
+  - **LM Studio Local Vision Reasoning:** `Qwen3-VL-4B-Thinking` running locally on `http://localhost:1234/v1` with `<think>` tag stripping and prompt-guided diffusion artifact evaluation.
+  - **Grad-CAM Explainability:** Saliency heatmaps highlighting exact suspicious facial regions.
+- **Output:** Image Deepfake Score ($0.0 - 100.0\%$).
+
+#### 4.2 Audio Deepfake Detection (Planned Roadmap)
+- **MFCC (Mel-Frequency Cepstral Coefficients) & FFT Formants:** Biological vocal tract acoustic resonance analysis vs synthetic phase discontinuities.
+- **Breathing & Biological Pause Analysis:** Real humans exhibit diaphragmatic breathing and natural acoustic pauses; synthetic voice engines exhibit mathematical silence ($-\infty$ dB).
+- **Wav2Vec2 Self-Supervised Transformer:** Encodes raw 16kHz audio waveforms into latent speech representations to detect synthetic voice clones.
+- **Vocoder Detection:** Identifies periodic transposed-convolution phase artifacts left by HiFi-GAN and MelGAN vocoders.
+- **Output:** Audio Deepfake Score ($0.0 - 100.0\%$).
+
+#### 4.3 Video Deepfake Detection (Phase 2 Roadmap)
+- **Optical Flow (Farneback / Lucas-Kanade):** Evaluates frame-to-frame motion vectors to detect temporal jitter and boundary shimmering during head turns.
+- **Lip-Sync Audio-Visual Alignment (SyncNet / Wav2Lip):** Calculates cross-modal distance between spoken phonemes and visual mouth visemes.
+- **rPPG (Remote Photoplethysmography):** Extracts facial skin Green-channel micro-color oscillations corresponding to cardiac blood volume pulse (BVP). Synthetic AI faces lack genuine human heartbeat waveforms.
+- **Blink Dynamics (Eye Aspect Ratio - EAR):** Measures physiological eyelid closure curves ($EAR = \frac{\|p_2-p_6\| + \|p_3-p_5\|}{2\|p_1-p_4\|}$) to detect abnormal or absent blinks.
+- **Output:** Video Deepfake Score ($0.0 - 100.0\%$).
+
+### Module 5: Trust Score Engine (Port 8004 — Central Fusion Brain)
+- **Multi-Vector Evidential Fusion:** Combines scores from all active threat modules into a single, calibrated Trust Score ($0 - 100$).
+- **Contradiction Resolution:** Applies a 25% confidence penalty if any two detectors strongly disagree ($\Delta \ge 40.0$).
+- **Module Weight Caps:** Imposes a 40% cap on any single detector's influence to prevent single-point-of-failure vulnerabilities.
+- **Natural Language Debrief:** Generates human-readable forensic audit trails explaining the exact physical and statistical evidence.
 
 ## Local Prerequisites
 
