@@ -20,8 +20,78 @@
 | **"Frontend microservice direct fallback kahan hai?"** | `frontend/src/services/api.ts` | **Lines 120–145** | Resilient 3-tier fallback (Port 8000 Gateway -> Port 8002 Scan Service -> Port 8003 Detector) preventing aborted scans. |
 | **"Watermark fabric false-positive rejection kahan hai?"** | `models/image_deepfake/forensics/watermark_analyzer.py` | **Lines 100–106** | `if len(contours) > 18: continue`. Rejects dense embroidery/saree textures from false watermark triggers. |
 | **"Trust Engine ka cross-service fusion kahan hota hai?"** | `services/trust_engine/app/services/fusion_engine.py` | **Lines 52–122** | 4-step evidential fusion algorithm, module caps (40%), contradiction delta penalty |
-| **"Explainable Grad-CAM heatmap kahan banta hai?"** | `models/image_deepfake/explainability/grad_cam.py` | **Lines 37–89** | PyTorch backward hook on layer-4 conv feature maps |
+| **"AI image upload par defect kaise pakadta hai?"** | `models/image_deepfake/forensics/face_analyzer.py` & `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 217–260** (Face X-Ray) & **Lines 376–380** (Rule b) | Sobel boundary step gradients along jawline/hairline + skin variance trigger `weighted_anomaly >= 0.68` (`LIKELY_AI_MANIPULATED`). |
+| **"Real photo upload par authenticity kaise verify hoti hai?"** | `models/image_deepfake/inference/efficientnet_detector.py` & `models/image_deepfake/forensics/frequency_analyzer.py` | **Lines 370–374** (Rule a) & **Lines 80–120** (FFT) | 0 physical domain anomalies + optical $1/f^\alpha$ roll-off + ViT $\ge 75\%$ clamps risk to $\le 18.0\%$ (`AUTHENTIC`). |
+| **"Pehle UNCERTAIN kyu dikh raha tha aur code me kaise solve kiya?"** | `frontend/src/views/ReportView.tsx` & `frontend/src/services/pdfExporter.ts` | **Lines 64–77** (ReportView) & **Lines 54–66** (PDF) | Removed blanket `if (isContradiction) verdict = 'UNCERTAIN'`. UNCERTAIN is strictly confined to 46%–54% deadlocks; genuine 10% risk stays emerald-green `AUTHENTIC`. |
 | **"Frontend me offline speech aur report debrief kahan hai?"** | `frontend/src/views/ReportView.tsx` | **Lines 30–85** | 4-level UI badges, LM Studio Local Vision debrief card, `window.speechSynthesis` |
+
+---
+
+## 🔬 Practical Forensic Audit: AI Defect Detection vs. Real Camera Authenticity
+
+> **Practical Panel Defense Summary:**  
+> When the evaluator asks: *"How does the system practically detect defects in an AI image, and verify authenticity in a real photo?"*, walk them through this exact physical and algorithmic proof:
+
+### 1. Jab User AI Image Upload Karta Hai (Defect Detection Logic)
+
+Jab koi AI-generated image (Midjourney, Stable Diffusion, Face Swap) upload hoti hai, system kisi single metric par guess karne ke bajaye **independent physical defects** identify karta hai:
+
+1. **Facial Boundary Step Gradients (Face X-Ray Discontinuity):**  
+   - **File:** [`models/image_deepfake/forensics/face_analyzer.py`](models/image_deepfake/forensics/face_analyzer.py#L217-L260)  
+   - **Defect:** AI generators aur face swaps me face aur background ke boundary par sub-pixel step gradient banta hai. Code jawline, hairline, aur neck par 22% padding margin ke sath multi-band Sobel gradient compute karta hai:
+     $$\Delta_{\text{boundary}} = \frac{|\mu_{\text{inner}} - \mu_{\text{outer}}|}{\mu_{\text{outer}} + \epsilon}$$
+     Agar boundary disparity $> 0.85$ ya gradient standard deviation $> 52.0$ ho, toh facial manipulation flag ho jati hai (`boundary_anomaly_score = 0.72 - 0.88`).
+2. **Sub-Pixel Bayer CFA Lattice Break:**  
+   - **File:** [`models/image_deepfake/forensics/pixel_morphing_analyzer.py`](models/image_deepfake/forensics/pixel_morphing_analyzer.py#L36-L95)  
+   - **Defect:** Physical camera sensor par 2x2 Bayer filter (RGGB) hota hai jisme Green channel Red/Blue ke sath mathematically correlated hota hai. AI models latent space me pixel invent karte hain, isliye even-odd lattice standard deviation abnormal ho jati hai (`cfa_residual < 2.2` ya $> 35.0$).
+3. **2D Fourier Periodic Lattice Spikes:**  
+   - **File:** [`models/image_deepfake/forensics/frequency_analyzer.py`](models/image_deepfake/forensics/frequency_analyzer.py#L80-L120)  
+   - **Defect:** Generative upsamplers frequency domain me periodic checkerboard spikes chhodte hain, jisse natural optical roll-off ($1/f^\alpha$) toot jata hai ($\alpha < 1.35$).
+4. **Physical Silicon PRNU Noise Absence:**  
+   - **File:** [`models/image_deepfake/forensics/noise_analyzer.py`](models/image_deepfake/forensics/noise_analyzer.py#L22-L30)  
+   - **Defect:** Real CMOS sensors me Photo-Response Non-Uniformity noise hoti hai ($2.0 \le \sigma \le 22.0$). Pure AI images me silicon noise missing hoti hai ($\sigma < 1.2$).
+5. **Governing Code Rule in EfficientNet Detector:**  
+   - **File:** [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L376-L389)  
+   ```python
+   # Facial boundary discontinuity is direct physical proof of synthetic face:
+   elif face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
+       weighted_anomaly = max(0.68, weighted_anomaly)  # Elevates risk score to >= 68.0%
+   ```
+   **Result:** Risk Score $\ge 68.0\% \rightarrow$ Verdict: **`LIKELY_AI_MANIPULATED` (Crimson Red)**.
+
+---
+
+### 2. Jab User Real Camera Image Upload Karta Hai (Authenticity Verification Logic)
+
+Jab user apne smartphone se li gayi real photo (jaise restaurant/natural portrait) upload karta hai, system authenticity confirm karta hai:
+
+1. **Zero Physical Domain Anomalies:**  
+   - **Frequency Roll-off:** Optical lens natural $1/f^\alpha$ slope follow karta hai ($\alpha \approx 2.0 - 2.8$, zero periodic spikes).
+   - **Bayer Grid Demosaicing:** Camera hardware ka RGGB linear interpolation verified hota hai ($4.0 \le \text{cfa\_residual} \le 24.0$).
+   - **Sensor PRNU:** Real CMOS hardware silicon noise maujood hoti hai ($\sigma \approx 5.0 - 15.0$).
+   - **Face Boundaries:** Skin-to-background transitions continuous aur seamless hoti hain (boundary disparity $< 0.30$, zero boundary step gradient).
+   - **JPEG ELA:** Pure frame par single camera JPEG encoder ka uniform quantization level hota hai.  
+   $$\text{physical\_domain\_count} = 0$$
+2. **Dedicated Vision Transformer Certification:**  
+   - Hugging Face / Local ViT (`dima806/deepfake_vs_real_image_detection`) faces scan karke verify karta hai:
+     `hf_risk_score <= 15.0` (matlab **$\ge 85\%$ se leke $99.7\%$ real photography**).
+3. **High-Confidence Authentic Capture Governing Rule:**  
+   - **File:** [`models/image_deepfake/inference/efficientnet_detector.py`](models/image_deepfake/inference/efficientnet_detector.py#L370-L374)  
+   ```python
+   # When dedicated ViT certifies Real (>=75%) AND zero physical anomalies exist AND no face boundary seam:
+   if is_hf_real and physical_domain_count == 0 and not face_res.get("is_manipulated_face"):
+       weighted_anomaly = min(0.18, weighted_anomaly)  # Clamps risk score to <= 18.0%
+   ```
+   **Result:** Risk Score $\le 18.0\% \rightarrow$ Verdict: **`AUTHENTIC` (Emerald Green)**.
+
+---
+
+### 3. "UNCERTAIN" Verdict Kab Aata Hai Aur False UNCERTAIN Kaise Fix Hua?
+
+- **Pehle kya issue tha:** Frontend (`ReportView.tsx`) me agar LM Studio vision model ne restaurant ke yellow ambient bulb ya lighting par koi subjective comment likh diya tha, toh UI blanket override karke verdict ko `UNCERTAIN` dikha deta tha, bhale hi physical risk score sirf 10% ho!
+- **Code Fix:** [`frontend/src/views/ReportView.tsx:64-77`](frontend/src/views/ReportView.tsx#L64-L77) & [`frontend/src/services/pdfExporter.ts:54-66`](frontend/src/services/pdfExporter.ts#L54-L66) me logic update kiya:
+  - `UNCERTAIN` ab **strictly $46.0\% - 54.0\%$** ke true 50-50 deadlock zone tak restricted hai.
+  - Agar image ka risk score $\le 24.99\%$ hai, toh UI bina kisi confusion ke seedha **`AUTHENTIC` (Emerald Green)** display karegi.
 
 ---
 
@@ -450,4 +520,34 @@ Diagram ke bottom me jo scale/balance bana hai:
 #### Q20: "Lip-Sync detection me SyncNet kaise verify karta hai?"
 **Answer:**
 > *"SyncNet ek two-stream neural network hai. Ek stream audio ke MFCC features ko read karti hai aur dusri stream lip landmark coordinates ko. Dono streams ek common embedding space me project hoti hain jahan cosine distance calculate hota hai. Agar bolne wala 'P' ya 'B' sound bol raha hai par video me lips band nahi ho rahe hain, toh acoustic-visual distance shoot up ho jata hai jo manipulation confirm karta hai."*
+
+---
+
+#### Q21: "Agar mai ek AI-generated portrait upload karu, toh system code me exactly konsa defect pakadta hai?"
+**Answer:**
+> *"Mam/Sir, AI portrait upload hone par system kisi single black-box model par depend nahi karta, balki 3 independent physical defects ko pakadta hai:  
+> 1. **Face X-Ray Boundary Seams (`models/image_deepfake/forensics/face_analyzer.py`):** Face boundary ke 22% outer margin par multi-band Sobel gradient step disparity detect karta hai. AI diffusion models me face aur background blending me sharp step gradient reh jata hai ($\text{disparity} > 0.85$).  
+> 2. **Bayer CFA Demosaicing Failure (`pixel_morphing_analyzer.py`):** Real camera me sub-pixel RGGB linear dependence hoti hai, jabki AI images me correlation broken hoti hai.  
+> 3. **Fourier Grid Spikes (`frequency_analyzer.py`):** Neural upsamplers ke periodic artifacts 2D FFT spectrum me detect hote hain.  
+> In defects ke basis par `efficientnet_detector.py` (Line 376) ka rule trigger hota hai aur score turant $\ge 68\%$ (`LIKELY_AI_MANIPULATED`) ho jata hai."*
+
+---
+
+#### Q22: "Agar mai real phone camera photo upload karu, toh system authenticity kaise prove karta hai?"
+**Answer:**
+> *"Mam/Sir, jab real smartphone photo upload hoti hai:  
+> 1. Saare 5 physical domain analyzers (FFT, CFA, PRNU, Face X-Ray, ELA) pass ho jate hain kyunki natural lens roll-off ($1/f^\alpha$) aur CMOS sensor noise present hota hai ($\text{physical\_domain\_count} = 0$).  
+> 2. Dedicated Vision Transformer model face scan karke $\ge 85\%$ se leke $99.7\%$ real photography certify karta hai (`hf_risk_score <= 15.0`).  
+> 3. `efficientnet_detector.py` (Line 370) ka High-Confidence Authentic Capture rule execute hota hai:  
+> `if is_hf_real and physical_domain_count == 0: weighted_anomaly = min(0.18, weighted_anomaly)`.  
+> Isse risk score $\le 18.0\%$ clamp ho jata hai aur system safely **AUTHENTIC (Emerald Green)** verdict deta hai."*
+
+---
+
+#### Q23: "Pehle genuine real photo par UNCERTAIN kyu dikh raha tha, aur aapne use code me kaise fix kiya?"
+**Answer:**
+> *"Sir/Mam, pehle frontend (`ReportView.tsx`) me ek blanket check laga hua tha ki agar kisi bhi model ne contradiction flag kiya, toh verdict ko zabardasti `UNCERTAIN` bana diya jaye. Problem yeh thi ki agar LM Studio vision model ne restaurant ke yellow ambient bulb lighting par koi subjective comment de diya, toh 10% risk wali real photo bhi UNCERTAIN ho jati thi.  
+> Humne ise mathematically fix kiya:  
+> 1. `efficientnet_detector.py` me Evidential Precedence rule lagaya ki subjective lighting observation clean physical ground-truth ko override nahi karega.  
+> 2. Frontend aur PDF exporter me `UNCERTAIN` ko strictly $46.0\% - 54.0\%$ ke true deadlock zone tak restrict kar diya. Ab genuine real photo hamesha **AUTHENTIC (Emerald Green)** hi render hoti hai."*
 
