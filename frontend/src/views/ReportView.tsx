@@ -38,7 +38,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   let verdictColorClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
   let VerdictIcon = CheckCircle2;
 
-  if (isContradiction || rawVerdict === 'UNCERTAIN' || (riskScore >= 48.0 && riskScore <= 52.0)) {
+  if (rawVerdict === 'UNCERTAIN' || (isContradiction && riskScore >= 46.0 && riskScore <= 54.0)) {
     semanticVerdict = 'UNCERTAIN';
     semanticSubtext = 'Signals disagree or evidence is conflicting / insufficient (Manual review recommended).';
     verdictColorClass = 'bg-amber-500/10 border-amber-500/20 text-amber-400';
@@ -48,10 +48,15 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
     semanticSubtext = 'Multiple independent signals indicate synthetic or manipulated content.';
     verdictColorClass = 'bg-red-500/10 border-red-500/20 text-red-400';
     VerdictIcon = ShieldAlert;
-  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore < 48.0)) {
+  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore <= 52.0)) {
     semanticVerdict = 'LIKELY AUTHENTIC';
     semanticSubtext = 'Mostly consistent with real capture, minor compression or sensor variance.';
     verdictColorClass = 'bg-sky-500/10 border-sky-500/20 text-sky-400';
+    VerdictIcon = CheckCircle2;
+  } else {
+    semanticVerdict = 'AUTHENTIC';
+    semanticSubtext = 'Low evidence of manipulation across physical and neural analyzers.';
+    verdictColorClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
     VerdictIcon = CheckCircle2;
   }
 

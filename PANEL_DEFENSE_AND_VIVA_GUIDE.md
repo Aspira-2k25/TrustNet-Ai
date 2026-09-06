@@ -79,15 +79,17 @@ $$
 
 **Evidential Authority Rules (No Forced 50% Dead-Zone Squashing):**
 ```python
-# (a) Facial boundary discontinuity is direct physical proof of face-swap / synthetic composition:
-if face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
-    weighted_anomaly = max(0.68, weighted_anomaly)  # Risk >= 68.0% (LIKELY_AI_MANIPULATED)
-    if is_hf_real:
-        is_contradiction = True
+# (a) High-Confidence Authentic Capture:
+# When dedicated ViT certifies Real (>=75%) AND zero physical anomalies exist AND no face boundary seam:
+# The photo is physically genuine. Subjective VL model ambient lighting observations must not flip real photos.
+if is_hf_real and physical_domain_count == 0 and not face_res.get("is_manipulated_face"):
+    weighted_anomaly = min(0.18, weighted_anomaly)  # Risk <= 18.0% (AUTHENTIC)
+    if is_vision_fake:
+        is_contradiction = True  # Log disagreement for transparency without flipping genuine photos
 
-# (b) Visual Reasoning (LM Studio Vision) flags generative diffusion textures:
-elif is_vision_fake:
-    weighted_anomaly = max(0.70, weighted_anomaly)  # Risk >= 70.0% (LIKELY_AI_MANIPULATED)
+# (b) Facial boundary discontinuity is direct physical proof of face-swap / synthetic composition:
+elif face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
+    weighted_anomaly = max(0.68, weighted_anomaly)  # Risk >= 68.0% (LIKELY_AI_MANIPULATED)
     if is_hf_real:
         is_contradiction = True
 
@@ -95,18 +97,24 @@ elif is_vision_fake:
 elif physical_domain_count >= 2:
     weighted_anomaly = max(0.72, min(0.98, weighted_anomaly * 1.15))
 
-# (e) Model says fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
-elif ai_model_flags_fake and physical_domain_count == 0 and not is_vision_fake:
+# (d) Both AI models flag fake, or model fake is corroborated by at least 1 physical domain:
+elif (is_hf_fake and is_vision_fake) or (ai_model_flags_fake and physical_domain_count >= 1):
+    weighted_anomaly = max(0.70, weighted_anomaly)
+
+# (f) AI model says fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
+elif ai_model_flags_fake and physical_domain_count == 0:
     is_contradiction = True
     weighted_anomaly = max(0.48, min(0.54, weighted_anomaly))  # Cautious borderline zone
 
-# (f) Natural camera capture confirmed by model and clean sensor:
+# (g) Natural camera capture confirmed by model or clean physical baseline:
 elif ai_model_confirms_real and physical_domain_count <= 1 and not face_res.get("is_manipulated_face"):
     weighted_anomaly = min(0.20, weighted_anomaly)  # Risk <= 20.0% (AUTHENTIC)
 ```
 
 > **Why did we do this? (Viva Answer):**  
-> *"Pehle systems me agar model aur physical heuristics me conflict hota tha, toh wo score ko zabardasti 50% (UNCERTAIN) par squash kar dete the. Isse modern AI diffusion portraits (jinme legacy ViT confuse ho jata tha) fake hone ke bawajood 'UNCERTAIN' ban ja rahe the. Humne **Evidential Authority** model implement kiya: Agar Face X-Ray me clear boundary seam discontinuity ($\ge 0.65$) hai ya Vision model suspicious textures pakadta hai, toh system decisive evidence ko respect karke risk score $\ge 68\%$ (`LIKELY_AI_MANIPULATED`) karta hai aur Contradiction ko explainability ke liye flag karta hai bina score ko artificially suppress kiye. Real camera images jinke sensor invariants clean hain, unka score $\le 20\%$ (`AUTHENTIC`) rehta hai."*
+> *"Humne **Evidential Authority** model implement kiya hai taaki false positives zero ho sakein:  
+> 1. Agar koi real camera photograph hai (jaise user ki restaurant photo) jisme 0 physical anomalies hain, koi face blending seam nahi hai, aur 140k-crop trained ViT model use 99.7% Real bol raha hai — toh koi subjective vision model restaurant ke ceiling lamp lighting ko 'diffuse lighting' bolkar real photo ko fake nahi bana sakta. System decisive physical ground-truth ko respect karke risk score $\le 18\%$ (`AUTHENTIC`) rakhta hai.  
+> 2. Agar modern AI diffusion portrait hai jisme Face X-Ray me boundary seam anomaly ($\ge 0.65$) hai ya multiple physical domains trigger hote hain, toh score properly $\ge 68\%$ (`LIKELY_AI_MANIPULATED`) elevate hota hai bina 50% par zabardasti squash huye."*
 
 ---
 

@@ -117,14 +117,16 @@ class LMStudioVisionClient:
         # 1. Optimize image copy for vision reasoning
         image_data_url = self.optimize_image_for_vision(image_bytes)
 
-        # 2. High-efficiency system prompt
+        # 2. High-efficiency balanced system prompt
         system_prompt = (
             "You are an expert image-forensics visual reasoning assistant.\n"
-            "Analyze whether the image is authentic camera capture or generated/manipulated by AI.\n"
-            "Look for: synthetic skin smoothing, diffuse AI lighting, anatomical blending, ear/eye reflections, or diffusion textures.\n"
-            "Keep internal thinking very brief (under 15 words) and immediately output strict JSON:\n"
+            "Carefully evaluate whether this image is an authentic real camera photograph or an AI-generated/manipulated image.\n"
+            "Authentic camera photos show natural skin pores, realistic depth of field, coherent indoor architecture, and legible real signage.\n"
+            "AI-generated images show plastic doll skin, melted background signage, impossible anatomy, or mismatched ear/eye reflections.\n"
+            "If the subject shows natural human facial features in a real physical setting (e.g. restaurant, home, street), classify visual_verdict as 'authentic'.\n"
+            "Keep internal reasoning very brief (under 15 words) and output strict JSON:\n"
             "{\n"
-            '  "visual_verdict": "suspicious" | "authentic" | "inconclusive",\n'
+            '  "visual_verdict": "authentic" | "suspicious" | "inconclusive",\n'
             '  "confidence": <float between 0.0 and 1.0>,\n'
             '  "observations": [<string>, ...],\n'
             '  "suspicious_regions": [{"region": "<name>", "reason": "<string>"}],\n'
@@ -150,7 +152,7 @@ class LMStudioVisionClient:
                 "type": "text",
                 "text": (
                     f"Forensic Context: {evidence_summary_str}\n"
-                    "Inspect this image for synthetic AI generator artifacts or manipulations. Output strict JSON only."
+                    "Inspect this image: distinguish authentic real camera capture from synthetic AI generation. Output strict JSON only."
                 )
             },
             {

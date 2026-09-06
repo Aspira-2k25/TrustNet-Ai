@@ -362,16 +362,19 @@ class EfficientNetDetector(BaseDetector):
                 is_contradiction = False
             else:
                 # 2. Evidential Multimodal Corroboration & Calibration:
-                # (a) Facial boundary discontinuity is direct physical proof of face-swap / synthetic composition:
-                if face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
-                    weighted_anomaly = max(0.68, weighted_anomaly)
-                    if is_hf_real:
+
+                # (a) High-Confidence Authentic Capture:
+                # When dedicated ViT certifies Real (>=75%) AND zero physical anomalies exist AND no face boundary seam:
+                # The photo is physically genuine. A subjective VL model hallucination (e.g. ambient indoor lighting)
+                # must not flip an authentic camera photo to fake.
+                if is_hf_real and physical_domain_count == 0 and not face_res.get("is_manipulated_face"):
+                    weighted_anomaly = min(0.18, weighted_anomaly)
+                    if is_vision_fake:
                         is_contradiction = True
 
-                # (b) Visual Reasoning (LM Studio Vision):
-                elif is_vision_fake:
-                    # Vision model detected generative textures, unnatural lighting, or anatomy anomalies
-                    weighted_anomaly = max(0.70, weighted_anomaly)
+                # (b) Facial boundary discontinuity is direct physical proof of face-swap / synthetic composition:
+                elif face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
+                    weighted_anomaly = max(0.68, weighted_anomaly)
                     if is_hf_real:
                         is_contradiction = True
 
@@ -385,21 +388,25 @@ class EfficientNetDetector(BaseDetector):
                 elif (is_hf_fake and is_vision_fake) or (ai_model_flags_fake and physical_domain_count >= 1):
                     weighted_anomaly = max(0.70, weighted_anomaly)
 
-                # (e) Model says fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
-                elif ai_model_flags_fake and physical_domain_count == 0 and not is_vision_fake:
+                # (e) Visual Reasoning (LM Studio Vision) flags fake, and ViT does not strongly certify real:
+                elif is_vision_fake and not is_hf_real:
+                    weighted_anomaly = max(0.68, weighted_anomaly)
+
+                # (f) AI model says fake, but all physical forensic checks confirm natural camera capture (0 physical anomalies):
+                elif ai_model_flags_fake and physical_domain_count == 0:
                     is_contradiction = True
                     # Do not force fake; keep in cautious borderline zone
                     weighted_anomaly = max(0.48, min(0.54, weighted_anomaly))
 
-                # (f) Clear authentic capture: model confirms real and no physical boundary anomalies:
+                # (g) Clear authentic capture: model confirms real and no physical boundary anomalies:
                 elif ai_model_confirms_real and physical_domain_count <= 1 and not face_res.get("is_manipulated_face"):
                     weighted_anomaly = min(0.20, weighted_anomaly)
 
-                # (g) Natural lens and sensor verified with zero physical anomalies:
-                elif physical_domain_count == 0 and max_active_signal < 0.45 and not is_vision_fake:
+                # (h) Natural lens and sensor verified with zero physical anomalies:
+                elif physical_domain_count == 0 and max_active_signal < 0.45:
                     weighted_anomaly = min(0.18, weighted_anomaly)
 
-                # (h) Flag contradiction between neural classifiers if they strongly disagree:
+                # (i) Flag contradiction between neural classifiers if they strongly disagree:
                 if (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
                     is_contradiction = True
 

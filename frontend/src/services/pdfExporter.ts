@@ -27,7 +27,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   let bannerText = [255, 255, 255];
   let subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
 
-  if (isContradiction || rawVerdict === 'UNCERTAIN' || (riskScore >= 48.0 && riskScore <= 52.0)) {
+  if (rawVerdict === 'UNCERTAIN' || (isContradiction && riskScore >= 46.0 && riskScore <= 54.0)) {
     semanticVerdict = 'UNCERTAIN / CONFLICTING SIGNALS';
     bannerBg = [245, 158, 11]; // Amber #f59e0b
     subtext = 'Signals disagree or evidence is conflicting / insufficient. Manual review recommended.';
@@ -35,10 +35,15 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
     semanticVerdict = 'LIKELY AI / MANIPULATED CONTENT';
     bannerBg = [239, 68, 68]; // Red #ef4444
     subtext = 'Multiple independent physical & neural signals indicate synthetic media generation.';
-  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore < 48.0)) {
+  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore <= 52.0)) {
     semanticVerdict = 'LIKELY AUTHENTIC CAPTURE';
     bannerBg = [14, 165, 233]; // Sky #0ea5e9
     subtext = 'Mostly consistent with authentic sensor capture with minor compression variance.';
+  } else {
+    semanticVerdict = 'AUTHENTIC / NATURAL CAPTURE';
+    bannerBg = [16, 185, 129]; // Emerald #10b981
+    bannerText = [255, 255, 255];
+    subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
   }
 
   let y = margin;
