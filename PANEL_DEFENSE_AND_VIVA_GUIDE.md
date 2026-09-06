@@ -12,12 +12,14 @@
 |---|---|---|---|
 | **"Score kaise calculate ho raha hai? Formula dikhao."** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 185–254** | `anomaly_weights` list, `weighted_anomaly = sum(s * w) / sum(w)` |
 | **"Social media image (WhatsApp) par heuristic fail kyu nahi hoti?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 190–191** | `phys_scale = 0.50 if already_recompressed else 1.0` (Adaptive DCT Scaling) |
-| **"Contradiction detection aur false positive prevention kahan hai?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 357–397** | `is_contradiction` logic, clamping to `[0.48, 0.52]` (UNCERTAIN band) |
-| **"Verdict ke thresholds (4 levels) kahan decide ho rahe hain?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 410–426** | 4-Level Semantic Verdict: AUTHENTIC, LIKELY_AUTHENTIC, UNCERTAIN, LIKELY_AI_MANIPULATED |
+| **"Contradiction detection aur evidential authority kahan hai?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 357–405** | Evidential authority: Decisive boundary seams ($\ge 0.65$) or Vision LLM elevate risk to $\ge 68\%$ (`LIKELY_AI_MANIPULATED`) without forced 50% squashing. Clean camera images stay $\le 20\%$ (`AUTHENTIC`). Contradiction is logged as an explainability alert. |
+| **"Verdict ke thresholds (4 levels) kahan decide ho rahe hain?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 417–435** | 4-Level Semantic Verdict: AUTHENTIC, LIKELY_AUTHENTIC, UNCERTAIN, LIKELY_AI_MANIPULATED |
 | **"AI Metadata / Watermark ka immediate override kahan hai?"** | `models/image_deepfake/inference/efficientnet_detector.py` | **Lines 360–363** | `if meta_res.get("is_ai_signature_found"): weighted_anomaly = max(0.96, ...)` |
 | **"LM Studio Vision Local Inference kaise integrate hai?"** | `models/image_deepfake/inference/lm_studio_vision_client.py` | **Lines 114–176** | Local streaming API call, `<think>` stripping, and structured JSON parsing |
+| **"CPU token optimization aur 1800s timeout kahan set hai?"** | `gateway/app/core/proxy_client.py` & `models/image_deepfake/inference/lm_studio_vision_client.py` | `PROXY_TIMEOUT = 1800.0`, `LM_STUDIO_MAX_TOKENS = 350` | Generous 30-minute window for local CPU inference without 504 timeouts. |
+| **"Frontend microservice direct fallback kahan hai?"** | `frontend/src/services/api.ts` | **Lines 120–145** | Resilient 3-tier fallback (Port 8000 Gateway -> Port 8002 Scan Service -> Port 8003 Detector) preventing aborted scans. |
+| **"Watermark fabric false-positive rejection kahan hai?"** | `models/image_deepfake/forensics/watermark_analyzer.py` | **Lines 100–106** | `if len(contours) > 18: continue`. Rejects dense embroidery/saree textures from false watermark triggers. |
 | **"Trust Engine ka cross-service fusion kahan hota hai?"** | `services/trust_engine/app/services/fusion_engine.py` | **Lines 52–122** | 4-step evidential fusion algorithm, module caps (40%), contradiction delta penalty |
-| **"Reverse proxy aur 360-second timeout kahan set hai?"** | `gateway/app/core/proxy_client.py` | **Lines 7–14** | `PROXY_TIMEOUT = 360.0`, hop-by-hop & compression header sanitization |
 | **"Explainable Grad-CAM heatmap kahan banta hai?"** | `models/image_deepfake/explainability/grad_cam.py` | **Lines 37–89** | PyTorch backward hook on layer-4 conv feature maps |
 | **"Frontend me offline speech aur report debrief kahan hai?"** | `frontend/src/views/ReportView.tsx` | **Lines 30–85** | 4-level UI badges, LM Studio Local Vision debrief card, `window.speechSynthesis` |
 
@@ -261,11 +263,14 @@ if status_code in (402, 403):
 
 ---
 
-### Q13: "API Gateway me 360-second timeout kyu lagaya?"
+### Q13: "API Gateway me 1800-second (30-min) timeout aur CPU optimization kyu ki?"
 **Answer:**
-> *"Local machine par jab Qwen3-VL 4B Vision Model CPU par infer karta hai, toh heavy multimodal visual tokens process karne me normal GPU se zyada time lag sakta hai. Standard reverse proxies (jaise Nginx ya default httpx) 30 ya 60 seconds me '504 Gateway Timeout' de dete the.  
-> Humne Gateway me `GATEWAY_PROXY_TIMEOUT_SECONDS=360` configure kiya hai, jisse local CPU inference bina premature cancellation ke seamlessly complete ho sake."*  
-> *(Point to: `gateway/app/core/proxy_client.py:L7`)*
+> *"Local machine par jab Qwen3-VL 4B Vision Model CPU par infer karta hai, toh complex multimodal visual tokens process karne me CPU ko 2 se 5 minute lag sakte hain. Standard reverse proxies 30 ya 60 seconds me '504 Gateway Timeout' de deti hain.  
+> Humne teen layers me optimization ki hai:  
+> 1. **1800s Timeout:** Gateway (`GATEWAY_PROXY_TIMEOUT_SECONDS=1800`) aur LM Studio client dono ko 30-minute window di hai taaki heavy background CPU load par bhi request cancel na ho.  
+> 2. **Token Optimization:** `LM_STUDIO_MAX_TOKENS=350` set karke reasoning ko concise instruct kiya hai taaki model CPU par 1-2 minutes me structured JSON deliver kare.  
+> 3. **Resilient 3-Tier Fallback:** Agar Gateway me koi proxy glitch aaye, toh frontend turant direct Port 8002 (`scan_management`) aur Port 8003 par failover karta hai jisse user ka scan kabhi abort nahi hota."*  
+> *(Point to: `gateway/app/core/proxy_client.py:L7` and `frontend/src/services/api.ts:L120-L145`)*
 
 ---
 
