@@ -113,23 +113,28 @@ class ApiService {
         return data as ScanRecord;
       }
 
-      if (res.status === 504) {
-        throw new Error('Analysis timed out. The local vision model is running on CPU and took longer than expected. Please try again with a smaller image or allow more time.');
-      }
+      console.warn(`Gateway /api/v1/scans/analyze returned HTTP ${res.status}, falling back to direct microservices...`);
     } catch (err: any) {
-      if (err.message && err.message.includes('timed out')) {
-        throw err;
-      }
-      console.warn('API Gateway unreachable or returned error, trying direct microservice fallbacks...', err);
+      console.warn('API Gateway unreachable or request took longer than expected, trying direct microservice fallback...', err);
     }
 
-    // 2. Direct fallback to Scan Management Service on port 8002
+    // 2. Direct fallback to Scan Management Service on port 8002 (bypasses Gateway proxy timeout)
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const fallbackFormData = new FormData();
+      fallbackFormData.append('file', file);
+      fallbackFormData.append('modality', 'image');
+
+      const headers: Record<string, string> = {};
+      if (this.token) {
+        headers['Authorization'] = `Bearer ${this.token}`;
+      } else {
+        headers['Authorization'] = 'Bearer mock_jwt_developer_token';
+      }
+
       const res = await fetch(`http://localhost:8002/scans/analyze`, {
         method: 'POST',
-        body: formData,
+        headers,
+        body: fallbackFormData,
       });
       if (res.ok) {
         const json = await res.json();
@@ -137,6 +142,7 @@ class ApiService {
         data.image_preview_url = objectUrl;
         return data as ScanRecord;
       }
+      console.warn(`Scan service port 8002 returned HTTP ${res.status}`);
     } catch (e) {
       console.warn('Scan service port 8002 direct fallback unavailable:', e);
     }

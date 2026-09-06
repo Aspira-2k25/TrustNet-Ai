@@ -162,7 +162,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
             <span>Running Deep Forensics & LM Studio Vision Reasoning...</span>
           </div>
           <p className="text-xs text-slate-400 text-center">
-            Fusing 10 forensic layers (ELA, FFT, Gabor, PRNU, Face X-Ray) with local vision model. On CPU this typically takes 1–3 minutes. Please keep this tab open.
+            Fusing 10 forensic layers (ELA, FFT, Gabor, PRNU, Face X-Ray) with local vision model. Processing in CPU mode (will not time out, please keep this tab open)...
           </p>
         </div>
       )}

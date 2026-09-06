@@ -4,7 +4,7 @@ import httpx
 from fastapi import Request, HTTPException, status
 from fastapi.responses import Response
 
-PROXY_TIMEOUT = float(os.getenv("GATEWAY_PROXY_TIMEOUT_SECONDS", "360.0"))
+PROXY_TIMEOUT = float(os.getenv("GATEWAY_PROXY_TIMEOUT_SECONDS", "1800.0"))
 
 async def forward_request(
     target_base_url: str,
@@ -28,7 +28,9 @@ async def forward_request(
     body = await request.body()
 
     try:
-        async with httpx.AsyncClient(timeout=PROXY_TIMEOUT) as client:
+        # Generous timeout allowing full execution of CPU vision models
+        timeout_config = httpx.Timeout(PROXY_TIMEOUT, connect=60.0)
+        async with httpx.AsyncClient(timeout=timeout_config) as client:
             downstream_res = await client.request(
                 method=request.method,
                 url=url,
