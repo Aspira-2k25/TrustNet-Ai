@@ -38,13 +38,13 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
     const getBadgeClasses = (level: RiskLevel) => {
       switch (level) {
         case 'LOW':
-          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+          return 'bg-emerald-950/70 text-emerald-300 border-emerald-800';
         case 'MEDIUM':
-          return 'bg-amber-50 text-amber-700 border-amber-200';
+          return 'bg-amber-950/70 text-amber-300 border-amber-800';
         case 'HIGH':
-          return 'bg-orange-50 text-orange-700 border-orange-200';
+          return 'bg-orange-950/70 text-orange-300 border-orange-800';
         case 'CRITICAL':
-          return 'bg-red-50 text-red-700 border-red-200';
+          return 'bg-red-950/70 text-red-300 border-red-800';
       }
     };
 
@@ -60,7 +60,7 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
             cy={size / 2}
             r={radius}
             fill="transparent"
-            stroke="#e2e8f0"
+            stroke="#1e3a5f"
             strokeWidth={strokeWidth}
           />
           {/* Animated Value Arc */}

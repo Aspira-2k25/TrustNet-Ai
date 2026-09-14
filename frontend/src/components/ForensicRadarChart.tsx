@@ -54,7 +54,7 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
             <span className="text-[11px] text-muted-foreground font-medium">{item.subject}</span>
             <span className="text-[11px] font-semibold text-primary font-mono">{item.score}%</span>
           </div>
-          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex shadow-inner">
+          <div className="w-full bg-[#1e3a5f] h-1.5 rounded-full overflow-hidden flex shadow-inner">
             <div 
               className={`h-full rounded-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-destructive' : item.score > 30 ? 'bg-warning' : 'bg-primary'}`}
               style={{ width: `${item.score}%` }} 

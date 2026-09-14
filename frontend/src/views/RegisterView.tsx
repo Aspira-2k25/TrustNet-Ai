@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Lock, Mail, AlertCircle, ArrowRight, Briefcase } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, Shield, User as UserIcon } from 'lucide-react';
 import { api } from '../services/api';
 import type { User } from '../types';
 
@@ -9,55 +9,45 @@ interface RegisterViewProps {
 }
 
 export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, onGoToLogin }) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [role, setRole] = useState<string>('researcher');
+  const [name, setName] = useState<string>('Alex Johnson');
+  const [email, setEmail] = useState<string>('alex@example.com');
+  const [password, setPassword] = useState<string>('SecurePass123!');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const { user } = await api.register(email, password, role);
+      const { user } = await api.register(email, password, 'user');
       onRegisterSuccess(user);
     } catch (err: any) {
-      setError(err.message || 'Registration failed.');
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 px-6">
-      <div className="bg-[#13161f] border border-[#1e2231] rounded-2xl p-9">
-        <div className="text-center mb-7">
-          <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center mx-auto mb-4">
-            <UserPlus size={22} color="#ffffff" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-1.5">
-            Create Account
-          </h1>
-          <p className="text-sm text-slate-400">
-            Register as a TrustNet forensic analyst or researcher
-          </p>
+    <div className="max-w-md mx-auto mt-12 px-6 mb-12">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <div className="w-12 h-12 rounded-xl bg-[#111d38] border border-[#00b4d8]/40 flex items-center justify-center mx-auto mb-3 shadow-3d-sm">
+          <Shield size={24} className="text-[#00b4d8] fill-[#00b4d8]/20" />
         </div>
+        <h1 className="text-2xl font-bold text-[#f8fafc] font-serif tracking-tight">
+          Create an Account
+        </h1>
+        <p className="text-xs text-[#94a3b8] mt-1">
+          Join TrustNet to easily check images, videos, audio, text messages, and links.
+        </p>
+      </div>
 
+      <div className="bg-[#111d38] border border-[#1e3a5f] rounded-2xl p-7 shadow-3d-card">
         {error && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs mb-5">
+          <div className="flex items-center gap-2 p-3.5 rounded-xl bg-red-950/70 border border-red-800 text-red-300 text-xs mb-5 shadow-sm">
             <AlertCircle size={16} className="text-red-400 shrink-0" />
             <span>{error}</span>
           </div>
@@ -65,90 +55,80 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-bold text-[#94a3b8] mb-1.5">
+              Full Name
+            </label>
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] focus-within:border-[#00b4d8] transition-all">
+              <UserIcon size={16} className="text-[#64748b]" />
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Alex Johnson"
+                className="bg-transparent border-none outline-none text-xs text-[#f8fafc] w-full placeholder:text-[#64748b]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#94a3b8] mb-1.5">
               Email Address
             </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-[#0f1117] border border-[#1e2231] focus-within:border-indigo-500/40 transition-colors">
-              <Mail size={16} className="text-slate-500" />
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] focus-within:border-[#00b4d8] transition-all">
+              <Mail size={16} className="text-[#64748b]" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@institution.edu"
-                className="bg-transparent border-none outline-none text-sm text-white w-full placeholder:text-slate-600"
+                placeholder="you@example.com"
+                className="bg-transparent border-none outline-none text-xs text-[#f8fafc] w-full placeholder:text-[#64748b]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-xs font-bold text-[#94a3b8] mb-1.5">
               Password
             </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-[#0f1117] border border-[#1e2231] focus-within:border-indigo-500/40 transition-colors">
-              <Lock size={16} className="text-slate-500" />
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] focus-within:border-[#00b4d8] transition-all">
+              <Lock size={16} className="text-[#64748b]" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min. 8 characters"
-                className="bg-transparent border-none outline-none text-sm text-white w-full placeholder:text-slate-600"
+                placeholder="••••••••"
+                className="bg-transparent border-none outline-none text-xs text-[#f8fafc] w-full placeholder:text-[#64748b]"
               />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Confirm Password
-            </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-[#0f1117] border border-[#1e2231] focus-within:border-indigo-500/40 transition-colors">
-              <Lock size={16} className="text-slate-500" />
-              <input
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-white w-full placeholder:text-slate-600"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Role
-            </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-[#0f1117] border border-[#1e2231] focus-within:border-indigo-500/40 transition-colors">
-              <Briefcase size={16} className="text-slate-500" />
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-white w-full appearance-none cursor-pointer"
-              >
-                <option value="researcher" className="bg-[#13161f] text-white">Researcher</option>
-                <option value="analyst" className="bg-[#13161f] text-white">Analyst</option>
-              </select>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold mt-2 transition-all ${isLoading ? 'bg-[#1a1e2a] text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}`}
+            className={`mt-3 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-3d-sm ${
+              isLoading
+                ? 'bg-[#1c2541] text-[#64748b] border border-[#1e3a5f] cursor-not-allowed'
+                : 'bg-[#0077b6] hover:bg-[#0096c7] text-white'
+            }`}
           >
-            {isLoading ? 'Creating Account...' : 'Create Account'}
-            <ArrowRight size={16} />
+            <span>{isLoading ? 'Creating Account...' : 'Create Account'}</span>
+            <ArrowRight size={14} />
           </button>
         </form>
 
-        <div className="text-center mt-6 text-xs text-slate-500">
-          Already have an account?{' '}
-          <span
-            onClick={onGoToLogin}
-            className="text-indigo-400 cursor-pointer font-medium hover:text-indigo-300"
-          >
-            Sign In
-          </span>
+        <div className="mt-6 pt-4 border-t border-[#1e3a5f] text-center">
+          <p className="text-xs text-[#94a3b8]">
+            Already have an account?{' '}
+            <button
+              onClick={onGoToLogin}
+              className="text-[#00b4d8] hover:text-[#38bdf8] font-bold cursor-pointer transition-colors"
+            >
+              Sign In
+            </button>
+          </p>
         </div>
       </div>
     </div>

@@ -60,18 +60,6 @@ class LocalViTDeepfakeDetector:
         Evaluates deepfake vs real classification directly without external API dependencies.
         """
         target_model = self.model_name
-        is_face_only_model = any(k in target_model.lower() for k in ["face", "portrait", "deepfake_vs_real"])
-        is_strictly_non_human = (not has_face) and (scene_type not in ["photograph_portrait"])
-        if is_face_only_model and is_strictly_non_human and not self.general_model_name:
-            return {
-                "is_hf_applied": False,
-                "hf_risk_score": 50.0,
-                "hf_label": "unknown",
-                "hf_confidence": 0.0,
-                "model_name": target_model,
-                "note": f"Local ViT ({target_model}) skipped: image does not contain a human face (scene: {scene_type}). Face specialist model is not applicable to non-human subjects."
-            }
-
         pipe = self._get_pipeline()
 
         if pipe is None:

@@ -77,7 +77,7 @@ export interface ScanRecord {
   id: string;
   user_id: string;
   status: ScanStatus;
-  content_type: 'image' | 'text' | 'url';
+  content_type: 'image' | 'video' | 'audio' | 'text' | 'url';
   media_storage_key?: string;
   filename?: string;
   mime_type?: string;

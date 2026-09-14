@@ -84,9 +84,9 @@ class SceneContextAnalyzer:
             # True 2D illustration / Anime requires discrete quantized palette, large flat fills,
             # and strictly NO dense organic micro-textures (no fur fibers, no fabric weave).
             is_illustration_style = (
-                not has_organic_texture and (
-                    (is_very_limited_palette and flat_area_ratio > 0.45 and (has_clean_outlines or high_saturation_ratio > 0.15)) or
-                    (is_limited_palette and flat_area_ratio > 0.55 and avg_saturation > 0.35 and micro_texture_density < 0.07)
+                not has_organic_texture and (skin_ratio < 0.25) and (
+                    (is_very_limited_palette and flat_area_ratio > 0.45 and (has_clean_outlines or high_saturation_ratio > 0.20)) or
+                    (is_limited_palette and flat_area_ratio > 0.55 and avg_saturation > 0.45 and micro_texture_density < 0.07 and has_clean_outlines)
                 )
             )
             if is_illustration_style:
@@ -94,7 +94,7 @@ class SceneContextAnalyzer:
                 scene_label = "Anime / Digital Illustration / 2D Art"
                 confidence = 0.94
             # Human photographic portrait (only non-illustration images with real skin tones)
-            elif skin_ratio >= 0.03 and skin_ratio <= 0.85 and avg_saturation < 0.65 and not is_limited_palette:
+            elif skin_ratio >= 0.03 and skin_ratio <= 0.85 and avg_saturation < 0.65:
                 scene_type = "photograph_portrait"
                 scene_label = "Photographic Portrait / Human Subject"
                 confidence = 0.94
@@ -111,6 +111,9 @@ class SceneContextAnalyzer:
                 scene_label = "Physical Object / Composite Scene"
                 confidence = 0.85
 
+            # Crop gray to match edge_mag dimensions
+            gray_crop = gray[:min_h, :min_w]
+
             # 6. Domain Anomaly Adjustments
             if scene_type == "building_architecture":
                 # In AI buildings, straight lines often wobble/melt
@@ -122,7 +125,7 @@ class SceneContextAnalyzer:
             elif scene_type == "anime_illustration":
                 # AI-generated anime (DALL-E, Midjourney, NovelAI) typically outputs continuous
                 # latent diffusion gradients, while hand-drawn art uses flat cel shading and limited color steps
-                flat_pixels = gray[edge_mag < 6.0]
+                flat_pixels = gray_crop[edge_mag < 6.0]
                 flat_noise = float(np.std(flat_pixels)) if len(flat_pixels) > 100 else 0.0
                 color_entropy = float(np.std(saturation))
                 is_ai_art = (flat_noise > 16.0) or (color_entropy > 0.22) or (avg_saturation > 0.48 and not is_very_limited_palette)
@@ -163,8 +166,8 @@ class SceneContextAnalyzer:
                 # 3. Micro-texture sharpness (fur, whiskers, fabric knit) superimposed on unnaturally smooth background
                 blur_mask = edge_mag < 12.0
                 sharp_mask = edge_mag > 35.0
-                sharp_std = float(np.std(gray[sharp_mask])) if np.sum(sharp_mask) > 100 else 20.0
-                blur_std = float(np.std(gray[blur_mask])) if np.sum(blur_mask) > 100 else 10.0
+                sharp_std = float(np.std(gray_crop[sharp_mask])) if np.sum(sharp_mask) > 100 else 20.0
+                blur_std = float(np.std(gray_crop[blur_mask])) if np.sum(blur_mask) > 100 else 10.0
                 texture_contrast_ratio = sharp_std / max(2.0, blur_std)
 
                 has_generative_contrast = (

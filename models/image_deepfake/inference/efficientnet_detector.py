@@ -552,9 +552,15 @@ class EfficientNetDetector(BaseDetector):
                         is_contradiction = True
 
                 # (e) AI Generative Art / Synthetic Non-Human Scene (Screenshot 4 - AI Cat in hoodie):
-                elif (not has_face) and (scene_res.get("scene_anomaly_score", 0.0) >= 0.60 or is_digital_art or not is_face_scenario):
-                    # Physical sensor forensics for non-camera generative imagery (broken CFA, non-optical FFT, missing PRNU)
-                    if pixel_res.get("is_morphing_detected") or noise_res.get("is_synthetic_noise") or freq_res.get("is_synthetic_pattern"):
+                elif (not has_face) and (scene_res.get("scene_anomaly_score", 0.0) >= 0.60 or is_digital_art or not is_face_scenario) and not watermark_res.get("is_watermark_found"):
+                    if is_hf_applied and hf_risk_float <= 25.0:
+                        # ViT explicitly certifies photographic authenticity (e.g. real photo with sticker)
+                        if physical_domain_count <= 1:
+                            weighted_anomaly = min(0.48, weighted_anomaly)
+                        else:
+                            is_contradiction = True
+                            weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
+                    elif pixel_res.get("is_morphing_detected") or noise_res.get("is_synthetic_noise") or freq_res.get("is_synthetic_pattern"):
                         weighted_anomaly = max(0.76, weighted_anomaly)
                     elif scene_res.get("scene_anomaly_score", 0.0) >= 0.65:
                         weighted_anomaly = max(0.74, weighted_anomaly)
@@ -571,7 +577,7 @@ class EfficientNetDetector(BaseDetector):
 
                 # (h) Watermark icon detected:
                 elif watermark_res.get("is_watermark_found") and watermark_res.get("watermark_anomaly_score", 0.0) >= 0.65:
-                    if is_hf_real or is_hf_face_real:
+                    if is_hf_real or is_hf_face_real or (is_hf_applied and hf_risk_float <= 25.0):
                         # Contradiction: watermark icon present, but ViT certifies photographic authenticity.
                         # Do not jump to 96% fake; clamp to uncertain / contradiction band (48-52%)
                         is_contradiction = True
