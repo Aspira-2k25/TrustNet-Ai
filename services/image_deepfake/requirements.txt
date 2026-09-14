@@ -9,6 +9,7 @@ huggingface-hub>=0.24.0
 opencv-python>=4.10.0
 Pillow>=10.4.0
 transformers>=4.40.0
+scipy>=1.13.0
 python-multipart>=0.0.9
 aiokafka>=0.12.0
 

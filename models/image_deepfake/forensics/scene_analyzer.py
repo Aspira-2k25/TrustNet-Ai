@@ -62,6 +62,12 @@ class SceneContextAnalyzer:
             # Flat Region Ratio (drawn illustrations have large flat color zones)
             flat_area_ratio = float(np.mean(edge_mag < 8.0))
 
+            # Micro-Texture Density: Intermediate frequency gradients (8.0 to 40.0)
+            # Differentiates organic physical textures (fur, hair, cloth weave, feathers, foliage)
+            # from flat 2D cartoon / anime / vector art.
+            micro_texture_density = float(np.mean((edge_mag >= 8.0) & (edge_mag <= 40.0)))
+            has_organic_texture = micro_texture_density > 0.11
+
             # 3. Green/Foliage Ratio & Blue/Sky-Water Ratio (Nature/Landscape)
             green_foliage = (g > r * 1.15) & (g > b * 1.1) & (g > 40)
             foliage_ratio = float(np.sum(green_foliage)) / (h * w)
@@ -75,24 +81,18 @@ class SceneContextAnalyzer:
             skin_ratio = float(np.sum(skin_mask)) / (h * w)
 
             # 5. Semantic Classification Decision
-            # Illustration / Anime / Digital Art (checked FIRST — limited color palettes with
-            # clean vector-like outlines are a definitive indicator of drawn/illustrated content,
-            # and must take priority over portrait detection because warm-toned backgrounds
-            # in anime/illustration falsely match human skin YCbCr ranges)
+            # True 2D illustration / Anime requires discrete quantized palette, large flat fills,
+            # and strictly NO dense organic micro-textures (no fur fibers, no fabric weave).
             is_illustration_style = (
-                is_limited_palette and (
-                    has_clean_outlines or
-                    (high_saturation_ratio > 0.18 and edge_density > 0.02) or
-                    (is_very_limited_palette and flat_area_ratio > 0.60 and edge_density > 0.015)
+                not has_organic_texture and (
+                    (is_very_limited_palette and flat_area_ratio > 0.45 and (has_clean_outlines or high_saturation_ratio > 0.15)) or
+                    (is_limited_palette and flat_area_ratio > 0.55 and avg_saturation > 0.35 and micro_texture_density < 0.07)
                 )
             )
-            if is_illustration_style or (
-                (avg_saturation > 0.58 and high_saturation_ratio > 0.45 and skin_ratio < 0.03) or
-                (avg_saturation > 0.68 and edge_density > 0.06 and skin_ratio < 0.05)
-            ):
+            if is_illustration_style:
                 scene_type = "anime_illustration"
                 scene_label = "Anime / Digital Illustration / 2D Art"
-                confidence = 0.93 if is_illustration_style else 0.92
+                confidence = 0.94
             # Human photographic portrait (only non-illustration images with real skin tones)
             elif skin_ratio >= 0.03 and skin_ratio <= 0.85 and avg_saturation < 0.65 and not is_limited_palette:
                 scene_type = "photograph_portrait"
@@ -120,11 +120,13 @@ class SceneContextAnalyzer:
                 finding = "Geometric perspective lines and structural vanishing symmetry verified." if not is_ai_melt else "Structural warping and perspective distortion anomalies detected in architectural lines."
 
             elif scene_type == "anime_illustration":
-                # AI-generated anime (DALL-E, Midjourney, NovelAI) typically outputs rich continuous
-                # gradients with many unique colors, while hand-drawn art uses intentionally limited palettes
+                # AI-generated anime (DALL-E, Midjourney, NovelAI) typically outputs continuous
+                # latent diffusion gradients, while hand-drawn art uses flat cel shading and limited color steps
+                flat_pixels = gray[edge_mag < 6.0]
+                flat_noise = float(np.std(flat_pixels)) if len(flat_pixels) > 100 else 0.0
                 color_entropy = float(np.std(saturation))
-                is_ai_art = (color_entropy > 0.35) and (avg_saturation > 0.60) and not is_limited_palette
-                scene_anomaly_score = 0.65 if is_ai_art else 0.12
+                is_ai_art = (flat_noise > 16.0) or (color_entropy > 0.22) or (avg_saturation > 0.48 and not is_very_limited_palette)
+                scene_anomaly_score = 0.70 if is_ai_art else 0.25
                 finding = "Latent diffusion gradient blending and synthetic character line rendering detected." if is_ai_art else "Hand-drawn / digital illustration style verified. Limited color palette and vector-like outlines consistent with human-created art."
 
             elif scene_type == "nature_landscape":
@@ -153,28 +155,36 @@ class SceneContextAnalyzer:
                     finding = "Natural photographic human subject and optical lens characteristics verified."
 
             else:
-                # General Media / Object / Animal / Fantasy Scene
+                # General Media / Animal / Object / Synthetic Scene
                 # Check for AI generative synthesis (e.g. Midjourney / DALL-E / Flux / SDXL rendering):
                 # Generative models exhibit:
-                # 1. Hyper-stylized color saturation in focal elements
+                # 1. Hyper-stylized color saturation in focal elements (e.g. colorful jackets, glowing eyes)
                 # 2. Extreme synthetic depth-of-field transition without physical optical circle-of-confusion
-                # 3. Micro-texture sharpness superimposed on unnaturally smooth background
-                blur_mask = edge_mag < 15.0
-                sharp_mask = edge_mag > 45.0
+                # 3. Micro-texture sharpness (fur, whiskers, fabric knit) superimposed on unnaturally smooth background
+                blur_mask = edge_mag < 12.0
+                sharp_mask = edge_mag > 35.0
                 sharp_std = float(np.std(gray[sharp_mask])) if np.sum(sharp_mask) > 100 else 20.0
                 blur_std = float(np.std(gray[blur_mask])) if np.sum(blur_mask) > 100 else 10.0
                 texture_contrast_ratio = sharp_std / max(2.0, blur_std)
 
-                is_generative_synthesis = (
+                has_generative_contrast = (
                     (avg_saturation > 0.35 or high_saturation_ratio > 0.20) and
-                    (texture_contrast_ratio > 3.8 or edge_density > 0.12)
+                    (texture_contrast_ratio > 2.6 or edge_density > 0.07 or micro_texture_density > 0.14) and
+                    (flat_area_ratio > 0.18)
                 )
 
+                has_synthetic_saturation = (
+                    avg_saturation > 0.45 and
+                    (micro_texture_density > 0.12 or edge_density > 0.09)
+                )
+
+                is_generative_synthesis = has_generative_contrast or has_synthetic_saturation
+
                 if is_generative_synthesis:
-                    scene_anomaly_score = 0.72
+                    scene_anomaly_score = 0.74
                     finding = "Latent diffusion rendering characteristics detected: synthetic micro-contrast, hyper-stylized tonal saturation, and non-optical depth-of-field transitions."
                 else:
-                    scene_anomaly_score = 0.12
+                    scene_anomaly_score = 0.15
                     finding = f"Semantic scene classified as {scene_label}."
 
             return {

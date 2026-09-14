@@ -64,6 +64,19 @@ class HuggingFaceDeepfakeClient:
         """
         target_model = self.model_name
 
+        is_face_only_model = any(k in target_model.lower() for k in ["face", "portrait", "deepfake_vs_real"])
+        is_strictly_non_human = (not has_face) and (scene_type not in ["photograph_portrait"])
+        if is_face_only_model and is_strictly_non_human and not self.general_model_name:
+            return {
+                "is_hf_applied": False,
+                "hf_risk_score": 50.0,
+                "hf_label": "unknown",
+                "hf_confidence": 0.0,
+                "model_name": target_model,
+                "user": self.user_name,
+                "note": f"Hugging Face ({target_model}) skipped: image does not contain a human face (scene: {scene_type}). Forensic evaluation routed to texture, micro-structure, and metadata engines."
+            }
+
         if not self.is_configured():
             return self.local_detector.predict(image_bytes, has_face=has_face, scene_type=scene_type)
 
@@ -87,9 +100,9 @@ class HuggingFaceDeepfakeClient:
                     for item in data:
                         lbl = str(item.get("label", "")).upper()
                         score = float(item.get("score", 0.5))
-                        if any(k in lbl for k in ["FAKE", "SYNTHETIC", "DEEPFAKE", "AI", "ARTIFICIAL"]):
+                        if any(k in lbl for k in ["FAKE", "SYNTHETIC", "DEEPFAKE", "AI", "ARTIFICIAL", "LABEL_1"]):
                             fake_score = score
-                        elif any(k in lbl for k in ["REAL", "ORIGINAL", "AUTHENTIC", "HUMAN"]):
+                        elif any(k in lbl for k in ["REAL", "ORIGINAL", "AUTHENTIC", "HUMAN", "LABEL_0"]):
                             real_score = score
 
                 risk_score = round(fake_score * 100.0, 2)

@@ -340,23 +340,30 @@ class EfficientNetDetector(BaseDetector):
             if geometry_res.get("status") == "APPLIED":
                 anomaly_weights.append((geometry_res["geometry_anomaly_score"], 0.18))
 
-            # Semantic scene context: weight shifted up when recompressed
-            scene_w = 0.35 if is_digital_art else (0.22 if already_recompressed else 0.12)
+            # Semantic scene context: weight shifted up when recompressed or non-human
+            scene_w = 0.35 if (is_digital_art or not has_face) else (0.22 if already_recompressed else 0.12)
             anomaly_weights.append((scene_res["scene_anomaly_score"], scene_w))
 
-            # External / Local Vision Transformer Model (dima806)
+            # External / Local Vision Transformer Model (dual-model: face specialist vs general synthetic detector)
+            is_face_scenario = has_face or (scene_type in ["photograph_portrait", "portrait"])
+            is_face_specialist = "dima806" in str(hf_res.get("model_name", "dima806")).lower()
+
             if hf_res.get("is_hf_applied", False):
                 hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
                 hf_anomaly = hf_risk_val / 100.0
-                if has_face:
+                if is_face_scenario:
                     # High authority for human face scenes where dima806 is trained and specialized
                     hf_w = 0.48 if already_recompressed else 0.40
                     anomaly_weights.append((hf_anomaly, hf_w))
                 else:
-                    # For non-human scenes (cats, dogs, landscapes, digital art), dima806 is out-of-domain.
-                    # It should ONLY vote if it actively detected synthetic artifacts with high confidence (>= 75.0).
-                    # It must NEVER be allowed to dilute or force an animal or artwork to 'authentic' when it outputs a false 'real' score!
-                    if hf_risk_val >= 75.0:
+                    # For non-human scenes (cats, dogs, landscapes, digital art), dima806 is face-only.
+                    # It must NEVER force a non-human AI creation to 'authentic' by outputting a false 'real' score!
+                    if not is_face_specialist:
+                        # Dedicated general synthetic detector
+                        hf_w = 0.35 if already_recompressed else 0.28
+                        anomaly_weights.append((hf_anomaly, hf_w))
+                    elif hf_risk_val >= 75.0:
+                        # dima806 only votes on non-face scenes if it actively caught severe generative artifacts
                         anomaly_weights.append((hf_anomaly, 0.25))
 
             # LM Studio Local Vision Reasoning (Only when applied)
@@ -381,12 +388,13 @@ class EfficientNetDetector(BaseDetector):
             total_weight = sum(w for _, w in anomaly_weights)
             weighted_anomaly = sum(s * w for s, w in anomaly_weights) / max(1e-6, total_weight)
 
-            # Evidential Max-Pooling Floor & Strong Signals
+            is_hf_applied = bool(hf_res.get("is_hf_applied", False))
+            hf_risk_float = float(hf_res.get("hf_risk_score", 50.0))
+            is_hf_real = is_hf_applied and (hf_risk_float <= 25.0) and (is_face_scenario or not is_face_specialist)
+            is_hf_fake = is_hf_applied and (hf_risk_float >= 70.0)
+            is_hf_face_real = is_hf_real and is_face_scenario
+            is_hf_face_fake = is_hf_fake and is_face_scenario
             max_active_signal = max((s for s, _ in anomaly_weights), default=0.0)
-            is_hf_face_real = hf_res.get("is_hf_applied", False) and has_face and (float(hf_res.get("hf_risk_score", 50.0)) <= 20.0)
-            is_hf_face_fake = hf_res.get("is_hf_applied", False) and has_face and (float(hf_res.get("hf_risk_score", 50.0)) >= 70.0)
-            is_hf_real = is_hf_face_real
-            is_hf_fake = is_hf_face_fake
 
             # Count genuinely independent strong synthetic indicators across distinct physical domains
             strong_signals = []
@@ -544,15 +552,14 @@ class EfficientNetDetector(BaseDetector):
                         is_contradiction = True
 
                 # (e) AI Generative Art / Synthetic Non-Human Scene (Screenshot 4 - AI Cat in hoodie):
-                elif (not has_face) and (scene_res.get("scene_anomaly_score", 0.0) >= 0.60 or is_digital_art):
+                elif (not has_face) and (scene_res.get("scene_anomaly_score", 0.0) >= 0.60 or is_digital_art or not is_face_scenario):
                     # Physical sensor forensics for non-camera generative imagery (broken CFA, non-optical FFT, missing PRNU)
                     if pixel_res.get("is_morphing_detected") or noise_res.get("is_synthetic_noise") or freq_res.get("is_synthetic_pattern"):
                         weighted_anomaly = max(0.76, weighted_anomaly)
-                    elif scene_res.get("scene_anomaly_score", 0.0) >= 0.70:
-                        weighted_anomaly = max(0.72, weighted_anomaly)
-                    elif is_digital_art and not ai_model_flags_fake and len(secondary_physical_domains) == 0:
-                        # Human-drawn digital illustration (Photoshop/Procreate): clean single-source, homogeneous, consistent vector ink
-                        weighted_anomaly = min(0.15, weighted_anomaly)
+                    elif scene_res.get("scene_anomaly_score", 0.0) >= 0.65:
+                        weighted_anomaly = max(0.74, weighted_anomaly)
+                    elif scene_res.get("scene_anomaly_score", 0.0) >= 0.50 and meta_res.get("is_exif_missing"):
+                        weighted_anomaly = max(0.68, weighted_anomaly)
 
                 # (f) Vision Reasoning flags fake, corroborated by physical or scene domains:
                 elif is_vision_fake and (physical_domain_count >= 1 or scene_res.get("scene_anomaly_score", 0.0) >= 0.60):
@@ -564,14 +571,11 @@ class EfficientNetDetector(BaseDetector):
 
                 # (h) Watermark icon detected:
                 elif watermark_res.get("is_watermark_found") and watermark_res.get("watermark_anomaly_score", 0.0) >= 0.65:
-                    if is_hf_face_real and physical_domain_count == 0:
-                        # Corner shape heuristic must NOT override a verified authentic human photo (99.9% real)
-                        # when all physical and frequency domains are completely clean. Suppress corner false alarm.
-                        weighted_anomaly = min(0.16, weighted_anomaly)
-                        is_contradiction = False
-                    elif is_hf_face_real:
+                    if is_hf_real or is_hf_face_real:
+                        # Contradiction: watermark icon present, but ViT certifies photographic authenticity.
+                        # Do not jump to 96% fake; clamp to uncertain / contradiction band (48-52%)
                         is_contradiction = True
-                        weighted_anomaly = max(0.46, min(0.54, weighted_anomaly))
+                        weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
                     else:
                         weighted_anomaly = max(0.75, weighted_anomaly)
 
@@ -581,11 +585,21 @@ class EfficientNetDetector(BaseDetector):
 
                 # (j) Natural lens and sensor verified with zero physical anomalies:
                 elif physical_domain_count == 0 and max_active_signal < 0.40 and not is_hf_fake:
-                    weighted_anomaly = min(0.16, weighted_anomaly)
+                    has_camera_hardware = not meta_res.get("is_exif_missing") and ("camera" in str(meta_res.get("finding", "")).lower() or meta_res.get("raw_software_tag"))
+                    if has_camera_hardware or is_hf_face_real:
+                        weighted_anomaly = min(0.16, weighted_anomaly)
+                    elif not has_face and meta_res.get("is_exif_missing"):
+                        # Unverified web image with missing camera sensor metadata: maintain neutral baseline
+                        weighted_anomaly = max(0.38, min(0.52, weighted_anomaly))
+                    else:
+                        weighted_anomaly = min(0.25, weighted_anomaly)
 
-                # Flag contradiction if neural classifiers strongly disagree on a face:
-                if has_face and ((is_hf_face_real and is_vision_fake) or (is_hf_face_fake and is_vision_real)):
+                # Flag contradiction if neural classifiers or vision reasoning strongly disagree:
+                if (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
                     is_contradiction = True
+                    # When vision model contradicts clean physical scans + ViT (0 physical anomalies):
+                    if physical_domain_count == 0 and is_hf_real and is_vision_fake:
+                        weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
 
             logger.info("[FUSION] Evidence combined")
 
