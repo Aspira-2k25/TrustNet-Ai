@@ -48,7 +48,26 @@ class MetadataAnalyzer:
         "flux",
         "playground ai",
         "nightcafe",
-        "ideogram"
+        "ideogram",
+        "gemini",
+        "imagen",
+        "google ai",
+        "vertex ai",
+        "nano banana",
+        "veo",
+        "sora",
+        "grok",
+        "grok imagine",
+        "meta ai",
+        "canva",
+        "magic media",
+        "recraft",
+        "krita ai",
+        "picsart ai",
+        "lensa",
+        "remini",
+        "copilot designer",
+        "designer.microsoft"
     ]
     
     def analyze(self, image_bytes: bytes, filename: Optional[str] = None) -> Dict[str, Any]:
@@ -70,11 +89,10 @@ class MetadataAnalyzer:
             
             # 1. Filename Provenance Check
             if filename:
-                norm_fn = filename.lower()
+                norm_fn = " " + re.sub(r'[\s\-_,\.\(\)\[\]]+', ' ', filename.lower()) + " "
                 for sig in self.AI_SOFTWARE_SIGNATURES:
-                    # Match signature as word or with hyphens/underscores/spaces
-                    pattern = r'(?:^|[_\s\-\.\(\)\[\]])' + re.escape(sig) + r'(?:[_\s\-\.\(\)\[\]]|$)'
-                    if sig in norm_fn or re.search(pattern, norm_fn):
+                    sig_norm = " " + re.sub(r'[\s\-_,\.\(\)\[\]]+', ' ', sig.lower()) + " "
+                    if sig_norm in norm_fn or (sig in filename.lower()):
                         detected_signatures.append((sig, f"Filename ({filename})"))
                         break
 

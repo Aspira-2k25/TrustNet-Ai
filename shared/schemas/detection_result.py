@@ -26,6 +26,7 @@ class DetectionResult(BaseModel):
     has_face: Optional[bool] = None
     verdict: Optional[str] = None
     explanation: Optional[str] = None
+    vision_analysis: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
     processing_time_ms: int = Field(default=0, ge=0)
     timestamp: str

@@ -18,24 +18,32 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 10.2;
   const rawVerdict = result?.verdict || 'AUTHENTIC';
   const isContradiction = Boolean(result?.metadata?.is_contradiction || trustScore?.contradiction_detected);
+  const visionAnalysis = scan.vision_analysis || result?.vision_analysis || result?.metadata?.vision_analysis || trustScore?.vision_analysis;
+  const isVisionApplied = visionAnalysis?.status === 'APPLIED';
+  const lmStudioModel = result?.metadata?.lm_studio_model || visionAnalysis?.model_name || 'Local Vision Model';
 
   let semanticVerdict = 'AUTHENTIC / NATURAL CAPTURE';
   let bannerBg = [16, 185, 129]; // Emerald #10b981
   let bannerText = [255, 255, 255];
   let subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
 
-  if (isContradiction || rawVerdict === 'UNCERTAIN' || (riskScore >= 45.0 && riskScore < 65.0)) {
+  if (rawVerdict === 'UNCERTAIN' || (isContradiction && riskScore >= 46.0 && riskScore <= 54.0)) {
     semanticVerdict = 'UNCERTAIN / CONFLICTING SIGNALS';
     bannerBg = [245, 158, 11]; // Amber #f59e0b
     subtext = 'Signals disagree or evidence is conflicting / insufficient. Manual review recommended.';
-  } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore >= 65.0) {
+  } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore > 52.0) {
     semanticVerdict = 'LIKELY AI / MANIPULATED CONTENT';
     bannerBg = [239, 68, 68]; // Red #ef4444
     subtext = 'Multiple independent physical & neural signals indicate synthetic media generation.';
-  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore < 45.0)) {
+  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore <= 52.0)) {
     semanticVerdict = 'LIKELY AUTHENTIC CAPTURE';
     bannerBg = [14, 165, 233]; // Sky #0ea5e9
     subtext = 'Mostly consistent with authentic sensor capture with minor compression variance.';
+  } else {
+    semanticVerdict = 'AUTHENTIC / NATURAL CAPTURE';
+    bannerBg = [16, 185, 129]; // Emerald #10b981
+    bannerText = [255, 255, 255];
+    subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
   }
 
   let y = margin;
@@ -322,6 +330,11 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
     plainEnglishText = 
       'What this means in simple terms: The automated scanners found mixed signals. While some tests look normal, others show minor irregularities in file compression or pixel texture. ' +
       'We recommend having a human specialist examine the image before drawing a final conclusion.';
+  }
+
+  // Prepend LM Studio Local Vision Reasoning finding if active
+  if (isVisionApplied && visionAnalysis?.simple_explanation) {
+    plainEnglishText = `[LM Studio Vision Reasoning (${lmStudioModel})]: "${visionAnalysis.simple_explanation}"\n\n` + plainEnglishText;
   }
 
   doc.setFontSize(8);

@@ -65,15 +65,24 @@ class PhysicsEyeReflectionAnalyzer:
                     "status": "SKIPPED",
                     "is_physics_violation": False,
                     "physics_anomaly_score": 0.0,
-                    "finding": f"Requires exactly 2 clearly visible eyes (found {len(eyes)}). Skipped."
+                    "finding": f"Corneal specular reflection analysis requires at least 2 visible eyes for light consistency (detected: {len(eyes)}). Skipped."
                 }
-                
-            # Sort eyes left-to-right based on x coordinate
+
+            # Sort eyes left-to-right and find the best horizontal eye pair
             eyes = sorted(eyes, key=lambda e: e[0])
-            
+            best_pair = None
+            for i in range(len(eyes) - 1):
+                e1, e2 = eyes[i], eyes[i + 1]
+                # Check horizontal alignment (eyes roughly on same level)
+                if abs(e1[1] - e2[1]) <= max(e1[3], e2[3]) * 0.8:
+                    best_pair = (e1, e2)
+                    break
+            if best_pair is None:
+                best_pair = (eyes[0], eyes[1])
+
             reflection_vectors = []
-            
-            for (ex, ey, ew, eh) in eyes[:2]:  # Take the first two (left and right eye)
+
+            for (ex, ey, ew, eh) in best_pair:  # Evaluate paired left and right eyes
                 eye_roi = gray[ey:ey+eh, ex:ex+ew]
                 
                 # Apply Gaussian Blur to smooth noise, then adaptive thresholding to find the brightest spots (specular highlights)

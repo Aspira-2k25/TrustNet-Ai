@@ -66,6 +66,9 @@ class ELAAnalyzer:
                 "ela_anomaly_score": float(round(anomaly_score, 3)),
                 "variance_ratio": float(round(variance_ratio, 3)),
                 "is_anomalous": is_anomalous,
+                "global_mean": float(round(global_mean, 2)),
+                "regional_std": float(round(regional_std, 2)),
+                "status": "APPLIED",
                 "note": finding_text
             }
         except Exception as e:
@@ -73,5 +76,8 @@ class ELAAnalyzer:
                 "ela_anomaly_score": 0.05,
                 "variance_ratio": 0.1,
                 "is_anomalous": False,
+                "global_mean": 0.0,
+                "regional_std": 0.0,
+                "status": "FAILED",
                 "note": f"ELA analysis fallback: {str(e)}"
             }

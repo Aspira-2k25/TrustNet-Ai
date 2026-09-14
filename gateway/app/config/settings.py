@@ -18,6 +18,10 @@ class GatewaySettings(BaseSettings):
         default="http://localhost:8004",
         description="URL for downstream Trust Engine Service"
     )
+    IMAGE_DEEPFAKE_SERVICE_URL: str = Field(
+        default="http://localhost:8003",
+        description="URL for downstream Image Deepfake Service"
+    )
     
     JWT_SECRET_KEY: str = Field(
         default="trustnet_super_secret_jwt_key_for_development_purposes_only"

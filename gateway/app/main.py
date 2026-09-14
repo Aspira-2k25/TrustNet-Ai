@@ -10,6 +10,8 @@ from gateway.app.config.settings import settings
 from gateway.app.middleware.rate_limiter import rate_limit_middleware
 from gateway.app.routers.auth_routes import router as auth_proxy_router
 from gateway.app.routers.scan_routes import router as scan_proxy_router
+from gateway.app.routers.trust_routes import router as trust_proxy_router
+from gateway.app.routers.detect_routes import router as detect_proxy_router
 
 logger = get_logger(settings.SERVICE_NAME)
 
@@ -46,6 +48,8 @@ app.middleware("http")(rate_limit_middleware)
 # Register Proxy Routers
 app.include_router(auth_proxy_router)
 app.include_router(scan_proxy_router)
+app.include_router(trust_proxy_router)
+app.include_router(detect_proxy_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
