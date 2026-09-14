@@ -14,6 +14,10 @@ class GeometryPhysicsAnalyzer:
     3D Geometry Plausibility & Structural Physics Branch.
     Analyzes images for impossible structural intersections, edge density anomalies,
     and severe bilateral asymmetry which often plague 2D generative models.
+
+    Note: By architectural design in the fusion pipeline, this analyzer specifically
+    evaluates non-face scenes (architecture, urban, environmental objects). When
+    human faces are present, it is skipped in favor of specialized facial anatomy forensics.
     """
     
     def __init__(self):

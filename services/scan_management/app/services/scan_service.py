@@ -145,7 +145,7 @@ class ScanService:
             )
         return self._to_response(scan)
 
-    async def list_scans(self, user_id: str, page: int = 1, limit: int = 20) -> ScanListResponse:
+    async def list_scans(self, user_id: Optional[str] = None, page: int = 1, limit: int = 20) -> ScanListResponse:
         offset = (page - 1) * limit
         scans, total = await self.repo.list_by_user(user_id, offset=offset, limit=limit)
         return ScanListResponse(

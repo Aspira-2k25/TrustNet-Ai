@@ -1,10 +1,10 @@
 # TrustNet AI — Image Deepfake Detection: Data Science & Mathematical Specification
 
-## 1. Mathematical Thesis & Architectural Overview
+## 1. Architectural Overview & Mathematical Thesis
 
-Traditional deepfake detection systems rely solely on end-to-end convolutional neural networks (CNNs) or Vision Transformers (ViTs). While achieving high accuracy on standard test sets, these pure learned models suffer from **out-of-distribution failure, concept drift, and vulnerability to adversarial perturbation**.
+Traditional deepfake detection systems rely solely on end-to-end convolutional neural networks (CNNs) or Vision Transformers (ViTs). While achieving high accuracy on specific benchmark datasets, pure learned models suffer from **out-of-distribution failure, concept drift, adversarial sensitivity, and false-positive fragility** on camera artifacts or digital artwork.
 
-TrustNet addresses this through **Physics-Informed Evidential Fusion**: coupling deep neural spatial representations with deterministic mathematical invariants derived from optical physics, digital signal processing, sensor electronics, and photogrammetry.
+TrustNet AI implements **Physics-Informed Evidential Fusion**: coupling deep neural spatial representations with deterministic mathematical invariants derived from optical physics, digital signal processing, sensor electronics, photogrammetry, and covert payload steganography.
 
 ```
                               ┌────────────────────────────────────────┐
@@ -25,15 +25,17 @@ TrustNet addresses this through **Physics-Informed Evidential Fusion**: coupling
     │                                     │                                     │
     ▼                                     ▼                                     ▼
 ┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
-│   Learned Neural Layer  │   │  Micro-Forensics Layer  │   │  Physical Optics Layer  │
+│   Learned Neural Layer  │   │  Micro-Forensics Layer  │   │ Physical Optics & Stego │
 ├─────────────────────────┤   ├─────────────────────────┤   ├─────────────────────────┤
 │ • Vision Transformer    │   │ • 2D Fourier (FFT)      │   │ • Corneal Parallax      │
-│   (ViT-Base-Patch16)    │   │ • Sub-Pixel Bayer CFA   │   │ • 3D Vanishing Geometry │
+│   (ViT dima806 / Local) │   │ • Sub-Pixel Bayer CFA   │   │ • 3D Vanishing Geometry │
 │ • EfficientNet-B0       │   │ • Gabor Filter Bank     │   │ • Error Level Analysis  │
 │   (1280-dim Backbone)   │   │ • PRNU Sensor Noise     │   │ • Face X-Ray Seams      │
+│ • Local AI Vision LM    │   │ • Social Re-Compression │   │ • Watermark Icon        │
+│   (Qwen3-VL via Studio) │   │   (8x8 DCT Grid)        │   │ • Covert Steganography  │
 └───────────┬─────────────┘   └───────────┬─────────────┘   └───────────┬─────────────┘
             │                             │                             │
-            │ s_learned                   │ s_micro                     │ s_optics
+            │ s_learned                   │ s_micro                     │ s_physical
             └─────────────────────────────┼─────────────────────────────┘
                                           │
                                           ▼
@@ -42,247 +44,179 @@ TrustNet addresses this through **Physics-Informed Evidential Fusion**: coupling
                       │  A_weighted = ∑ (s_i · w_i) / ∑ w_i    │
                       │  + Multi-Vector Corroboration (N ≥ 2)  │
                       │  + Two-Way Contradiction Filter        │
+                      │  + Zero False-Positive Calibration     │
                       └───────────────────┬────────────────────┘
                                           │
                                           ▼
                       ┌────────────────────────────────────────┐
                       │   Calibrated Risk Score & Verdict      │
                       │   Risk ∈ [0, 100], Verdict ∈ 4 Levels  │
-                      └───────────────────┬────────────────────┘
+                      └────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Master Algorithm Inventory & Execution Map
+## 2. Complete 16-Analyzer Forensic Inventory
 
-| # | Algorithm / Method | Underlying Framework / Tool | Mathematical Role | How It Is Used in TrustNet | Source File |
+| # | Analyzer / Module | Category | Primary Method & Math | Role in TrustNet | Source File |
 |---|---|---|---|---|---|
-| **1** | **Vision Transformer (ViT) Multi-Head Self-Attention** | PyTorch / Hugging Face `transformers` | Global patch-level feature correlation | Divides $224 \times 224$ images into 196 patches ($16 \times 16$), computes self-attention $\text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$ to classify deepfake vs authentic face structures. | `inference/huggingface_client.py` |
-| **2** | **Grad-CAM Backpropagation Algorithm** | PyTorch Autograd | Gradient-weighted spatial activation maps | Computes partial derivatives $\frac{\partial y^c}{\partial A^k}$ with respect to layer-4 feature maps in EfficientNet-B0 to generate explainable spatial heatmaps. | `explainability/grad_cam.py` |
-| **3** | **2D Fast Fourier Transform (2D FFT)** | `numpy.fft.fft2` | Frequency decomposition & power spectrum | Converts spatial pixels $I(x,y)$ to frequency domain $F(u,v)$, performs $360^\circ$ concentric radial integration, and fits linear regression to check $1/f^\alpha$ natural decay vs periodic GAN/diffusion lattice spikes. | `forensics/frequency_analyzer.py` |
-| **4** | **Sub-Pixel Bayer CFA Interpolation Residual** | NumPy Matrix Vectorization | Sensor demosaicing continuity | Measures linear pixel dependency between the Green channel and Red/Blue neighbors: $\Delta = \|G - (R+B)/2\|$. High-order kurtosis $\kappa$ flags latent diffusion synthesis. | `forensics/pixel_morphing_analyzer.py` |
-| **5** | **Multi-Scale Gabor Filter Bank** | `cv2.getGaborKernel` / `cv2.filter2D` | Spatial-frequency texture & orientation | Convolves image across 4 orientations ($\theta = 0^\circ, 45^\circ, 90^\circ, 135^\circ$) and 3 scales ($\lambda = 4, 8, 16$). Computes orientation Shannon entropy $H_\theta$ to detect unnatural texture smoothing. | `forensics/gabor_analyzer.py` |
-| **6** | **JPEG Quantization Error Level Analysis (ELA)** | Pillow (`PIL.Image`) DCT Engine | Compression error disparity | Recompresses image at quality $Q=90$, subtracts recompressed pixels from original, and computes foreground-to-background error variance ratio $\frac{\text{Var}(E)}{\text{Mean}(E)}$ to detect spliced boundaries. | `forensics/ela_analyzer.py` |
-| **7** | **Photo-Response Non-Uniformity (PRNU) Median Filter** | `cv2.medianBlur` / SciPy | Camera sensor fingerprint extraction | Applies a $3 \times 3$ spatial median filter to remove scene content, leaving the high-pass sensor noise residual $W = I - \text{Median}(I)$. Kurtosis and variance quantify non-physical sensor noise. | `forensics/noise_analyzer.py` |
-| **8** | **Face X-Ray Multi-Pass Boundary Gradient** | OpenCV Haar Cascades + Sobel Operators | Facial blending seam detection | Detects faces with multi-angle rotation sweeps (+/-15°, +/-25°), extracts a $22\%$ expanded margin crop, and computes outer-perimeter vs inner-mask gradient ratio $\frac{|\bar{G}_{\text{inner}} - \bar{G}_{\text{outer}}|}{\bar{G}_{\text{outer}}}$. | `forensics/face_analyzer.py` |
-| **9** | **Corneal Specular Reflection Parallax Vectors** | OpenCV Contours + `cv2.moments` | 3D environmental lighting physics | Detects left and right eye pairs, thresholds brightest corneal reflection centroids, normalizes 2D directional vectors $\vec{v}_L, \vec{v}_R$, and calculates cosine similarity $\cos \theta = \vec{v}_L \cdot \vec{v}_R$. $\cos \theta < 0.20$ flags impossible multi-directional lighting. | `forensics/physics_eye_reflection_analyzer.py` |
-| **10** | **Probabilistic Hough Line Transform** | `cv2.HoughLinesP` | 3D vanishing line consistency | Identifies straight architectural perspective lines, intersects them to find 3D vanishing points, and measures line curvature variance $\sigma_{\text{lines}}$ to detect AI building melting. | `forensics/geometry_physics_analyzer.py` |
-| **11** | **Semantic YCbCr Skin Tone Segmentation** | NumPy Array Masking | Domain categorization | Isolates human epidermis pixels via $(130 \le C_r \le 175) \land (75 \le C_b \le 128)$ to prevent false anime classification on crowd/group photographs. | `forensics/scene_analyzer.py` |
-| **12** | **Evidential Multi-Vector Corroboration Fusion** | Custom NumPy Engine | Cross-domain sensor synthesis | Dynamically weights active sensors based on semantic scene domain, applies evidential max-pooling, and requires $\ge 2$ independent physical domains before escalating to high-risk verdicts. | `inference/efficientnet_detector.py` |
+| **1** | **EfficientNet-B0 Backbone** | `primary_ml` | 1280-dim deep convolutional spatial variance | Extracts multi-scale visual representations; base for Grad-CAM explainability heatmaps. | `inference/efficientnet_detector.py` |
+| **2** | **Vision Transformer (ViT)** | `primary_ml` | Multi-head self-attention on $16 \times 16$ patches | Evaluates patch relationships to classify facial deepfakes vs authentic captures (`dima806`). | `inference/huggingface_client.py` |
+| **3** | **Local ViT Offline Detector** | `primary_ml` | Local `transformers` pipeline (CPU/CUDA) | Zero-cost, rate-limit-proof offline fallback when cloud HF API is unavailable or credit-depleted. | `inference/local_vit_detector.py` |
+| **4** | **Local AI Vision (Qwen3-VL)** | `local_vision` | Multimodal semantic reasoning (LM Studio) | Analyzes fine textures, anatomy boundaries, and lighting anomalies; generates plain-English debriefs. | `inference/lm_studio_vision_client.py` |
+| **5** | **Covert Steganography Scanner** | `steganography` | EOF trailer inspection & Westfeld $\chi^2$ PoVs | Detects hidden archives (ZIP, RAR, 7z, PDF, EXE) and sequential/saturated LSB bitstreams. | `forensics/steganography_analyzer.py` |
+| **6** | **2D Fast Fourier Transform (FFT)** | `frequency` | Azimuthal radial integration & $1/f^\alpha$ decay | Identifies non-optical high-frequency energy spikes and GAN/diffusion periodic lattice grids. | `forensics/frequency_analyzer.py` |
+| **7** | **Sub-Pixel Bayer CFA Analyzer** | `micro_forensics` | Demosaicing residual error & kurtosis $\kappa$ | Verifies physical sensor color filter array micro-edge continuity vs synthetic diffusion upscaling. | `forensics/pixel_morphing_analyzer.py` |
+| **8** | **Multi-Scale Gabor Filter Bank** | `texture_forensics` | 4 orientations ($\theta$) $\times$ 3 scales ($\lambda$) entropy | Measures texture orientation Shannon entropy $H_\theta$ to detect unnatural synthetic smoothing. | `forensics/gabor_analyzer.py` |
+| **9** | **Error Level Analysis (ELA)** | `compression` | JPEG DCT $Q=90$ quantization error variance | Flags regional compression disparities indicative of digital splicing and inpainting. | `forensics/ela_analyzer.py` |
+| **10** | **Sensor Pattern Noise (PRNU)** | `sensor_forensics`| 4-neighbor spatial median noise residual | Evaluates camera silicon sensor noise kurtosis $\kappa_W$ vs clean synthetic generation. | `forensics/noise_analyzer.py` |
+| **11** | **Face Landmark Boundary (X-Ray)**| `face_forensics` | Multi-angle rotation (+/-25°) edge gradient | Detects blending seam step gradients along jawline/hairline from face-swap deepfakes. | `forensics/face_analyzer.py` |
+| **12** | **Corneal Specular Reflection** | `physics_engine` | Specular centroid parallax vectors $\cos \theta$ | Confirms 3D physical consistency of environmental lighting across both eyes. | `forensics/physics_eye_reflection_analyzer.py` |
+| **13** | **3D Vanishing Geometry Support** | `physics_engine` | Probabilistic Hough transform perspective lines | Detects structural perspective line warping and melting in synthetic architecture. | `forensics/geometry_physics_analyzer.py` |
+| **14** | **Semantic Scene Context** | `semantic` | Palette quantization & edge density ratio | Classifies media into 5 scene domains; calibrates sensor weights to prevent false positives. | `forensics/scene_analyzer.py` |
+| **15** | **Provenance & Metadata Scanner** | `metadata` | EXIF, XMP, & info chunk signature parsing | Scans for 50+ known generative platform signatures (Midjourney, DALL-E, SDXL, ComfyUI). | `forensics/metadata_analyzer.py` |
+| **16** | **Social Re-Compression Analyzer** | `compression` | 8x8 DCT grid blockiness ratio | Detects social re-compression (e.g., WhatsApp) and scales down fragile physical heuristics. | `forensics/recompression_analyzer.py` |
 
 ---
 
-## 3. Learned Deep Neural Representations
+## 3. Steganography & Covert Payload Forensic Engine
 
-### 3.1 Vision Transformer (ViT) Classifier
-- **Model**: `dima806/deepfake_vs_real_image_detection` (hosted on Hugging Face).
-- **Base Architecture**: Google Vision Transformer (`ViT-Base-Patch16-224-in21k`).
-- **Input Transformation**: Image $I$ is divided into non-overlapping patches $x_p \in \mathbb{R}^{N \times (P^2 \cdot C)}$, where $P = 16$, $N = \frac{HW}{P^2} = 196$.
-- **Linear Projection & Multi-Head Self-Attention**:
-  $$\mathbf{z}_0 = [\mathbf{x}_{\text{class}}; \mathbf{x}_p^1 \mathbf{E}; \mathbf{x}_p^2 \mathbf{E}; \dots; \mathbf{x}_p^N \mathbf{E}] + \mathbf{E}_{\text{pos}}, \quad \mathbf{E} \in \mathbb{R}^{(P^2 C) \times D}$$
-  $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
-- **Training Baseline**: Trained on 140,000 real (FFHQ/CelebA-HQ) and synthetic (StyleGAN/DeepFaceLab) face crops ($256 \times 256$), delivering a baseline validation accuracy of **95.8%** ($F_1\text{-score: } 95.7\%$, loss: $0.119$).
+The steganography engine (`forensics/steganography_analyzer.py`) provides covert data auditing with **mathematically enforced zero false positives on genuine images**:
 
-### 3.2 Convolutional Feature Backbone & Grad-CAM Saliency
-- **Model**: PyTorch `torchvision.models.efficientnet_b0(weights=DEFAULT)` pretrained on ImageNet-1K.
-- **Role**: Computes high-dimensional spatial representation diversity and acts as the target for gradient-weighted class activation mapping (Grad-CAM).
-- **Grad-CAM Formulation**:
-  For target feature map $A^k$ at convolutional layer 4:
-  $$\alpha_k^c = \frac{1}{Z} \sum_{i=1}^u \sum_{j=1}^v \frac{\partial y^c}{\partial A_{i,j}^k}$$
-  $$L_{\text{Grad-CAM}}^c = \text{ReLU}\left(\sum_k \alpha_k^c A^k\right)$$
+### 3.1 End-of-File (EOF) Trailer Injection
+Standard image formats define rigid end-of-file terminator markers:
+- **JPEG**: `0xFF 0xD9` (EOI - End of Image)
+- **PNG**: `49 45 4E 44 AE 42 60 82` (`IEND` chunk + 4-byte CRC)
+- **GIF**: `0x3B` (GIF Trailer)
 
----
+Any binary bytes appended past these markers do not alter visual rendering in standard image viewers, but represent hidden data channels.
+1. The analyzer scans the trailer after the EOF marker.
+2. Minor trailing spaces/null bytes ($\le 16$ bytes) used for filesystem cluster alignment are safely ignored.
+3. Magic signatures are matched against:
+   - `PK\x03\x04`: ZIP Archive
+   - `Rar!\x1a\x07`: RAR v4 / v5 Archive
+   - `7z\xbc\xaf\x27\x1c`: 7-Zip Archive
+   - `%PDF-`: Embedded PDF Document
+   - `MZ`: Windows Executable / DLL
+   - `\x7fELF`: Linux Binary
+   - `\x1f\x8b`: GZIP Stream
+   - `OPENSTEGO`: OpenStego Container
+4. Plaintext ASCII strings ($\ge 12$ characters) are extracted and presented in the report preview.
 
-## 4. Mathematical Formulations of the 8 Forensic Engines
-
-### 4.1 Frequency Domain: Radial Spectral Power-Law ($1/f^\alpha$) Residuals
-Natural optical photographs obey a scale-invariant power-law spectrum:
-$$S(f) = \frac{C}{f^\alpha} \quad \text{where } \alpha \approx 2.0 \pm 0.4$$
-Generative diffusion upsamplers (e.g. latent diffusion transposed convolutions) introduce high-frequency periodic lattice spikes and break the radial decay slope $\alpha$.
-
-1. Compute the 2D Discrete Fourier Transform (DFT):
-   $$F(u, v) = \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} I(x, y) \cdot e^{-j 2\pi \left(\frac{ux}{M} + \frac{vy}{N}\right)}$$
-2. Shift zero-frequency components to the center and compute the power spectrum:
-   $$P(u, v) = |F(u, v)|^2$$
-3. Perform azimuthal radial integration for concentric frequency bands $r = \sqrt{u^2 + v^2}$:
-   $$\bar{P}(r) = \frac{1}{N_r} \sum_{\theta=0}^{2\pi} P(r \cos \theta, r \sin \theta)$$
-4. Fit linear regression in log-log space: $\ln \bar{P}(r) = -\alpha \ln r + \beta$.
-5. Anomaly score:
-   $$s_{\text{freq}} = \text{clamp}\left(\frac{|\hat{\alpha} - 2.0|}{1.5} + \frac{N_{\text{spikes}}}{200}, 0.0, 1.0\right)$$
-
----
-
-### 4.2 Micro-Structural Domain: Sub-Pixel Bayer CFA Continuity
-Physical camera sensors capture light through a Color Filter Array (Bayer CFA pattern). Demosaicing creates structured cross-channel correlation between the green channel $G$ and red/blue channels $R, B$:
-$$\hat{G}(x, y) = \frac{1}{4} \big[R(x+1, y) + R(x-1, y) + B(x, y+1) + B(x, y-1)\big] + \epsilon(x, y)$$
-Latent diffusion and GAN models synthesize all RGB channels simultaneously without a physical Bayer grid.
-
-1. Estimate the demosaicing error residual:
-   $$\Delta_{\text{CFA}}(x, y) = \left| G(x, y) - \frac{R(x, y) + B(x, y)}{2} \right|$$
-2. Compute spatial micro-jitter kurtosis $\kappa$:
-   $$\kappa = \frac{\frac{1}{N} \sum_{i=1}^N (x_i - \mu)^4}{\left(\frac{1}{N} \sum_{i=1}^N (x_i - \mu)^2\right)^2}$$
-3. Synthetic images lack micro-jitter kurtosis and display broken Bayer periodicity ($\kappa < 4.0$ or $\Delta_{\text{CFA}} > 22.0$).
+### 3.2 Least Significant Bit (LSB) Statistical Attack
+1. **Direct Sequential ASCII Extraction**: Checks the first 512 pixels (192 bytes) of LSB bitplanes for sequential plaintext strings (e.g. `FLAG{`, `password`, URLs).
+2. **Westfeld's Chi-Square ($\chi^2$) Pairs of Values (PoVs) Test**:
+   - In natural photography, values $2k$ and $2k+1$ have asymmetric frequency counts due to natural illumination gradients.
+   - Saturated random LSB embedding equalizes these pairs: $h(2k) \approx h(2k+1)$.
+   - Evaluates:
+     $$\chi^2 = \sum_{k=0}^{127} \frac{\left(h(2k) - \frac{h(2k) + h(2k+1)}{2}\right)^2}{\frac{h(2k) + h(2k+1)}{2}}$$
+   - **Zero False-Positive Gates**:
+     - Image pixel count must be $\ge 4096$.
+     - Standard deviation of luminance must be $\ge 16.0$ (flat canvas/drawings automatically bypass test).
+     - Number of degrees of freedom must be $\ge 24$.
+     - $\chi^2$ survival function $p$-value must exceed $0.9995$.
+     - Bitplane 0 Shannon entropy must exceed $0.998$ with a balanced $0/1$ ratio ($0.48 \le p_0 \le 0.52$).
 
 ---
 
-### 4.3 Spatial Texture Domain: Multi-Scale Gabor Filter Bank
-AI generators often produce anisotropic texture smoothing or unnatural directional frequency concentration. A 2D Gabor filter is defined as:
-$$g(x, y; \lambda, \theta, \psi, \sigma, \gamma) = \exp\left(-\frac{x'^2 + \gamma^2 y'^2}{2\sigma^2}\right) \cos\left(2\pi \frac{x'}{\lambda} + \psi\right)$$
-where $x' = x \cos \theta + y \sin \theta$ and $y' = -x \sin \theta + y \cos \theta$.
+## 4. Multi-Signal Evidential Fusion & Calibration
 
-1. Apply filter bank across 4 orientations $\theta \in \{0, \frac{\pi}{4}, \frac{\pi}{2}, \frac{3\pi}{4}\}$ and 3 wavelengths $\lambda \in \{4, 8, 16\}$.
-2. Calculate the orientation entropy $H_\theta$:
-   $$H_\theta = -\sum_{k=1}^4 p_k \log_2(p_k), \quad p_k = \frac{E(\theta_k)}{\sum_j E(\theta_j)}$$
-3. Anomaly score $s_{\text{gabor}} = 1.0 - \text{min}(1.0, H_\theta / \log_2(4))$.
+### 4.1 Evidential Corroboration Ladder
+Rather than computing an uncalibrated linear average, signals are evaluated through a hierarchical corroboration ladder:
 
----
+1. **Covert Payload Override**: If verified steganography/EOF injection exists, anomaly is set to $\ge 0.85$.
+2. **Neural Face Specialist**: If ViT certifies synthetic human face ($\ge 70\%$), anomaly $\ge 0.78$ (or $\ge 0.86$ if corroborated by physical checks).
+3. **Authentic Camera Portrait**: When ViT certifies real ($\ge 80\%$) on a human face and zero physical anomalies exist, anomaly is clamped to $\le 0.16$ (prevents shadow/glasses false positives from flipping camera photos).
+4. **Physical Corroboration**: If $\ge 2$ independent physical domains flag anomalies, anomaly $\ge 0.74$.
+5. **Human Digital Artwork Calibration**: When `SceneContextAnalyzer` verifies 2D hand-drawn artwork (`anime_illustration`), boundary noise is suppressed and clean vector ink is calibrated to $\le 0.15$.
+6. **Watermark Icon Corroboration**: Evaluates pointedness and aspect solidity in bottom corners; participates as a standard corroborating vote (no single-point override on verified real photos).
 
-### 4.4 Compression Domain: Error Level Analysis (ELA)
-When an authentic image is saved as a JPEG, the entire canvas undergoes uniform Discrete Cosine Transform (DCT) quantization:
-$$F_{Q}(u, v) = \text{round}\left(\frac{\text{DCT}(f(x, y))}{Q(u, v)}\right)$$
-In composite deepfakes or inpainted images, modified areas have different compression histories than the surrounding background.
-
-1. Re-encode the image at quality $Q = 90$ to obtain $I_{\text{recompressed}}$.
-2. Compute the absolute difference matrix:
-   $$E(x, y) = |I(x, y) - I_{\text{recompressed}}(x, y)|$$
-3. Calculate foreground-to-background error variance ratio:
-   $$s_{\text{ela}} = \text{clamp}\left(\frac{\text{Var}(E)}{\text{Mean}(E) \cdot 255}, 0.0, 1.0\right)$$
+### 4.2 Two-Way Contradiction Handling
+If learned neural models and physical sensors produce contradictory evidence on a human subject (e.g., ViT indicates 99% real but two physical sensors flag anomalies), a contradiction flag is raised:
+$$\mathbf{Verdict} \leftarrow \mathbf{UNCERTAIN}, \quad \text{Risk} \in [40.0, 60.0]$$
 
 ---
 
-### 4.5 Sensor Noise Domain: Photo-Response Non-Uniformity (PRNU)
-Every physical camera sensor embeds a unique high-frequency noise fingerprint (PRNU) caused by silicon manufacturing tolerances:
-$$I = I^{(0)} + I^{(0)} \cdot K + \Theta$$
-where $K$ is the PRNU multiplicative factor and $\Theta$ is additive random noise.
+## 5. Dual-Mode Execution: Fast Scan vs Local Vision Reasoning
 
-1. Extract noise residual using a 4-neighbor spatial median filter:
-   $$W(x, y) = I(x, y) - \text{MedianFilter}(I(x, y), 3 \times 3)$$
-2. Compute the standard deviation $\sigma_W$ and kurtosis $\kappa_W$ of the residual.
-3. Completely synthetic images exhibit either near-zero noise ($\sigma_W < 2.0$) or Gaussian-synthesized noise with $\kappa_W < 3.2$.
+TrustNet supports two operational modes via the `enable_explanation` parameter:
 
----
-
-### 4.6 Face Forensics: Landmark & Boundary Discontinuity (Face X-Ray)
-In face-swap deepfakes (DeepFaceLab, SimSwap, InsightFace), the synthesized face is blended into the target frame. This leaves a boundary seam with step gradients:
-$$\nabla I(x, y) = \left( \frac{\partial I}{\partial x}, \frac{\partial I}{\partial y} \right), \quad \|\nabla I\| = \sqrt{G_x^2 + G_y^2}$$
-
-1. Detect face bounding boxes using contrast-equalized Haar cascades and skin topography.
-2. Extract an expanded facial crop with a $22\%$ margin covering the jawline, hairline, and neck.
-3. Compute the perimeter-to-inner boundary gradient disparity:
-   $$\text{Disparity} = \frac{|\bar{G}_{\text{inner}} - \bar{G}_{\text{outer}}|}{\bar{G}_{\text{outer}} + 10^{-6}}$$
-4. Anomaly score $s_{\text{face}} \ge 0.60$ if $\text{Disparity} > 0.85$ or boundary standard deviation $> 52.0$.
+| Feature | Fast Scan (`enable_explanation=False`) | Deep Explanation (`enable_explanation=True`) |
+|---|---|---|
+| **Execution Latency** | **~1.0 to 1.5 seconds** | ~15 to 35 seconds (CPU mode) |
+| **Analyzers Evaluated** | All 15 physical/stego/metadata analyzers + Neural ViT | All 15 physical/stego/metadata analyzers + Neural ViT + Local Qwen3-VL |
+| **Hardware Requirement** | Standard CPU / Laptop | Local LM Studio instance (`http://localhost:1234/v1`) |
+| **Image Preprocessing** | Full resolution native byte arrays | Resolution-capped 256px JPEG (<50KB) for lightweight vision inference |
+| **UI Telemetry** | Full ELA, CFA, Radar, and 16-Module telemetry list | Full telemetry list + Plain-English Visual Reasoning Debrief card |
 
 ---
 
-### 4.7 Physical Optics: Corneal Specular Reflection Parallax
-For genuine human subjects illuminated by an environmental light source, reflections on the curved corneas of both eyes must point in parallel 3D direction vectors:
+## 6. Directory Structure & File Map
 
-1. Detect left and right eyes: $E_L, E_R$.
-2. Extract the specular reflection centroid $(c_x, c_y)$ relative to the corneal center $(e_x, e_y)$:
-   $$\vec{v} = \left(\frac{c_x - e_x}{\sqrt{(c_x - e_x)^2 + (c_y - e_y)^2}}, \frac{c_y - e_y}{\sqrt{(c_x - e_x)^2 + (c_y - e_y)^2}}\right)$$
-3. Compute the cosine similarity between the left and right reflection vectors:
-   $$\cos \theta = \vec{v}_L \cdot \vec{v}_R$$
-4. Scoring:
-   - $\cos \theta \ge 0.60 \implies s_{\text{optics}} = 0.05$ (Physically consistent light source)
-   - $\cos \theta < 0.20 \implies s_{\text{optics}} = 0.65$ (Impossible multi-directional lighting)
-
----
-
-### 4.8 3D Photogrammetry: Geometric Vanishing Line & Support Physics
-1. Compute the Hough line transform on architectural edges:
-   $$\rho = x \cos \theta + y \sin \theta$$
-2. Identify vanishing points $\mathbf{v}_p = l_1 \times l_2$.
-3. Compute perspective consistency variance: in AI-generated buildings, parallel lines wobble and exhibit high structural variance ($\sigma_{\text{lines}} > 88.0$).
-
----
-
-## 5. Semantic Domain Routing & Adaptive Weight Matrix
-
-Forensic signals have different validity depending on the image content. For example, CFA demosaicing and corneal optics are not applicable to digital paintings or screenshots.
-
-`SceneContextAnalyzer` categorizes media into 5 domains using skin tone YCbCr masks, edge gradients, and chromatic saturation:
-
-$$\text{Skin Mask}: (130 \le C_r \le 175) \land (75 \le C_b \le 128) \land (R > G) \land \left(\frac{R}{G+1} \le 2.2\right)$$
-
-### Adaptive Sensor Weight Matrix $\mathbf{W}$:
-
-| Forensic Sensor | Portrait / Human ($w_i$) | Digital Art / Anime ($w_i$) | Architecture ($w_i$) | Landscape ($w_i$) | Object ($w_i$) |
-|---|---|---|---|---|---|
-| **Hugging Face ViT** ($s_{\text{ViT}}$) | **0.30** | **0.00** *(gated if 0 faces)* | **0.00** | **0.00** | **0.00** |
-| **Face X-Ray Boundary** ($s_{\text{face}}$) | **0.25** | **0.00** *(gated if 0 faces)* | **0.00** | **0.00** | **0.00** |
-| **Corneal Reflection** ($s_{\text{optics}}$) | **0.20** | **0.00** | **0.00** | **0.00** | **0.00** |
-| **2D Fourier DFT** ($s_{\text{freq}}$) | **0.20** | **0.12** | **0.20** | **0.25** | **0.20** |
-| **Sub-Pixel Bayer CFA** ($s_{\text{cfa}}$) | **0.16** | **0.12** | **0.18** | **0.18** | **0.18** |
-| **Gabor Texture Bank** ($s_{\text{gabor}}$) | **0.16** | **0.08** | **0.16** | **0.16** | **0.16** |
-| **Error Level Analysis** ($s_{\text{ela}}$) | **0.12** | **0.05** | **0.15** | **0.12** | **0.14** |
-| **PRNU Sensor Noise** ($s_{\text{noise}}$) | **0.10** | **0.04** | **0.12** | **0.12** | **0.12** |
-| **3D Geometry Support** ($s_{\text{geom}}$) | **0.00** *(skipped for faces)* | **0.00** | **0.18** | **0.00** | **0.15** |
-| **Semantic Context** ($s_{\text{scene}}$) | **0.12** | **0.35** | **0.12** | **0.12** | **0.12** |
+```
+TrustNet-Ai/models/image_deepfake/
+├── README.md                                 # Complete scientific specification (this file)
+├── explainability/
+│   └── grad_cam.py                           # PyTorch layer-4 activation map extractor
+├── forensics/
+│   ├── steganography_analyzer.py             # EOF trailer injection & Westfeld Chi-Square LSB engine
+│   ├── frequency_analyzer.py                 # 2D FFT radial decay (1/f^alpha) analyzer
+│   ├── pixel_morphing_analyzer.py            # Sub-pixel Bayer CFA demosaicing continuity
+│   ├── gabor_analyzer.py                     # Multi-scale Gabor filter bank texture analyzer
+│   ├── ela_analyzer.py                       # JPEG DCT quantization Error Level Analysis
+│   ├── noise_analyzer.py                     # PRNU camera sensor pattern noise residual
+│   ├── face_analyzer.py                      # Multi-pass Haar cascade face seam analyzer
+│   ├── physics_eye_reflection_analyzer.py    # Corneal specular reflection parallax vectors
+│   ├── geometry_physics_analyzer.py          # 3D Hough line structural vanishing perspective
+│   ├── scene_analyzer.py                     # Color quantization & semantic domain router
+│   ├── metadata_analyzer.py                  # EXIF/XMP provenance signature scanner
+│   ├── recompression_analyzer.py             # 8x8 DCT grid blockiness analyzer
+│   └── watermark_analyzer.py                 # Bottom-corner convexity defect watermark detector
+├── inference/
+│   ├── efficientnet_detector.py              # Master multi-vector evidential fusion engine
+│   ├── huggingface_client.py                 # Cloud ViT client (dima806)
+│   ├── local_vit_detector.py                 # Offline local transformers fallback
+│   └── lm_studio_vision_client.py            # Local vision reasoning client (Qwen3-VL)
+└── tests/
+    ├── test_lm_studio_fusion.py              # Tests for local vision fusion & contradiction
+    ├── test_local_vit_and_dual_ml.py         # Tests for local ViT and cloud fallback
+    └── test_watermark_false_positive_hotfix.py# Tests for watermark shape filtering
+```
 
 ---
 
-## 6. Evidential Fusion & Decision Mathematics
+## 7. API Reference
 
-### 6.1 Normalized Weighted Fusion
-The raw baseline anomaly score $A_{\text{weighted}}$ is:
-$$A_{\text{weighted}} = \frac{\sum_{i \in \text{Active}} s_i \cdot w_i}{\sum_{i \in \text{Active}} w_i}$$
+### Synchronous Scan Endpoint
+`POST /scans/analyze` (Scan Management Service: Port 8002 / API Gateway: Port 8000)
 
-### 6.2 Multi-Vector Physical Corroboration Rule
-Let $\mathcal{D} = \{\text{Frequency}, \text{Microstructure}, \text{Compression}, \text{Texture}, \text{Anatomy}, \text{Optics}, \text{Learned}\}$ be distinct physical domains. A domain is **active positive** if:
-$$\exists s_i \in \mathcal{D}_k \quad \text{such that } s_i \ge 0.60$$
+**Form Parameters:**
+- `file`: Multipart image file (`image/jpeg`, `image/png`, `image/webp`).
+- `enable_explanation`: Boolean (`true` to invoke LM Studio vision reasoning; `false` for ~1s Fast Scan).
 
-- **Strong Multi-Domain Corroboration ($|\mathcal{D}_{\text{active}}| \ge 2$)**:
-  $$A_{\text{calibrated}} = \max\left(0.75, \min(0.98, A_{\text{weighted}} \times 1.15)\right)$$
-- **Isolated Single-Domain Spike ($|\mathcal{D}_{\text{active}}| = 1$)**:
-  Without multi-vector confirmation, a single sensor cannot force a fake verdict. It is capped within the `UNCERTAIN` boundary:
-  $$A_{\text{calibrated}} = \max\left(A_{\text{weighted}}, \min(0.52, \max_i(s_i) \times 0.68)\right)$$
-- **Zero Strong Domains ($|\mathcal{D}_{\text{active}}| = 0$)**:
-  $$A_{\text{calibrated}} = \min\left(0.20, A_{\text{weighted}}\right)$$
-
-### 6.3 Two-Way Cross-Modal Contradiction Handling
-When the learned Vision Transformer and physical forensic sensors disagree:
-$$\text{Contradiction} = \begin{cases} 
-\text{True} & \text{if } s_{\text{ViT}} \le 0.15 \land |\mathcal{D}_{\text{active}}| \ge 2 \\
-\text{True} & \text{if } s_{\text{ViT}} \ge 0.75 \land |\mathcal{D}_{\text{active}}| = 0 \land \max(s_i) \le 0.25 \\
-\text{False} & \text{otherwise}
-\end{cases}$$
-If $\text{Contradiction} = \text{True} \implies A_{\text{calibrated}} \in [0.46, 0.58] \implies \mathbf{Verdict} \leftarrow \mathbf{UNCERTAIN}$.
-
----
-
-## 7. Output Calibration & Metric Definitions
-
-### 7.1 Native Score & Risk Score
-- **Native Score (Probability of Authentic)**:
-  $$P(\text{REAL}) = \text{clamp}(1.0 - A_{\text{calibrated}}, 0.01, 0.99)$$
-- **Calibrated Risk Score**:
-  $$\text{Risk Score} = (1.0 - P(\text{REAL})) \times 100.0$$
-
-### 7.2 4-Level Semantic Verdict Scale
-
-$$\mathbf{Verdict} = \begin{cases}
-\mathbf{AUTHENTIC} & \text{if } \text{Risk} < 25.0 \land \neg \text{Contradiction} \\
-\mathbf{LIKELY\_AUTHENTIC} & \text{if } 25.0 \le \text{Risk} < 45.0 \land \neg \text{Contradiction} \\
-\mathbf{UNCERTAIN} & \text{if } 45.0 \le \text{Risk} < 65.0 \lor \text{Contradiction} \\
-\mathbf{LIKELY\_AI\_MANIPULATED} & \text{if } \text{Risk} \ge 65.0 \land \neg \text{Contradiction}
-\end{cases}$$
-
-### 7.3 Cross-Domain Sensor Consistency Metric
-Measures the standard deviation $\sigma$ across the active forensic domain scores:
-$$\sigma_{\text{domains}} = \text{std}\left(\left[ \bar{s}_{\text{spatial}}, s_{\text{freq}}, s_{\text{ela}}, s_{\text{ViT}} \right]\right)$$
-$$\text{Consistency} = \max\left(0.60, \min\left(0.98, 1.0 - \sigma_{\text{domains}} \times 0.45\right)\right) \times 100\%$$
-
----
-
-## 8. Formal Benchmark & Verification Equations
-
-The formal scientific benchmark suite (`benchmark/benchmark_suite.py`) calculates the following evaluation metrics on labelled validation sets:
-
-1. **Receiver Operating Characteristic Area (ROC-AUC)**:
-   $$\text{ROC-AUC} = \int_{0}^{1} \text{TPR}(\text{FPR}^{-1}(t)) \, dt$$
-2. **Expected Calibration Error (ECE)** (across $M=10$ probability bins):
-   $$\text{ECE} = \sum_{m=1}^M \frac{|B_m|}{N} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|$$
-3. **Brier Score**:
-   $$\text{Brier} = \frac{1}{N} \sum_{i=1}^N (p_i - y_i)^2$$
-4. **Equal Error Rate (EER)**:
-   $$\text{EER} = \text{FPR}(t^*) \quad \text{where } \text{FPR}(t^*) = 1 - \text{TPR}(t^*)$$
+**Response Schema (`DetectionResult`):**
+```json
+{
+  "scan_id": "scan-e5c096d91f",
+  "verdict": "AUTHENTIC",
+  "risk_score": 12.5,
+  "confidence": 0.88,
+  "has_face": true,
+  "explanation": "Authentic photograph verified: natural optical lens frequency roll-off, homogeneous single-source compression, and seamless facial skin tone transitions confirmed.",
+  "metadata": {
+    "scene_label": "Photographic Portrait / Human Subject",
+    "stego_detected": false,
+    "stego_payload_type": null,
+    "stego_payload_size": 0,
+    "lm_studio_status": "SKIPPED"
+  },
+  "analyzers": [
+    {
+      "name": "Covert Steganography: LSB & File Trailer Scanner",
+      "category": "steganography_forensics",
+      "status": "APPLIED",
+      "finding": "Clean (No hidden steganographic payload detected)."
+    }
+  ]
+}
+```

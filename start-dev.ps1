@@ -10,8 +10,13 @@ if (-not (Test-Path ".venv")) {
     exit 1
 }
 
-Write-Host "[1/3] Starting Apache Kafka 3.7 (Docker)..." -ForegroundColor Green
-docker compose up -d kafka
+Write-Host "[1/3] Checking Apache Kafka 3.7 (Docker)..." -ForegroundColor Green
+docker info > $null 2>&1
+if ($LASTEXITCODE -eq 0) {
+    docker compose up -d kafka
+} else {
+    Write-Host "[NOTE] Docker is offline; microservices will run in standalone REST mode." -ForegroundColor Yellow
+}
 
 Write-Host "[2/3] Launching backend microservices in separate windows..." -ForegroundColor Green
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn gateway.app.main:app --port 8000 --reload"

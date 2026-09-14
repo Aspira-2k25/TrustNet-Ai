@@ -135,6 +135,16 @@ class FusionEngine:
         if contradiction_flag:
             explanation += f" Note: {contradiction_details}"
 
+        # Propagate vision reasoning telemetry if present in reporting modules
+        fused_metadata: Dict[str, Any] = {}
+        for r in valid_results:
+            if hasattr(r, 'vision_analysis') and r.vision_analysis:
+                fused_metadata['vision_analysis'] = r.vision_analysis
+                break
+            elif r.metadata and 'vision_analysis' in r.metadata:
+                fused_metadata['vision_analysis'] = r.metadata['vision_analysis']
+                break
+
         return TrustScoreResult(
             scan_id=target_scan_id,
             trust_risk_score=fused_risk,
@@ -145,7 +155,8 @@ class FusionEngine:
             reporting_modules=reporting_modules,
             evidence=all_evidence,
             explanation=explanation,
-            timestamp=datetime.now(timezone.utc).isoformat()
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            metadata=fused_metadata
         )
 
 fusion_engine = FusionEngine()

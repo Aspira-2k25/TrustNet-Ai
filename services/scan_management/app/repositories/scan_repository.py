@@ -12,20 +12,19 @@ class ScanRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_by_user(self, user_id: str, offset: int = 0, limit: int = 20) -> Tuple[List[Scan], int]:
+    async def list_by_user(self, user_id: Optional[str] = None, offset: int = 0, limit: int = 20) -> Tuple[List[Scan], int]:
         # Count total
-        count_stmt = select(func.count(Scan.id)).where(Scan.user_id == user_id)
+        count_stmt = select(func.count(Scan.id))
+        if user_id:
+            count_stmt = count_stmt.where(Scan.user_id == user_id)
         count_res = await self.session.execute(count_stmt)
         total = count_res.scalar_one()
 
         # Query items
-        stmt = (
-            select(Scan)
-            .where(Scan.user_id == user_id)
-            .order_by(Scan.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = select(Scan)
+        if user_id:
+            stmt = stmt.where(Scan.user_id == user_id)
+        stmt = stmt.order_by(Scan.created_at.desc()).offset(offset).limit(limit)
         result = await self.session.execute(stmt)
         scans = list(result.scalars().all())
         return scans, total

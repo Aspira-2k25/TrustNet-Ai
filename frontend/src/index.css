@@ -1,64 +1,162 @@
 @import "tailwindcss";
 
+@theme {
+  --font-serif: "Times New Roman", Times, "Georgia", "Cambria", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  
+  /* Cybersecurity Theme Colors (Deep Midnight Slate & Electric Accents) */
+  --color-primary: #0077b6;         /* Cyber Electric Blue */
+  --color-primary-hover: #0096c7;
+  --color-primary-dark: #03045e;
+  --color-primary-foreground: #ffffff;
+  
+  --color-background: #0a1128;      /* Deep Midnight Space Navy - Not pure black */
+  --color-foreground: #f8fafc;      /* Crisp ice-white text */
+  
+  --color-card: #111d38;            /* Rich Cyber Card Slate */
+  --color-card-foreground: #f8fafc;
+  
+  --color-border: #1e3a5f;          /* Subtle Cyber Border */
+  --color-border-dark: #334155;
+  
+  --color-muted: #1c2541;           /* Elevated dark surface */
+  --color-muted-foreground: #94a3b8;/* High-contrast silver slate */
+  
+  --color-destructive: #ef4444;     /* Red - Fake / Threat */
+  --color-warning: #f59e0b;         /* Amber - Suspicious */
+  --color-success: #10b981;         /* Emerald - Real / Safe */
+  --color-info: #00b4d8;            /* Cyan - Information */
+}
+
 :root {
-  --background: 225 20% 7%;
+  --bg-primary: #0a1128;
+  --bg-secondary: #0f1c3f;
+  --bg-card: #111d38;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  
+  --border-color: #1e3a5f;
+  --border-strong: #2563eb;
+
+  --color-positive: #10b981;
+  --color-attention: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #00b4d8;
+
+  --background: 224 64% 10%;
   --foreground: 210 40% 98%;
-
-  --card: 225 20% 9%;
+  --card: 222 53% 15%;
   --card-foreground: 210 40% 98%;
-
-  --popover: 225 20% 9%;
-  --popover-foreground: 210 40% 98%;
-
-  --primary: 239 84% 67%;
+  --primary: 199 89% 48%;
   --primary-foreground: 0 0% 100%;
-
-  --secondary: 220 13% 16%;
+  --secondary: 222 47% 18%;
   --secondary-foreground: 210 40% 98%;
-
-  --muted: 220 13% 16%;
-  --muted-foreground: 215 16% 57%;
-
-  --accent: 220 13% 16%;
-  --accent-foreground: 210 40% 98%;
-
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 210 40% 98%;
-
-  --border: 220 13% 16%;
-  --input: 220 13% 16%;
-  --ring: 239 84% 67%;
-
-  --radius: 0.625rem;
+  --muted: 222 47% 18%;
+  --muted-foreground: 215 20% 65%;
+  --border: 217 52% 25%;
+  --input: 217 52% 25%;
+  --ring: 199 89% 48%;
+  --radius: 0.75rem;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0f1117;
-  color: #e2e8f0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
+h1, h2, h3, .font-serif {
+  font-family: 'Times New Roman', Times, 'Georgia', 'Cambria', serif;
+}
+
 code, pre, .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Cybersecurity Glow & Depth */
+.shadow-3d-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 180, 216, 0.05);
+}
+
+.shadow-3d-md {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 180, 216, 0.08);
+}
+
+.shadow-3d-lg {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 180, 216, 0.12);
+}
+
+.shadow-3d-card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 1px rgba(30, 58, 95, 0.8);
+}
+
+/* 3D Scanner Keyframe Animations */
+@keyframes scanBeam {
+  0% { top: 0%; opacity: 0.85; }
+  50% { top: 96%; opacity: 1; }
+  100% { top: 0%; opacity: 0.85; }
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes float3D {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes nodePing {
+  0% { transform: scale(0.9); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+.animate-scan-beam {
+  animation: scanBeam 3.2s ease-in-out infinite;
+}
+
+.animate-grid-pulse {
+  animation: gridPulse 3.5s ease-in-out infinite;
+}
+
+.animate-float-3d {
+  animation: float3D 5s ease-in-out infinite;
+}
+
+.animate-radar-sweep {
+  animation: radarSweep 5s linear infinite;
+}
+
+.animate-node-ping {
+  animation: nodePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f1117;
+  background: #0a1128;
 }
 ::-webkit-scrollbar-thumb {
-  background: #252a37;
-  border-radius: 3px;
+  background: #1e3a5f;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4252;
+  background: #0077b6;
 }

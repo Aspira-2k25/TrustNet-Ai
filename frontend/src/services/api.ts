@@ -84,13 +84,14 @@ class ApiService {
   }
 
   // --- Scan Endpoints ---
-  async uploadImageScan(file: File): Promise<ScanRecord> {
+  async uploadImageScan(file: File, enableExplanation: boolean = false): Promise<ScanRecord> {
     const objectUrl = URL.createObjectURL(file);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('modality', 'image');
+      formData.append('enable_explanation', String(enableExplanation));
 
       const headers: Record<string, string> = {};
       if (this.token) {
@@ -99,7 +100,7 @@ class ApiService {
         headers['Authorization'] = 'Bearer mock_jwt_developer_token';
       }
 
-      // 1. First attempt direct real deepfake analysis endpoint on Backend
+      // 1. First attempt direct real deepfake analysis endpoint on API Gateway (Port 8000)
       const res = await fetch(`${API_BASE_URL}/api/v1/scans/analyze`, {
         method: 'POST',
         headers,
@@ -112,14 +113,47 @@ class ApiService {
         data.image_preview_url = objectUrl;
         return data as ScanRecord;
       }
-    } catch (err) {
-      console.warn('Direct backend analysis endpoint unreachable, checking scan upload...', err);
+
+      console.warn(`Gateway /api/v1/scans/analyze returned HTTP ${res.status}, falling back to direct microservices...`);
+    } catch (err: any) {
+      console.warn('API Gateway unreachable or request took longer than expected, trying direct microservice fallback...', err);
     }
 
-    // Direct fallback to standalone detector service on port 8003 or local calculation
+    // 2. Direct fallback to Scan Management Service on port 8002 (bypasses Gateway proxy timeout)
+    try {
+      const fallbackFormData = new FormData();
+      fallbackFormData.append('file', file);
+      fallbackFormData.append('modality', 'image');
+      fallbackFormData.append('enable_explanation', String(enableExplanation));
+
+      const headers: Record<string, string> = {};
+      if (this.token) {
+        headers['Authorization'] = `Bearer ${this.token}`;
+      } else {
+        headers['Authorization'] = 'Bearer mock_jwt_developer_token';
+      }
+
+      const res = await fetch(`http://localhost:8002/scans/analyze`, {
+        method: 'POST',
+        headers,
+        body: fallbackFormData,
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const data = json.data;
+        data.image_preview_url = objectUrl;
+        return data as ScanRecord;
+      }
+      console.warn(`Scan service port 8002 returned HTTP ${res.status}`);
+    } catch (e) {
+      console.warn('Scan service port 8002 direct fallback unavailable:', e);
+    }
+
+    // 3. Direct fallback to standalone detector service on port 8003
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('enable_explanation', String(enableExplanation));
       const res = await fetch(`http://localhost:8003/detect/file`, {
         method: 'POST',
         body: formData,
@@ -142,6 +176,8 @@ class ApiService {
           created_at: new Date().toISOString(),
           image_preview_url: objectUrl,
           result: result,
+          vision_analysis: result.vision_analysis,
+          metadata: { vision_analysis: result.vision_analysis },
           trust_score: {
             scan_id: scanId,
             trust_risk_score: riskScore,
@@ -152,6 +188,8 @@ class ApiService {
             contradiction_detected: false,
             evidence: result.evidence || [],
             explanation: result.explanation || `TrustNet verified this media with a Risk Score of ${riskScore}/100.`,
+            vision_analysis: result.vision_analysis,
+            metadata: { vision_analysis: result.vision_analysis },
             timestamp: new Date().toISOString(),
           }
         };
@@ -160,8 +198,8 @@ class ApiService {
       console.error('All backend services offline:', e);
     }
 
-    // If completely offline and backend unavailable, return an error scan rather than fake random numbers
-    throw new Error('Backend deepfake inference service is offline. Please make sure the API Gateway and backend services are running.');
+    // If completely offline and all backend endpoints unavailable
+    throw new Error('Backend deepfake inference service is offline or unreachable. Please verify that the API Gateway (port 8000) or microservices are running.');
   }
 }
 

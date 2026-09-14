@@ -1,4 +1,4 @@
-﻿# Trust Net Frontend (frontend)
+# Trust Net Frontend (frontend)
 
 React + TypeScript + Vite frontend for the Trust Net forensic workstation.
 
@@ -9,14 +9,17 @@ React + TypeScript + Vite frontend for the Trust Net forensic workstation.
 - Vite 8
 - Tailwind CSS 4
 - Lucide React
-- Optional Puter.js browser SDK integration
+- LM Studio Local Vision AI integration
+- Native Web Speech API (100% offline local TTS)
 
 ## What It Does
 
 - Auth flows: login/register UI and token persistence in `localStorage`.
-- Scan upload flow for image analysis.
-- Dashboard and report views for forensic output.
-- Explainable AI debrief + optional TTS through Puter SDK.
+- Scan upload flow for multi-signal image forensics.
+- Real-time animated progress debrief for CPU-based local vision reasoning.
+- Interactive ELA (Error Level Analysis) and Bayer CFA Pixel Morphing canvas studio.
+- Comprehensive confidential PDF audit report generation.
+- Explainable AI debrief + local speech synthesis through LM Studio and browser SpeechSynthesis.
 
 ## API Integration
 
@@ -25,8 +28,10 @@ React + TypeScript + Vite frontend for the Trust Net forensic workstation.
   - `POST /api/v1/auth/login`
   - `POST /api/v1/auth/register`
   - `POST /api/v1/scans/analyze`
-- Fallback behavior:
-  - If gateway analyze endpoint is unavailable, frontend tries `http://localhost:8003/detect/file`.
+- Multi-tier Fallback behavior:
+  - **Tier 1:** API Gateway at `http://localhost:8000/api/v1/scans/analyze` (with 360s timeout).
+  - **Tier 2:** Direct fallback to Scan Management Service at `http://localhost:8002/scans/analyze`.
+  - **Tier 3:** Direct fallback to Standalone Deepfake Detector at `http://localhost:8003/detect/file`.
 
 ## Development
 
@@ -55,5 +60,4 @@ VITE_API_GATEWAY_URL=http://localhost:8000
 
 - `src/App.tsx` - app shell and view switching
 - `src/services/api.ts` - backend API integration
-- `src/services/puterAI.ts` - explainability/TTS integration
 - `src/views/` - landing, dashboard, upload, report, auth screens
