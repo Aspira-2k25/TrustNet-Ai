@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Navbar } from './components/Navbar';
-import { LandingView } from './views/LandingView';
-import { DashboardView } from './views/DashboardView';
-import { ScanUploadView } from './views/ScanUploadView';
-import { ReportView } from './views/ReportView';
-import { LoginView } from './views/LoginView';
-import { RegisterView } from './views/RegisterView';
+import { Skeleton } from './components/Skeleton';
+
+// Lazy load views for performance
+const LandingView = lazy(() => import('./views/LandingView').then(m => ({ default: m.LandingView })));
+const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })));
+const ScanUploadView = lazy(() => import('./views/ScanUploadView').then(m => ({ default: m.ScanUploadView })));
+const ReportView = lazy(() => import('./views/ReportView').then(m => ({ default: m.ReportView })));
+const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
+const RegisterView = lazy(() => import('./views/RegisterView').then(m => ({ default: m.RegisterView })));
 import type { ScanRecord, User } from './types';
 
 // Benchmark reference records for presentation and initial dashboard telemetry
@@ -53,7 +56,7 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Spatial feature divergence consistent with generative synthesis.' },
-        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 94%). Synthetically manipulated facial landmarks and eye reflections identified.' },
+        { name: 'TrustNet Vision AI', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 94%). Synthetically manipulated facial landmarks and eye reflections identified.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Periodic grid artifacts detected in 2D Discrete Fourier Transform spectrum.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Inconsistent 8x8 DCT compression error levels across local regions.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'APPLIED', finding: 'Blending boundary discontinuities identified along jawline and orbital regions.' },
@@ -135,7 +138,7 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Natural texture distribution consistent with camera sensor capture.' },
-        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: authentic (confidence: 96%). Continuous sensor noise and realistic lens reflections verified.' },
+        { name: 'TrustNet Vision AI', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: authentic (confidence: 96%). Continuous sensor noise and realistic lens reflections verified.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Uniform radial frequency roll-off.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Homogeneous compression surface.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'APPLIED', finding: 'Consistent facial skin texture and natural specular eye reflections.' },
@@ -212,7 +215,7 @@ const BENCHMARK_SCANS: ScanRecord[] = [
       ],
       analyzers: [
         { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Spatial feature divergence consistent with diffusion model synthesis.' },
-        { name: 'LM Studio Local Vision (Qwen-VL)', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 91%). Synthetic terrain textures and high-frequency roll-off anomalies detected.' },
+        { name: 'TrustNet Vision AI', category: 'local_vision_reasoning', status: 'APPLIED', finding: 'Visual verdict: suspicious (confidence: 91%). Synthetic terrain textures and high-frequency roll-off anomalies detected.' },
         { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Periodic grid artifacts in 2D DFT spectrum.' },
         { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Non-uniform compression error surface.' },
         { name: 'Face Landmark & Boundary Warping (Face X-Ray)', category: 'face_forensics', status: 'SKIPPED', reason: 'No human facial landmark identified; skipped to prevent false positives.' },
@@ -274,7 +277,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0f1117] text-slate-200">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -283,71 +286,83 @@ export function App() {
       />
 
       <main className="flex-1">
-        {activeTab === 'landing' && (
-          <LandingView
-            onStartScan={() => setActiveTab('scan')}
-            onExploreDashboard={() => setActiveTab('dashboard')}
-          />
-        )}
+        <Suspense fallback={
+          <div className="flex-1 p-8 space-y-6">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-[400px] w-full" />
+            <div className="grid grid-cols-3 gap-6">
+              <Skeleton className="h-32" />
+              <Skeleton className="h-32" />
+              <Skeleton className="h-32" />
+            </div>
+          </div>
+        }>
+          {activeTab === 'landing' && (
+            <LandingView
+              onStartScan={() => setActiveTab('scan')}
+              onExploreDashboard={() => setActiveTab('dashboard')}
+            />
+          )}
 
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            scans={scans}
-            onSelectScan={handleSelectScanForReport}
-            onNewScan={() => setActiveTab('scan')}
-          />
-        )}
+          {activeTab === 'dashboard' && (
+            <DashboardView
+              scans={scans}
+              onSelectScan={handleSelectScanForReport}
+              onNewScan={() => setActiveTab('scan')}
+            />
+          )}
 
-        {activeTab === 'scan' && (
-          <ScanUploadView
-            onScanCompleted={handleScanCompleted}
-            onViewReport={handleSelectScanForReport}
-          />
-        )}
+          {activeTab === 'scan' && (
+            <ScanUploadView
+              onScanCompleted={handleScanCompleted}
+              onViewReport={handleSelectScanForReport}
+            />
+          )}
 
-        {activeTab === 'report' && selectedScan && (
-          <ReportView
-            scan={selectedScan}
-            onBack={() => setActiveTab('dashboard')}
-          />
-        )}
+          {activeTab === 'report' && selectedScan && (
+            <ReportView
+              scan={selectedScan}
+              onBack={() => setActiveTab('dashboard')}
+            />
+          )}
 
-        {activeTab === 'login' && (
-          <LoginView
-            onLoginSuccess={(loggedUser) => {
-              setUser(loggedUser);
-              setActiveTab('dashboard');
-            }}
-            onGoToRegister={() => setActiveTab('register')}
-          />
-        )}
+          {activeTab === 'login' && (
+            <LoginView
+              onLoginSuccess={(loggedUser) => {
+                setUser(loggedUser);
+                setActiveTab('dashboard');
+              }}
+              onGoToRegister={() => setActiveTab('register')}
+            />
+          )}
 
-        {activeTab === 'register' && (
-          <RegisterView
-            onRegisterSuccess={(newUser) => {
-              setUser(newUser);
-              setActiveTab('dashboard');
-            }}
-            onGoToLogin={() => setActiveTab('login')}
-          />
-        )}
+          {activeTab === 'register' && (
+            <RegisterView
+              onRegisterSuccess={(newUser) => {
+                setUser(newUser);
+                setActiveTab('dashboard');
+              }}
+              onGoToLogin={() => setActiveTab('login')}
+            />
+          )}
+        </Suspense>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e2231] py-8 px-6 bg-[#0c0d12] mt-16">
+      <footer className="border-t border-border py-8 px-6 bg-card mt-16 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-white text-sm">TrustNet</span>
-            <span className="text-slate-500 text-xs font-normal">
-              &bull; AI-Powered Forensic Intelligence &amp; Synthetic Media Defense
+            <span className="font-bold text-foreground text-sm">TrustNet AI</span>
+            <span className="text-muted-foreground text-xs font-normal">
+              &bull; Enterprise Forensic Intelligence &amp; Synthetic Media Defense
             </span>
           </div>
 
-          <div className="flex items-center gap-5 text-xs text-slate-500">
-            <span>LM Studio Local Vision</span>
-            <span>2D Fourier FFT</span>
-            <span>Fast ELA Detector</span>
-            <span>FastAPI Core</span>
+          <div className="flex items-center gap-5 text-xs text-muted-foreground">
+            <span>TrustNet Vision AI</span>
+            <span>Spectral &amp; Temporal Engines</span>
+            <span>Zero-Trust Verification</span>
+            <span>Enterprise Core</span>
           </div>
         </div>
       </footer>

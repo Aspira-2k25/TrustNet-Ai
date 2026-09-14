@@ -35,18 +35,18 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
     }
   };
 
-  const getBadgeClasses = (level: RiskLevel) => {
-    switch (level) {
-      case 'LOW':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'MEDIUM':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'HIGH':
-        return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-      case 'CRITICAL':
-        return 'bg-red-500/10 text-red-400 border-red-500/20';
-    }
-  };
+    const getBadgeClasses = (level: RiskLevel) => {
+      switch (level) {
+        case 'LOW':
+          return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        case 'MEDIUM':
+          return 'bg-amber-50 text-amber-700 border-amber-200';
+        case 'HIGH':
+          return 'bg-orange-50 text-orange-700 border-orange-200';
+        case 'CRITICAL':
+          return 'bg-red-50 text-red-700 border-red-200';
+      }
+    };
 
   const themeColor = getColor(riskLevel);
 
@@ -60,7 +60,7 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
             cy={size / 2}
             r={radius}
             fill="transparent"
-            stroke="rgba(255, 255, 255, 0.06)"
+            stroke="#e2e8f0"
             strokeWidth={strokeWidth}
           />
           {/* Animated Value Arc */}
@@ -83,13 +83,13 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
         {/* Center Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
           <span
-            className="font-mono font-bold text-white leading-none"
+            className="font-mono font-bold text-foreground leading-none"
             style={{ fontSize: size * 0.26 }}
           >
             {normalizedScore}
           </span>
           <span
-            className="font-medium text-slate-500 uppercase tracking-wider mt-1"
+            className="font-medium text-muted-foreground uppercase tracking-wider mt-1"
             style={{ fontSize: size * 0.07 }}
           >
             {label}

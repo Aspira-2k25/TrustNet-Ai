@@ -66,29 +66,29 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
   return (
     <div className="max-w-5xl mx-auto px-6 py-14 text-center">
       {/* Header Badge */}
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
         <Shield size={13} />
         <span>Analyze</span>
       </div>
 
       {/* Main Title */}
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
-        Scan for <span className="text-indigo-400">Deepfakes</span>
+      <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-3">
+        Scan for <span className="text-primary">Deepfakes</span>
       </h1>
-      <p className="text-[15px] text-slate-400 max-w-lg mx-auto mb-10">
+      <p className="text-[15px] text-muted-foreground max-w-lg mx-auto mb-10">
         Upload an image, video, or audio file for AI-powered forensic analysis and pixel-level artifact detection.
       </p>
 
       {/* Modality Selector Tabs */}
-      <div className="flex items-center justify-center gap-1 mb-8 p-1 bg-[#13161f] border border-[#1e2231] rounded-xl max-w-xs mx-auto">
+      <div className="flex items-center justify-center gap-1 mb-8 p-1 bg-card border border-border shadow-sm rounded-xl max-w-xs mx-auto">
         {modalityTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveModality(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 justify-center ${
               activeModality === tab.key
-                ? 'text-white bg-indigo-600'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-primary-foreground bg-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {tab.icon}
@@ -116,31 +116,31 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border border-dashed rounded-2xl p-12 cursor-pointer transition-all bg-[#13161f]/60 ${isDragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2f3e] hover:border-slate-500'}`}
+          className={`border border-dashed rounded-2xl p-12 cursor-pointer transition-all bg-card ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-slate-300'}`}
         >
           {previewUrl ? (
             <div className="flex flex-col items-center gap-4">
               <img
                 src={previewUrl}
                 alt="Upload Preview"
-                className="max-h-64 w-auto object-contain rounded-xl border border-[#1e2231] shadow-lg"
+                className="max-h-64 w-auto object-contain rounded-xl border border-border shadow-md"
               />
-              <div className="text-sm text-slate-300">
-                <span className="text-white font-medium">{selectedFile?.name}</span>{' '}
-                <span className="text-slate-500">({selectedFile?.size ? (selectedFile.size / 1024).toFixed(1) : 0} KB)</span>
+              <div className="text-sm text-muted-foreground">
+                <span className="text-foreground font-medium">{selectedFile?.name}</span>{' '}
+                <span>({selectedFile?.size ? (selectedFile.size / 1024).toFixed(1) : 0} KB)</span>
               </div>
-              <span className="text-xs text-indigo-400 hover:text-indigo-300 cursor-pointer">Choose a different file</span>
+              <span className="text-xs text-primary hover:text-indigo-500 cursor-pointer">Choose a different file</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <UploadCloud size={28} />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white mb-1">
+                <h3 className="text-base font-semibold text-foreground mb-1">
                   Drag & drop media file
                 </h3>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   JPG, PNG, MP4, AVI, WAV, MP3 — up to 100MB
                 </p>
               </div>
@@ -149,22 +149,22 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         </div>
       </div>
 
-      {/* AI Visual Explanation (LM Studio) Toggle Switch */}
-      <div className="max-w-xl mx-auto mb-6 p-4 rounded-xl bg-[#131622] border border-[#202538] flex items-center justify-between text-left transition-all">
+      {/* AI Visual Explanation (TrustNet Vision AI) Toggle Switch */}
+      <div className="max-w-xl mx-auto mb-6 p-4 rounded-xl bg-card border border-border shadow-sm flex items-center justify-between text-left transition-all">
         <div className="flex items-start gap-3">
-          <div className={`p-2 rounded-lg ${enableExplanation ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800/40 text-slate-500'}`}>
+          <div className={`p-2 rounded-lg ${enableExplanation ? 'bg-primary/20 text-primary' : 'bg-slate-100 text-muted-foreground'}`}>
             <Sparkles size={18} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-white">AI Visual Explanation</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${enableExplanation ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'}`}>
+              <span className="text-sm font-semibold text-foreground">AI Visual Explanation</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${enableExplanation ? 'bg-amber-50 border border-amber-200 text-amber-700' : 'bg-emerald-50 border border-emerald-200 text-emerald-700'}`}>
                 {enableExplanation ? 'Deep Vision (~20s)' : 'Fast Instant (~1s)'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {enableExplanation
-                ? 'LM Studio Local Vision will inspect visual semantics & reasoning in detail.'
+                ? 'TrustNet Vision AI will inspect visual semantics & reasoning in detail.'
                 : 'Fast Scan mode: Runs 10 deterministic physical forensics + local ViT in ~1 second.'}
             </p>
           </div>
@@ -172,7 +172,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         <button
           type="button"
           onClick={() => setEnableExplanation(!enableExplanation)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enableExplanation ? 'bg-indigo-600' : 'bg-[#252a3a]'}`}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enableExplanation ? 'bg-primary' : 'bg-slate-200'}`}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableExplanation ? 'translate-x-6' : 'translate-x-1'}`}
@@ -181,23 +181,23 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
       </div>
 
       {errorMessage && (
-        <div className="max-w-xl mx-auto flex items-center justify-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm mb-6">
+        <div className="max-w-xl mx-auto flex items-center justify-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm mb-6">
           <AlertTriangle size={15} />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {isProcessing && (
-        <div className="max-w-xl mx-auto p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm mb-6 flex flex-col items-center gap-2">
+        <div className="max-w-xl mx-auto p-4 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm mb-6 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2 font-medium">
-            <RefreshCw size={16} className="animate-spin text-indigo-400" />
+            <RefreshCw size={16} className="animate-spin text-primary" />
             <span>
               {enableExplanation
-                ? 'Running Deep Forensics & LM Studio Vision Reasoning...'
+                ? 'Running Deep Forensics & TrustNet Vision Reasoning...'
                 : 'Running Fast Forensics & ViT Neural Analysis...'}
             </span>
           </div>
-          <p className="text-xs text-slate-400 text-center">
+          <p className="text-xs text-muted-foreground text-center">
             {enableExplanation
               ? 'Fusing physical forensic layers with local vision model. Processing in CPU mode...'
               : 'Evaluating 10 deterministic physical layers (FFT, CFA, ELA, PRNU, Gabor) + ViT in ~1 second...'}
@@ -210,7 +210,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         <button
           onClick={handleAnalyze}
           disabled={!selectedFile || isProcessing}
-          className={`inline-flex items-center gap-2.5 px-10 py-3.5 rounded-xl text-sm font-semibold transition-all ${!selectedFile || isProcessing ? 'bg-[#1a1e2a] text-slate-600 border border-[#252a37] cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20'}`}
+          className={`inline-flex items-center gap-2.5 px-10 py-3.5 rounded-xl text-sm font-semibold transition-all ${!selectedFile || isProcessing ? 'bg-slate-100 text-slate-400 border border-border cursor-not-allowed' : 'bg-primary hover:bg-indigo-500 text-primary-foreground shadow-sm'}`}
         >
           {isProcessing ? (
             <>
@@ -225,8 +225,8 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
           )}
         </button>
 
-        <span className="text-xs text-slate-500 mt-2">
-          Powered by AACS — Multi-signal parallel AI engines
+        <span className="text-xs text-muted-foreground mt-2">
+          Powered by TrustNet AI — Multi-signal parallel engines
         </span>
       </div>
     </div>

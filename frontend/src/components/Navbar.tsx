@@ -17,18 +17,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, user, o
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0f1117]/90 backdrop-blur-md border-b border-[#1e2231]">
+    <header className="sticky top-0 z-50 bg-card/90 backdrop-blur-md border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <div
           onClick={() => setActiveTab('landing')}
           className="flex items-center gap-2.5 cursor-pointer select-none"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Shield size={17} className="text-white" />
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Shield size={17} className="text-primary-foreground" />
           </div>
-          <span className="text-[17px] font-bold text-white tracking-tight">
-            TrustNet
+          <span className="text-[17px] font-bold text-foreground tracking-tight">
+            TrustNet AI
           </span>
         </div>
 
@@ -40,8 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, user, o
               onClick={() => setActiveTab(item.tab)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === item.tab
-                  ? 'text-white bg-white/[0.07]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                  ? 'text-foreground bg-muted'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-slate-50'
               }`}
             >
               {item.label}
@@ -53,7 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, user, o
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab('scan')}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
+            className="px-4 py-2 rounded-lg bg-primary hover:bg-indigo-500 text-primary-foreground text-sm font-semibold transition-colors shadow-sm"
           >
             Scan Now
           </button>
@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, user, o
             <button
               onClick={onLogout}
               title="Logout"
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-slate-100 transition-colors"
             >
               <LogOut size={16} />
             </button>

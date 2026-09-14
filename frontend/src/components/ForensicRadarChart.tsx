@@ -51,19 +51,19 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
       {data.map((item, idx) => (
         <div key={idx} className="w-full">
           <div className="flex justify-between items-end mb-1.5">
-            <span className="text-[11px] text-slate-400 font-medium">{item.subject}</span>
-            <span className="text-[11px] font-semibold text-indigo-400 font-mono">{item.score}%</span>
+            <span className="text-[11px] text-muted-foreground font-medium">{item.subject}</span>
+            <span className="text-[11px] font-semibold text-primary font-mono">{item.score}%</span>
           </div>
-          <div className="w-full bg-[#1a1e2b] h-1.5 rounded-full overflow-hidden flex">
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex shadow-inner">
             <div 
-              className={`h-full rounded-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-red-400' : item.score > 30 ? 'bg-amber-400' : 'bg-indigo-400'}`}
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-destructive' : item.score > 30 ? 'bg-warning' : 'bg-primary'}`}
               style={{ width: `${item.score}%` }} 
             />
           </div>
         </div>
       ))}
-      <div className="mt-4 pt-3 border-t border-[#1e2231] w-full text-center">
-        <div className="text-[10px] text-slate-500 font-medium">Multi-vector Synthesis</div>
+      <div className="mt-4 pt-3 border-t border-border w-full text-center">
+        <div className="text-[10px] text-muted-foreground font-medium">Multi-vector Synthesis</div>
       </div>
     </div>
   );
