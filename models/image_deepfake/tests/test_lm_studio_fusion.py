@@ -38,7 +38,7 @@ def test_lm_studio_vision_fusion_applied():
     }
 
     with patch.object(detector.lm_studio_client, "analyze", return_value=mock_vision_resp):
-        res = detector.predict(image_bytes)
+        res = detector.predict(image_bytes, enable_explanation=True)
 
     assert res.status.value == "SUCCESS"
     assert res.metadata.get("lm_studio_status") == "APPLIED"
@@ -79,7 +79,7 @@ def test_lm_studio_vision_offline_graceful_fallback():
     }
 
     with patch.object(detector.lm_studio_client, "analyze", return_value=mock_unavailable_resp):
-        res = detector.predict(image_bytes)
+        res = detector.predict(image_bytes, enable_explanation=True)
 
     assert res.status.value == "SUCCESS"
     assert res.metadata.get("lm_studio_status") == "UNAVAILABLE"
@@ -121,7 +121,7 @@ def test_lm_studio_contradiction_calibration():
          patch.object(detector.ela_analyzer, "analyze", return_value={"ela_anomaly_score": 0.05, "is_anomalous": False, "note": "Clean"}), \
          patch.object(detector.noise_analyzer, "analyze", return_value={"noise_anomaly_score": 0.05, "is_synthetic_noise": False, "note": "Clean"}), \
          patch.object(detector.local_vit, "predict", return_value={"is_hf_applied": True, "hf_risk_score": 5.0, "model_name": "LocalViT"}):
-        res = detector.predict(image_bytes)
+        res = detector.predict(image_bytes, enable_explanation=True)
 
     # When vision model contradicts all physical scans + ViT (0 physical anomalies):
     # Contradiction triggers, risk clamps to uncertain zone (48-52%), verdict is UNCERTAIN, never 90%+ fake!

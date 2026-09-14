@@ -27,7 +27,15 @@ export const EvidenceBadges: React.FC<EvidenceBadgesProps> = ({ scan }) => {
         let statusColor = 'text-slate-400';
 
         const findingLower = (analyzer.finding || '').toLowerCase();
-        const isAnomaly = findingLower.includes('anomaly') || findingLower.includes('violation') || findingLower.includes('asymmetrical') || findingLower.includes('detected') && !findingLower.includes('no ');
+        const isNegativePhrase = findingLower.includes('no ') || findingLower.includes('clean') || findingLower.includes('verified');
+        const isAnomaly = !isNegativePhrase && (
+          findingLower.includes('anomaly') || 
+          findingLower.includes('violation') || 
+          findingLower.includes('asymmetrical') || 
+          findingLower.includes('detected') ||
+          findingLower.includes('synthetic') ||
+          findingLower.includes('discontinuity')
+        );
 
         if (analyzer.status === 'SKIPPED') {
           borderColor = 'border-slate-800';

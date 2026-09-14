@@ -58,7 +58,6 @@ def create_photo_with_sparkle_watermark(size=(400, 400)):
 class MockViTClientReal:
     """Simulates a ViT returning 99.1% REAL (0.9% risk score), exactly like real_10.jpg."""
     face_model_name = "dima806/deepfake_vs_real_image_detection"
-    general_model_name = "umm-maybe/AI-image-detector"
     model_name = "dima806/deepfake_vs_real_image_detection"
     
     def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "portrait"):

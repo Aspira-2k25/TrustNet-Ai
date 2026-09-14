@@ -47,11 +47,13 @@ class WatermarkIconAnalyzer:
         h, w = gray.shape
         cw = max(8, int(w * self.corner_fraction))
         ch = max(8, int(h * self.corner_fraction))
+        # Generative AI platforms (DALL-E, Midjourney, TikTok, SynthID badges)
+        # place watermarks exclusively in bottom corners (predominantly bottom-right, occasionally bottom-left).
+        # Top corners contain ceiling fixtures, lamps, curtain rails, hooks, and hanging clothes
+        # which produce frequent geometric false positives.
         return [
-            ("top_left", gray[0:ch, 0:cw]),
-            ("top_right", gray[0:ch, w - cw:w]),
-            ("bottom_left", gray[h - ch:h, 0:cw]),
             ("bottom_right", gray[h - ch:h, w - cw:w]),
+            ("bottom_left", gray[h - ch:h, 0:cw]),
         ]
 
     def _symmetry_score(self, mask: np.ndarray) -> float:
@@ -146,6 +148,8 @@ class WatermarkIconAnalyzer:
                 if corner_gray.size == 0:
                     continue
 
+                corner_h, corner_w = corner_gray.shape
+
                 blurred = cv2.GaussianBlur(corner_gray, (3, 3), 0)
                 thresh = cv2.adaptiveThreshold(
                     blurred, 255,
@@ -154,7 +158,7 @@ class WatermarkIconAnalyzer:
                 )
 
                 contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-                corner_area = corner_gray.shape[0] * corner_gray.shape[1]
+                corner_area = corner_h * corner_w
 
                 # If the corner is densely covered in textures (> 18 contours), it is natural
                 # fabric (e.g. saree embroidery), hair, foliage, or background noise, NOT an isolated watermark.
@@ -164,11 +168,23 @@ class WatermarkIconAnalyzer:
                 for c in contours:
                     if len(c) < 5:
                         continue  # convexityDefects needs enough points to be meaningful
+
+                    x, y, cw, ch = cv2.boundingRect(c)
+
+                    # Boundary margin check: real watermark badges are inset with padding from the image frame.
+                    # Contours touching the outer borders are cut-off objects (hangers, clothes, door frames, edges).
+                    if x <= 2 or y <= 2 or (x + cw) >= corner_w - 2 or (y + ch) >= corner_h - 2:
+                        continue
+
+                    # Aspect ratio check: real watermark glyphs/sparkles are roughly square/compact (0.55 <= w/h <= 1.80)
+                    aspect = cw / max(1, ch)
+                    if not (0.55 <= aspect <= 1.80):
+                        continue
+
                     shaped, shape_conf = self._is_watermark_shaped(c, corner_area)
                     if not shaped:
                         continue
 
-                    x, y, cw, ch = cv2.boundingRect(c)
                     patch_mask = thresh[y:y + ch, x:x + cw] > 0
                     sym_score = self._symmetry_score(patch_mask)
 

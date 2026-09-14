@@ -37,7 +37,7 @@ class LMStudioVisionClient:
         self.base_url = (base_url or os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")).rstrip("/")
         self.configured_model = model_name or os.getenv("LM_STUDIO_MODEL", "")
         self.timeout = int(timeout or os.getenv("LM_STUDIO_TIMEOUT_SECONDS", "1800"))
-        self.max_tokens = int(os.getenv("LM_STUDIO_MAX_TOKENS", "350"))
+        self.max_tokens = int(os.getenv("LM_STUDIO_MAX_TOKENS", "180"))
         self._cached_discovered_model: Optional[str] = None
 
     def get_active_model_name(self) -> str:
@@ -119,21 +119,17 @@ class LMStudioVisionClient:
 
         # 2. High-efficiency balanced system prompt
         system_prompt = (
-            "You are an expert image-forensics visual reasoning assistant.\n"
-            "Carefully evaluate whether this image is an authentic real camera photograph or an AI-generated/manipulated image.\n"
-            "Authentic camera photos show natural skin pores, realistic depth of field, coherent indoor architecture, and legible real signage.\n"
-            "AI-generated images show plastic doll skin, melted background signage, impossible anatomy, or mismatched ear/eye reflections.\n"
-            "If the subject shows natural human facial features in a real physical setting (e.g. restaurant, home, street), classify visual_verdict as 'authentic'.\n"
-            "Keep internal reasoning very brief (under 15 words) and output strict JSON:\n"
+            "You are an expert visual forensic assistant.\n"
+            "Evaluate whether this image is an authentic camera photograph or an AI-generated/manipulated deepfake.\n"
+            "If AI/manipulated, state clearly what is fake (e.g. face swapped with blending seams around perimeter, unnatural skin smoothing, melted background details).\n"
+            "If authentic, confirm natural optical camera depth, realistic skin pore microstructure, and consistent reflections.\n"
+            "Keep internal reasoning extremely concise (under 10 words) and output strict JSON:\n"
             "{\n"
             '  "visual_verdict": "authentic" | "suspicious" | "inconclusive",\n'
             '  "confidence": <float between 0.0 and 1.0>,\n'
+            '  "simple_explanation": "<crisp 1-2 sentence plain-English explanation of why this image is authentic or fake>",\n'
             '  "observations": [<string>, ...],\n'
-            '  "suspicious_regions": [{"region": "<name>", "reason": "<string>"}],\n'
-            '  "supporting_evidence": [<string>, ...],\n'
-            '  "contradicting_evidence": [<string>, ...],\n'
-            '  "uncertainties": [<string>, ...],\n'
-            '  "simple_explanation": "<concise 1-2 sentence plain-English summary for non-experts>"\n'
+            '  "suspicious_regions": [{"region": "<name>", "reason": "<string>"}]\n'
             "}"
         )
 

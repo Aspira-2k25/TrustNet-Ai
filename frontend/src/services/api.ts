@@ -84,13 +84,14 @@ class ApiService {
   }
 
   // --- Scan Endpoints ---
-  async uploadImageScan(file: File): Promise<ScanRecord> {
+  async uploadImageScan(file: File, enableExplanation: boolean = false): Promise<ScanRecord> {
     const objectUrl = URL.createObjectURL(file);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('modality', 'image');
+      formData.append('enable_explanation', String(enableExplanation));
 
       const headers: Record<string, string> = {};
       if (this.token) {
@@ -123,6 +124,7 @@ class ApiService {
       const fallbackFormData = new FormData();
       fallbackFormData.append('file', file);
       fallbackFormData.append('modality', 'image');
+      fallbackFormData.append('enable_explanation', String(enableExplanation));
 
       const headers: Record<string, string> = {};
       if (this.token) {
@@ -151,6 +153,7 @@ class ApiService {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('enable_explanation', String(enableExplanation));
       const res = await fetch(`http://localhost:8003/detect/file`, {
         method: 'POST',
         body: formData,

@@ -1,8 +1,11 @@
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, Header, UploadFile, File, Form, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger("trustnet.scan")
 
 from services.scan_management.app.database.session import get_db
 from services.scan_management.app.services.scan_service import ScanService
@@ -45,6 +48,7 @@ def get_current_user_id(
 @router.post("/analyze", response_model=APIResponse[Dict[str, Any]])
 async def analyze_image_direct(
     file: UploadFile = File(...),
+    enable_explanation: bool = Form(False),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
@@ -58,7 +62,22 @@ async def analyze_image_direct(
     file_bytes = await file.read()
 
     # Run real forensic model detector
-    detection_res = detector_instance.predict(file_bytes, scan_id=scan_id, filename=file.filename)
+    detection_res = detector_instance.predict(
+        file_bytes,
+        scan_id=scan_id,
+        filename=file.filename,
+        enable_explanation=enable_explanation
+    )
+
+    if getattr(detection_res, "status", None) and str(detection_res.status).upper().endswith("FAILED"):
+        logger.error(f"[SCAN ROUTER] Forensic detection failed for scan {scan_id}: {detection_res.error_code} - {detection_res.error_message}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "code": detection_res.error_code or "INFERENCE_FAILED",
+                "message": detection_res.error_message or "Deepfake detection failed during analysis."
+            }
+        )
     
     risk_score = detection_res.risk_score
     risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))

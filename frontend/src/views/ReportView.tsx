@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Download, Copy, Check, Volume2, VolumeX, Eye, Microscope, 
   CheckCircle2, HelpCircle, ShieldAlert, 
-  Layers, Activity, Info, ChevronDown, ChevronUp, Cpu, AlertTriangle
+  Layers, Activity, Info, ChevronDown, ChevronUp, Cpu, AlertTriangle, Sparkles, FileCode
 } from 'lucide-react';
 import type { ScanRecord } from '../types';
 import { ForensicRadarChart } from '../components/ForensicRadarChart';
@@ -22,6 +22,34 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const result = scan.result;
+
+  if (scan.status === 'FAILED' || (result as any)?.status === 'FAILED') {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4 text-center">
+        <div className="bg-red-500/10 border border-red-500/25 rounded-2xl p-8 max-w-xl mx-auto text-left shadow-2xl backdrop-blur-sm">
+          <div className="flex items-center gap-3 text-red-400 mb-4">
+            <AlertTriangle className="w-8 h-8 shrink-0" />
+            <h2 className="text-xl font-bold">Forensic Scan Failed</h2>
+          </div>
+          <p className="text-slate-300 text-sm mb-4 leading-relaxed">
+            The forensic analyzer encountered an error processing this file. Please verify the media format or retry the scan.
+          </p>
+          {((result as any)?.error_message || (scan as any)?.error_message) && (
+            <div className="p-3 bg-black/40 border border-red-500/20 rounded-lg text-xs font-mono text-red-300 mb-6 break-all">
+              {(result as any)?.error_message || (scan as any)?.error_message}
+            </div>
+          )}
+          <button
+            onClick={onBack}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" /> Return to Upload
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const trustScore = scan.trust_score;
   const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 10.2;
   const rawVerdict = result?.verdict || '';
@@ -30,6 +58,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   // LM Studio Local Vision Data
   const visionAnalysis = scan.vision_analysis || result?.vision_analysis || result?.metadata?.vision_analysis || trustScore?.vision_analysis;
   const isVisionApplied = visionAnalysis?.status === 'APPLIED';
+  const isVisionSkipped = visionAnalysis?.status === 'SKIPPED';
   const lmStudioModel = result?.metadata?.lm_studio_model || visionAnalysis?.model_name || 'Local Vision Model';
 
   // 4-Level Semantic Result Structure
@@ -38,17 +67,17 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   let verdictColorClass = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
   let VerdictIcon = CheckCircle2;
 
-  if (rawVerdict === 'UNCERTAIN' || (isContradiction && riskScore >= 46.0 && riskScore <= 54.0)) {
+  if (rawVerdict === 'UNCERTAIN' || isContradiction || (riskScore >= 40.0 && riskScore < 62.0)) {
     semanticVerdict = 'UNCERTAIN';
     semanticSubtext = 'Signals disagree or evidence is conflicting / insufficient (Manual review recommended).';
     verdictColorClass = 'bg-amber-500/10 border-amber-500/20 text-amber-400';
     VerdictIcon = HelpCircle;
-  } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore > 52.0) {
+  } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore >= 62.0) {
     semanticVerdict = 'LIKELY AI / MANIPULATED';
     semanticSubtext = 'Multiple independent signals indicate synthetic or manipulated content.';
     verdictColorClass = 'bg-red-500/10 border-red-500/20 text-red-400';
     VerdictIcon = ShieldAlert;
-  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore <= 52.0)) {
+  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 22.0 && riskScore < 62.0)) {
     semanticVerdict = 'LIKELY AUTHENTIC';
     semanticSubtext = 'Mostly consistent with real capture, minor compression or sensor variance.';
     verdictColorClass = 'bg-sky-500/10 border-sky-500/20 text-sky-400';
@@ -376,8 +405,63 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           <div>File: <span className="text-slate-200">{scan.filename || 'Image Scan'}</span></div>
           <div>MIME: <span className="text-slate-200">{scan.mime_type || 'image/jpeg'}</span></div>
           <div>Scene: <span className="text-slate-200">{result?.metadata?.scene_label || 'Natural Capture'}</span></div>
-          <div>Faces: <span className="text-slate-200">{result?.metadata?.face_count ?? (result?.has_face ? '1' : 'None')}</span></div>
+          <div>Faces: <span className="text-slate-200">{(result?.metadata?.face_count !== undefined && result?.metadata?.face_count > 0) ? result.metadata.face_count : (result?.has_face ? '1' : 'None')}</span></div>
         </div>
+
+        {/* Executive Forensic Summary ("Chota & Simple") */}
+        {result?.explanation && (
+          <div className="mt-4 p-3.5 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/20 flex items-start gap-3 text-left">
+            <Sparkles size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+            <div>
+              <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">
+                Executive Forensic Summary
+              </div>
+              <p className="text-sm font-medium leading-relaxed text-slate-200">
+                {result.explanation}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Covert Steganography Payload Alert (Strictly displayed ONLY if hidden payload was verified) */}
+        {result?.metadata?.stego_detected && (
+          <div className="mt-4 p-4 rounded-xl bg-amber-500/[0.08] border border-amber-500/30 text-left">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-amber-300">
+                <FileCode size={18} className="text-amber-400 shrink-0" />
+                <span>Covert Payload / Steganography Detected</span>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono uppercase tracking-wider">
+                Hidden Data Alert
+              </span>
+            </div>
+            <p className="text-xs text-slate-200 leading-relaxed mb-3">
+              {result.metadata.stego_finding}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-3 border-t border-amber-500/20 text-xs">
+              <div className="bg-black/30 p-2 rounded border border-amber-500/15">
+                <span className="text-[10px] text-slate-400 block uppercase tracking-wider">Detection Method</span>
+                <span className="font-mono text-slate-100 font-semibold text-xs">{result.metadata.stego_method || 'EOF Injection'}</span>
+              </div>
+              <div className="bg-black/30 p-2 rounded border border-amber-500/15">
+                <span className="text-[10px] text-slate-400 block uppercase tracking-wider">Payload Type</span>
+                <span className="font-mono text-slate-100 font-semibold text-xs">{result.metadata.stego_payload_type || 'Embedded Archive'}</span>
+              </div>
+              <div className="bg-black/30 p-2 rounded border border-amber-500/15 col-span-2 sm:col-span-1">
+                <span className="text-[10px] text-slate-400 block uppercase tracking-wider">Payload Size</span>
+                <span className="font-mono text-slate-100 font-semibold text-xs">
+                  {result.metadata.stego_payload_size ? `${(result.metadata.stego_payload_size / 1024).toFixed(1)} KB (${result.metadata.stego_payload_size} bytes)` : 'Present'}
+                </span>
+              </div>
+              {result.metadata.stego_preview && (
+                <div className="col-span-2 sm:col-span-3 bg-black/40 p-2.5 rounded border border-amber-500/20 font-mono text-[11px] text-amber-200 truncate">
+                  <span className="text-slate-400 mr-2">Extracted Data String:</span>
+                  <span>{result.metadata.stego_preview}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. SIMPLE "WHY THIS RESULT" (Evidence-Grounded Explanations) */}
@@ -429,14 +513,16 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 font-mono">
-              {lmStudioModel}
+              {isVisionSkipped ? 'Fast Scan Mode' : lmStudioModel}
             </span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
               isVisionApplied 
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                : (isVisionSkipped 
+                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' 
+                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20')
             }`}>
-              {isVisionApplied ? 'ACTIVE' : 'OFFLINE'}
+              {isVisionApplied ? 'ACTIVE' : (isVisionSkipped ? 'FAST SCAN' : 'OFFLINE')}
             </span>
           </div>
         </div>
@@ -497,7 +583,9 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           <div className="p-3.5 rounded-lg bg-[#0f1117] border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
             <Info size={14} className="text-slate-500 shrink-0" />
             <span>
-              LM Studio local endpoint not connected or vision model not loaded. Forensic analysis was completed safely using local deterministic scanners (FFT, ELA, PRNU noise, Bayer CFA, Gabor texture, metadata).
+              {isVisionSkipped 
+                ? 'Fast Scan mode active: Local vision reasoning was bypassed for instant (~1s) execution. Full multi-spectral physical forensics and neural ViT were evaluated.' 
+                : 'LM Studio local endpoint not connected or vision model not loaded. Forensic analysis was completed safely using local deterministic scanners (FFT, ELA, PRNU noise, Bayer CFA, Gabor texture, metadata).'}
             </span>
           </div>
         )}
@@ -517,7 +605,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
               Advanced Forensic Breakdown & Telemetry
             </span>
             <span className="text-xs text-slate-500">
-              (Interactive ELA, Sub-Pixel CFA, Radar, 15 Analyzers)
+              (Interactive ELA, Sub-Pixel CFA, Radar, {result?.analyzers?.length || 16} Analyzers)
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-400">

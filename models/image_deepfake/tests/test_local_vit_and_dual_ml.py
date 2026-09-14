@@ -33,7 +33,7 @@ def test_local_vit_detector_predict_non_portrait():
     res = detector.predict(img_bytes, has_face=False, scene_type="nature_landscape")
     assert res["is_hf_applied"] is True
     assert 0.0 <= res["hf_risk_score"] <= 100.0
-    assert "umm-maybe" in res["model_name"]
+    assert "dima806" in res["model_name"]
 
 
 def test_huggingface_client_fallback():

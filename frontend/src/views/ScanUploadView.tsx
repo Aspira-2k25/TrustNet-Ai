@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Link as LinkIcon, Camera, Shield, AlertTriangle, RefreshCw } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, Camera, Shield, AlertTriangle, RefreshCw, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
 import type { ScanRecord } from '../types';
 
@@ -14,6 +14,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [enableExplanation, setEnableExplanation] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -46,7 +47,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
     setErrorMessage(null);
 
     try {
-      const scanRecord = await api.uploadImageScan(selectedFile);
+      const scanRecord = await api.uploadImageScan(selectedFile, enableExplanation);
       onScanCompleted(scanRecord);
       onViewReport(scanRecord);
     } catch (err: any) {
@@ -148,6 +149,37 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         </div>
       </div>
 
+      {/* AI Visual Explanation (LM Studio) Toggle Switch */}
+      <div className="max-w-xl mx-auto mb-6 p-4 rounded-xl bg-[#131622] border border-[#202538] flex items-center justify-between text-left transition-all">
+        <div className="flex items-start gap-3">
+          <div className={`p-2 rounded-lg ${enableExplanation ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800/40 text-slate-500'}`}>
+            <Sparkles size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white">AI Visual Explanation</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${enableExplanation ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'}`}>
+                {enableExplanation ? 'Deep Vision (~20s)' : 'Fast Instant (~1s)'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {enableExplanation
+                ? 'LM Studio Local Vision will inspect visual semantics & reasoning in detail.'
+                : 'Fast Scan mode: Runs 10 deterministic physical forensics + local ViT in ~1 second.'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setEnableExplanation(!enableExplanation)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enableExplanation ? 'bg-indigo-600' : 'bg-[#252a3a]'}`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableExplanation ? 'translate-x-6' : 'translate-x-1'}`}
+          />
+        </button>
+      </div>
+
       {errorMessage && (
         <div className="max-w-xl mx-auto flex items-center justify-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm mb-6">
           <AlertTriangle size={15} />
@@ -159,10 +191,16 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         <div className="max-w-xl mx-auto p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm mb-6 flex flex-col items-center gap-2">
           <div className="flex items-center gap-2 font-medium">
             <RefreshCw size={16} className="animate-spin text-indigo-400" />
-            <span>Running Deep Forensics & LM Studio Vision Reasoning...</span>
+            <span>
+              {enableExplanation
+                ? 'Running Deep Forensics & LM Studio Vision Reasoning...'
+                : 'Running Fast Forensics & ViT Neural Analysis...'}
+            </span>
           </div>
           <p className="text-xs text-slate-400 text-center">
-            Fusing 10 forensic layers (ELA, FFT, Gabor, PRNU, Face X-Ray) with local vision model. Processing in CPU mode (will not time out, please keep this tab open)...
+            {enableExplanation
+              ? 'Fusing physical forensic layers with local vision model. Processing in CPU mode...'
+              : 'Evaluating 10 deterministic physical layers (FFT, CFA, ELA, PRNU, Gabor) + ViT in ~1 second...'}
           </p>
         </div>
       )}

@@ -27,84 +27,49 @@ class LocalViTDeepfakeDetector:
         self,
         model_name: Optional[str] = None,
         face_model_name: Optional[str] = None,
-        general_model_name: Optional[str] = "DEFAULT"
+        general_model_name: Optional[str] = None
     ):
         self.face_model_name = face_model_name or model_name or "dima806/deepfake_vs_real_image_detection"
         self.model_name = self.face_model_name
-        if general_model_name == "DEFAULT":
-            self.general_model_name = "umm-maybe/AI-image-detector"
-        else:
-            self.general_model_name = general_model_name
+        self.general_model_name = None
 
-        self._face_pipeline = None
-        self._general_pipeline = None
-        self._face_load_error: Optional[str] = None
-        self._general_load_error: Optional[str] = None
+        self._pipeline = None
+        self._load_error: Optional[str] = None
 
-    def _get_face_pipeline(self):
-        if self._face_pipeline is None and self._face_load_error is None:
+    def _get_pipeline(self):
+        if self._pipeline is None and self._load_error is None:
             try:
                 from transformers import pipeline
                 # device=-1 forces CPU; change to 0 if a CUDA GPU is available.
-                self._face_pipeline = pipeline(
+                self._pipeline = pipeline(
                     "image-classification",
-                    model=self.face_model_name,
+                    model=self.model_name,
                     device=-1,
                 )
             except Exception as e:
-                self._face_pipeline = None
-                self._face_load_error = str(e)
-        return self._face_pipeline
-
-    def _get_general_pipeline(self):
-        if self._general_pipeline is None and self._general_load_error is None:
-            try:
-                from transformers import pipeline
-                self._general_pipeline = pipeline(
-                    "image-classification",
-                    model=self.general_model_name,
-                    device=-1,
-                )
-            except Exception as e:
-                self._general_pipeline = None
-                self._general_load_error = str(e)
-        return self._general_pipeline
+                self._pipeline = None
+                self._load_error = str(e)
+        return self._pipeline
 
     def is_configured(self) -> bool:
         return True
 
     def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "general_object") -> Dict[str, Any]:
         """
-        Runs local offline inference.
-        Routes to face specialist model if human faces/portraits are present;
-        routes to general synthetic detector (umm-maybe/AI-image-detector) for non-face scenes.
+        Runs local offline inference using dima806/deepfake_vs_real_image_detection.
+        Evaluates deepfake vs real classification directly without external API dependencies.
         """
-        is_face_scenario = has_face or (scene_type in ["photograph_portrait"])
-        if is_face_scenario:
-            target_model = self.face_model_name
-            pipe = self._get_face_pipeline()
-        else:
-            if not self.general_model_name:
-                return {
-                    "is_hf_applied": False,
-                    "hf_risk_score": 50.0,
-                    "hf_label": "unknown",
-                    "hf_confidence": 0.0,
-                    "model_name": self.face_model_name,
-                    "note": f"Local ViT ({self.face_model_name}) skipped: no human face detected (scene: {scene_type}).",
-                }
-            target_model = self.general_model_name
-            pipe = self._get_general_pipeline()
+        target_model = self.model_name
+        pipe = self._get_pipeline()
 
         if pipe is None:
-            load_err = self._face_load_error if is_face_scenario else self._general_load_error
             return {
                 "is_hf_applied": False,
                 "hf_risk_score": 50.0,
                 "hf_label": "unknown",
                 "hf_confidence": 0.0,
                 "model_name": target_model,
-                "note": f"Local ViT fallback unavailable: {load_err or 'model not loaded'}. "
+                "note": f"Local ViT fallback unavailable: {self._load_error or 'model not loaded'}. "
                         f"Run `pip install transformers` and ensure model weights can be downloaded once.",
             }
 
@@ -117,7 +82,7 @@ class LocalViTDeepfakeDetector:
             for item in results:
                 lbl = str(item.get("label", "")).upper()
                 score = float(item.get("score", 0.5))
-                # Handles both dima806 ('REAL'/'FAKE') and umm-maybe ('HUMAN'/'ARTIFICIAL')
+                # Handles dima806 ('REAL' / 'FAKE') labels
                 if any(k in lbl for k in ["FAKE", "SYNTHETIC", "DEEPFAKE", "AI", "ARTIFICIAL"]):
                     fake_score = score
                 elif any(k in lbl for k in ["REAL", "ORIGINAL", "AUTHENTIC", "HUMAN"]):

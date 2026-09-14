@@ -97,9 +97,9 @@ class FaceAnalyzer:
                 for img_variant in variants:
                     faces = cascade.detectMultiScale(
                         img_variant,
-                        scaleFactor=1.06,
-                        minNeighbors=3,
-                        minSize=(24, 24)
+                        scaleFactor=1.08,
+                        minNeighbors=4,
+                        minSize=(28, 28)
                     )
                     if len(faces) > 0:
                         for (x, y, bw, bh) in faces:
@@ -110,15 +110,16 @@ class FaceAnalyzer:
                 for angle in [15.0, -15.0, 25.0, -25.0]:
                     rot_img, M_inv = self._rotate_image_and_get_matrix(clahe_gray, angle)
                     for cascade in self.cascades[:3]:
-                        faces = cascade.detectMultiScale(rot_img, scaleFactor=1.08, minNeighbors=3, minSize=(28, 28))
+                        faces = cascade.detectMultiScale(rot_img, scaleFactor=1.08, minNeighbors=4, minSize=(28, 28))
                         for (rx, ry, rw, rh) in faces:
                             rcx, rcy = rx + rw / 2.0, ry + rh / 2.0
-                            orig_pt = M_inv @ np.array([rcx, rcy, 1.0])
-                            orig_x = int(orig_pt[0] - rw / 2.0)
-                            orig_y = int(orig_pt[1] - rh / 2.0)
-                            add_box(orig_x, orig_y, rw, rh)
+                            orig_c = np.dot(M_inv, np.array([rcx, rcy, 1.0]))
+                            add_box(int(orig_c[0] - rw / 2.0), int(orig_c[1] - rh / 2.0), rw, rh)
                     if len(detected_boxes) > 0:
                         break
+
+            if len(detected_boxes) > 0:
+                return detected_boxes
 
         # 3. Distance-Transform Skin Topography & Multi-Peak Face Proposal (Universal Fallback)
         if len(detected_boxes) == 0 and color_arr is not None:
@@ -130,9 +131,9 @@ class FaceAnalyzer:
             # Real human skin has moderate R-G difference (10-75) and R/(G+1) <= 2.2; reject saturated red clothing
             skin_mask = ((cr >= 130) & (cr <= 175) & (cb >= 75) & (cb <= 128) & (r > 45) & (r > g) & ((r - g) <= 75) & (r / (g + 1.0) <= 2.2)).astype(np.uint8) * 255
             
-            # Reject full-screen flat surfaces (e.g. wood textures or solid walls)
+            # Reject full-screen flat surfaces or scenes with negligible skin
             skin_coverage = float(np.mean(skin_mask > 0))
-            if skin_coverage > 0.85:
+            if skin_coverage > 0.85 or skin_coverage < 0.015:
                 return []
 
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
@@ -142,6 +143,42 @@ class FaceAnalyzer:
             dist = cv2.distanceTransform(skin_clean, cv2.DIST_L2, 5)
             d_copy = dist.copy()
             
+            def is_valid_face_candidate(bx: int, by: int, bw: int, bh: int) -> bool:
+                if bw < 28 or bh < 28:
+                    return False
+                crop = gray_np[by:by+bh, bx:bx+bw]
+                if crop.size == 0:
+                    return False
+                # 1. Flat Canvas / Plain Wall Rejection:
+                # Genuine human faces exhibit internal luminance variance (eyes, nose, mouth, hair).
+                # Uniform background surfaces, solid peach/beige canvas, or plain walls have near-zero luminance std.
+                crop_std = float(np.std(crop))
+                if crop_std < 14.0:
+                    return False
+
+                # 2. Skin Patch Internal Color Variation:
+                if color_arr is not None:
+                    c_crop = color_arr[by:by+bh, bx:bx+bw]
+                    c_skin = skin_mask[by:by+bh, bx:bx+bw] > 0
+                    if np.mean(c_skin) < 0.20:
+                        return False
+                    skin_pts = c_crop[c_skin]
+                    if len(skin_pts) > 20:
+                        skin_std = float(np.std(skin_pts))
+                        # Flat uniform color with zero tonal shading -> non-face canvas / wall surface
+                        if skin_std < 10.0:
+                            return False
+
+                # 3. Facial Feature Ocular Contrast:
+                # In human facial topography, upper 65% contains eyes/brows which are significantly darker
+                upper_half = crop[:int(bh * 0.65), :]
+                if upper_half.size > 0:
+                    upper_contrast = float(np.max(upper_half)) - float(np.min(upper_half))
+                    if upper_contrast < 25.0:
+                        return False
+
+                return True
+
             for _ in range(4):
                 min_v, max_v, min_l, max_l = cv2.minMaxLoc(d_copy)
                 if max_v < min(h, w) * 0.08:
@@ -153,7 +190,8 @@ class FaceAnalyzer:
                 bw = min(w - bx, radius * 2)
                 bh = min(h - by, radius * 2)
                 if bw >= 24 and bh >= 24 and (bw * bh < h * w * 0.85):
-                    add_box(bx, by, bw, bh)
+                    if is_valid_face_candidate(bx, by, bw, bh):
+                        add_box(bx, by, bw, bh)
                 cv2.circle(d_copy, (int(px), int(py)), int(max_v * 1.4), 0.0, -1)
 
             # Connected component contour bounding boxes fallback
@@ -166,7 +204,8 @@ class FaceAnalyzer:
                         cx, cy, cw, ch = cv2.boundingRect(c)
                         aspect = float(ch) / max(1, cw)
                         if 0.5 <= aspect <= 2.2:
-                            add_box(cx, cy, cw, ch)
+                            if is_valid_face_candidate(cx, cy, cw, ch):
+                                add_box(cx, cy, cw, ch)
 
         return detected_boxes
 
