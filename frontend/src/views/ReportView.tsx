@@ -15,7 +15,7 @@ interface ReportViewProps {
 }
 
 export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
-  const [viewMode, setViewMode] = useState<'ela_map' | 'ela_overlay' | 'pixel_morphing' | 'original'>('ela_map');
+  const [viewMode, setViewMode] = useState<'ela_map' | 'ela_overlay' | 'pixel_morphing' | 'spatial_saliency' | 'original'>('ela_map');
   const [intensity, setIntensity] = useState<number>(25);
   const [copied, setCopied] = useState<boolean>(false);
   const [showAdvanced, setShowAdvanced] = useState<boolean>(true);
@@ -260,6 +260,55 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
         }
         ctx.putImageData(outputImageData, 0, 0);
       }
+
+      // Spatial Saliency (Jet Colormap): Thermal discrete pixel gradient magnitude
+      if (viewMode === 'spatial_saliency') {
+        const outputImageData = ctx.createImageData(targetWidth, targetHeight);
+        const outData = outputImageData.data;
+        const alpha = Math.max(0.2, intensity / 100.0);
+
+        for (let y = 1; y < targetHeight - 1; y++) {
+          for (let x = 1; x < targetWidth - 1; x++) {
+            const idx = (y * targetWidth + x) * 4;
+            const idxRight = (y * targetWidth + (x + 1)) * 4;
+            const idxLeft = (y * targetWidth + (x - 1)) * 4;
+            const idxDown = ((y + 1) * targetWidth + x) * 4;
+            const idxUp = ((y - 1) * targetWidth + x) * 4;
+
+            const lumR = 0.299 * origData[idxRight] + 0.587 * origData[idxRight + 1] + 0.114 * origData[idxRight + 2];
+            const lumL = 0.299 * origData[idxLeft] + 0.587 * origData[idxLeft + 1] + 0.114 * origData[idxLeft + 2];
+            const lumD = 0.299 * origData[idxDown] + 0.587 * origData[idxDown + 1] + 0.114 * origData[idxDown + 2];
+            const lumU = 0.299 * origData[idxUp] + 0.587 * origData[idxUp + 1] + 0.114 * origData[idxUp + 2];
+
+            const dx = lumR - lumL;
+            const dy = lumD - lumU;
+            const gradMag = Math.min(255, Math.sqrt(dx * dx + dy * dy) * 2.2);
+
+            const val = gradMag / 255.0;
+            let r = 0, g = 0, b = 0;
+            if (val < 0.25) {
+              b = Math.floor(255 * (val / 0.25));
+            } else if (val < 0.5) {
+              g = Math.floor(255 * ((val - 0.25) / 0.25));
+              b = 255;
+            } else if (val < 0.75) {
+              r = Math.floor(255 * ((val - 0.5) / 0.25));
+              g = 255;
+              b = Math.floor(255 * (1.0 - (val - 0.5) / 0.25));
+            } else {
+              r = 255;
+              g = Math.floor(255 * (1.0 - (val - 0.75) / 0.25));
+              b = 0;
+            }
+
+            outData[idx] = Math.round(origData[idx] * (1 - alpha) + r * alpha);
+            outData[idx + 1] = Math.round(origData[idx + 1] * (1 - alpha) + g * alpha);
+            outData[idx + 2] = Math.round(origData[idx + 2] * (1 - alpha) + b * alpha);
+            outData[idx + 3] = 255;
+          }
+        }
+        ctx.putImageData(outputImageData, 0, 0);
+      }
     };
   }, [scan.image_preview_url, viewMode, intensity, semanticVerdict]);
 
@@ -312,6 +361,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
     { key: 'ela_map' as const, label: 'Error Level Analysis (ELA)', icon: <Activity size={12} /> },
     { key: 'ela_overlay' as const, label: 'ELA Heatmap Overlay', icon: <Layers size={12} /> },
     { key: 'pixel_morphing' as const, label: 'Pixel Morphing (CFA)', icon: <Microscope size={12} /> },
+    { key: 'spatial_saliency' as const, label: 'Spatial Saliency (Jet)', icon: <Activity size={12} /> },
     { key: 'original' as const, label: 'Original', icon: <Eye size={12} /> },
   ];
 
@@ -735,6 +785,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                     {viewMode === 'ela_map' && 'Shows Error Level Analysis differences after uniform Q=90 compression. Bright non-uniform patches signal spliced or synthetic regions.'}
                     {viewMode === 'ela_overlay' && 'Blends the thermal ELA anomaly map directly over the original photo for precise localization.'}
                     {viewMode === 'pixel_morphing' && 'Visualizes Bayer CFA color-filter demosaicing continuity and Laplacian micro-edge transitions.'}
+                    {viewMode === 'spatial_saliency' && 'Thermal Jet mapping of discrete pixel gradient magnitude, highlighting high-frequency blending seams and compression discontinuities.'}
                     {viewMode === 'original' && 'Displays the raw input image without forensic post-processing.'}
                   </div>
                 </div>
