@@ -4,10 +4,15 @@
 
 ```
 TrustNet/
-├── README.md                  # Primary developer onboarding guide
+├── README.md                  # Primary developer onboarding & panel defense guide
 ├── docker-compose.yml         # Kafka 3.7 KRaft and core service containers
+├── start-dev.bat              # 1-click Windows local development launcher
+├── install-deps.bat           # 1-click Windows Python dependency installer
+├── install-deps.ps1           # PowerShell dependency installer
 ├── Makefile                   # Monorepo task automation
 ├── pytest.ini                 # Global pytest configuration
+├── conftest.py                # Global test fixtures & default test environment
+├── .env.example               # Sanitized master environment template
 │
 ├── benchmark/                 # Formal evaluation, leakage audit & ablation engine
 │   ├── benchmark_suite.py     # Canonical evaluation & calibration protocol
@@ -16,30 +21,42 @@ TrustNet/
 │   └── leakage_report.json    # Data leakage & duplicate screening protocol
 │
 ├── docs/                      # Centralized documentation
-│   ├── ARCHITECTURE.md        # Global system & Kafka architecture
+│   ├── ARCHITECTURE.md        # Global system & Gateway proxy architecture
 │   ├── DEVELOPMENT.md         # Developer setup & coding standards
 │   ├── FILE_STRUCTURE.md      # This file
-│   ├── IMPLEMENTATION_STATUS.md # Active status & checklist
+│   ├── IMPLEMENTATION_STATUS.md # Active implementation status & module audit
 │   ├── DATASET_AND_RESEARCH.md# ML datasets, metrics & research notes
 │   ├── TrustNet_AI_Master_Technical_Specification.md # Official master spec
 │   └── TrustNet_AI_Engineering_Blueprint.md          # Official engineering blueprint
 │
-├── frontend/                  # React 18 + Vite + Tailwind CSS UI
+├── frontend/                  # React 19 + TypeScript + Vite UI
 │   ├── src/
 │   │   ├── components/        # Navbar, TrustScoreGauge, SpatialSaliencyViewer, EvidenceBadges, ForensicRadarChart
-│   │   ├── views/             # LandingView, DashboardView, ScanUploadView, ReportView, Auth
-│   │   ├── services/api.ts    # REST API & mock simulation client
+│   │   ├── views/             # LandingView, DashboardView, ScanUploadView, ReportView, Auth, image/ImageScanView
+│   │   ├── services/
+│   │   │   ├── api/           # Modular API client suite
+│   │   │   │   ├── client.ts      # Central Gateway HTTP client (VITE_API_GATEWAY_URL)
+│   │   │   │   ├── auth.api.ts    # Authentication API endpoints
+│   │   │   │   ├── scan.api.ts    # Scan management & direct analysis API
+│   │   │   │   ├── trust.api.ts   # Trust score query API
+│   │   │   │   ├── detection.api.ts # Standalone detection API
+│   │   │   │   └── index.ts       # Unified API exports
+│   │   │   ├── api.ts         # Backward-compatible API facade
+│   │   │   └── pdfExporter.ts # Client-side forensic PDF generation
 │   │   ├── types/index.ts     # TypeScript forensic schemas
 │   │   ├── App.tsx            # Main application router & view controller
 │   │   └── main.tsx           # React entry point
 │   ├── package.json
 │   └── vite.config.ts
 │
-├── gateway/                   # API Gateway (Reverse proxy & CORS)
+├── gateway/                   # API Gateway (Reverse proxy, JWT guard & CORS)
 │   ├── app/
-│   │   ├── main.py            # FastAPI entry point & CORS
-│   │   ├── config.py          # Port & routing configuration
-│   │   └── proxy.py           # HTTP forwarding handlers
+│   │   ├── main.py            # FastAPI entry point & CORS configuration
+│   │   ├── config/settings.py # Gateway settings & downstream service URLs
+│   │   ├── middleware/        # JWT auth guard & rate limiter
+│   │   ├── core/proxy_client.py # Async HTTP proxy forwarding client
+│   │   └── routers/           # Auth, Scan, Detect, Trust routing proxies
+│   ├── tests/                 # Gateway proxy & health unit tests
 │   └── requirements.txt
 │
 ├── models/                    # Pure ML Model Frameworks (PyTorch)
@@ -54,25 +71,35 @@ TrustNet/
 │       ├── tests/             # Forensic & PyTorch unit tests
 │       └── README.md          # Model module documentation
 │
-├── services/                  # Microservice Worker Services
+├── services/                  # Microservice Architecture
 │   ├── auth/                  # JWT Authentication & User Management
+│   │   ├── app/               # Config, DB models, repositories, routers, services, main.py
+│   │   └── tests/             # Auth service unit tests
 │   ├── scan_management/       # Scan ingestion, quarantine storage & Kafka producer
+│   │   ├── app/               # Ingestion validation, upload router, scan database
+│   │   └── tests/             # Ingestion & scan unit tests
 │   ├── image_deepfake/        # Kafka consumer worker & inference runtime
-│   └── trust_engine/          # Risk score calibration & evidence aggregation
+│   │   ├── app/               # Worker event consumer, direct detect router
+│   │   └── tests/             # Deepfake detection & security hardening tests
+│   ├── trust_engine/          # Risk score calibration & evidence aggregation
+│   │   ├── app/               # Evidential fusion engine, trust router
+│   │   └── tests/             # Fusion algorithm tests
+│   ├── video_deepfake/        # [Planned Phase 2 Placeholder]
+│   └── audio_deepfake/        # [Planned Phase 3 Placeholder]
 │
 ├── shared/                    # Monorepo Shared Core Library
-│   ├── auth/                  # JWT token validation helpers
-│   ├── config/                # Base pydantic settings
+│   ├── auth/                  # Strict JWT verification & token validation
+│   ├── config/                # Centralized BaseSettings (CORS origins, environments)
 │   ├── constants/             # Topics, status codes, native score semantics
 │   ├── interfaces/            # DetectorBase abstract interface
 │   ├── logging/               # Structured log formatting
-│   ├── schemas/               # EventEnvelope, DetectionResult, EvidenceItem
+│   ├── schemas/               # EventEnvelope, DetectionResult, EvidenceItem, APIResponse
 │   ├── utils/                 # UUID & timestamp generators
-│   └── tests/                 # Shared library unit tests
+│   └── tests/                 # Shared library, auth hardening & CORS unit tests
 │
-└── tests/                     # Monorepo End-to-End Test Suite
+└── tests/                     # Monorepo Integration & E2E Test Suite
     └── e2e/
-        └── test_full_scan_pipeline.py # End-to-end integration test
+        └── test_full_scan_pipeline.py # End-to-end multimodal pipeline test
 ```
 
 ---
@@ -81,5 +108,7 @@ TrustNet/
 
 1. **Pure ML Code**: Always place inside `models/{modality}/`. Never import FastAPI or Kafka inside `models/`.
 2. **Service Workers**: Place inside `services/{service_name}/`. Service code wraps ML models, manages Kafka subscriptions, and exposes health endpoints.
-3. **Shared Schemas**: When a contract is used by multiple services or models, define it once in `shared/schemas/`.
-4. **Documentation**: All high-level documentation belongs in `docs/`. Module-level details belong in `models/{modality}/README.md` or `services/{service}/README.md`.
+3. **Database Separation**: Database models belong strictly in `services/{service}/app/db_models/`, schemas in `schemas/`, and queries in `repositories/`.
+4. **Shared Schemas**: When a contract is used by multiple services or models, define it once in `shared/schemas/`.
+5. **Gateway Routing**: All browser client traffic routes strictly through `gateway/` via `VITE_API_GATEWAY_URL`. Direct browser calls to internal service ports (8001–8004) are forbidden.
+6. **Documentation**: All high-level documentation belongs in `docs/`. Module-level details belong in `models/{modality}/README.md` or `services/{service}/README.md`.
