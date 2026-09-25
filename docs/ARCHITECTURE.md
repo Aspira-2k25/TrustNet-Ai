@@ -2,9 +2,15 @@
 
 ## 1. System Overview
 
-**TrustNet AI** is a multimodal synthetic media verification platform designed to defend information integrity by detecting deepfakes and AI-generated content.
+**TrustNet AI** is a multimodal synthetic media verification platform designed to defend information integrity by detecting deepfakes, manipulated artifacts, and AI-generated content.
 
-In Phase 1, the system is strictly focused on **Image Deepfake Detection**, providing end-to-end verification, spatial/frequency forensic evidence extraction, calibrated risk scoring ($0-100$), and visual explainability via **Grad-CAM**.
+In Phase 1, the platform implements a high-precision **Image Deepfake Detection** architecture featuring:
+- Physics-informed forensic heuristics (FFT, CFA demosaicing, Gabor texture, ELA, PRNU noise).
+- Neural Vision Transformers (ViT) & EfficientNet-B0 convolutional backbones.
+- LM Studio local vision AI reasoning.
+- Visual explainability via Grad-CAM saliency heatmaps.
+- Calibrated evidential risk scoring ($0-100$).
+- Strict perimeter security via a centralized API Gateway.
 
 ---
 
@@ -12,91 +18,77 @@ In Phase 1, the system is strictly focused on **Image Deepfake Detection**, prov
 
 ```mermaid
 graph TD
-    Client[React + Vite Frontend] -->|HTTP / Multipart| Gateway[API Gateway :8000]
-    Gateway -->|JWT Auth / Reverse Proxy| ScanService[Scan Management Service :8002]
-    ScanService -->|Store Binary| Storage[(Local / Quarantine Storage)]
-    ScanService -->|Publish detection.requested.image_deepfake| Kafka{Apache Kafka 3.7 KRaft}
-    Kafka -->|Consume Task| ImageService[Image Deepfake Worker Service :8003]
-    ImageService -->|Inference & Grad-CAM| Model[EfficientNet-B0 + Spatial/Frequency Analyzers]
-    Model -->|DetectionResult| ImageService
-    ImageService -->|Publish detector.image_deepfake.completed| Kafka
-    Kafka -->|Consume Result| TrustEngine[Trust Engine Service :8004]
-    TrustEngine -->|Compute Trust Score| TrustEngine
-    TrustEngine -->|Update Status| ScanService
-    Client -->|Poll GET /scans/{id}/status| Gateway
+    Client[React 19 Frontend :5173] -->|HTTP / VITE_API_GATEWAY_URL| Gateway[API Gateway :8000]
+    Gateway -->|JWT Guard & Reverse Proxy| Auth[Auth Service :8001]
+    Gateway -->|Forward with X-User-Id| ScanService[Scan Management Service :8002]
+    Gateway -->|Forward Detection Requests| ImageService[Image Deepfake Service :8003]
+    Gateway -->|Forward Trust Scoring Queries| TrustEngine[Trust Engine Service :8004]
+
+    subgraph Internal Processing
+        ScanService -->|Quarantine File| Storage[(Quarantine Storage)]
+        ScanService -->|Offload Sync CPU Model| ThreadPool[Async Worker ThreadPool]
+        ThreadPool -->|Inference & Saliency| Detector[15 Forensic Analyzers + ViT + EfficientNet]
+        Detector -->|Return Evidential Result| ScanService
+        ScanService -->|Publish detection.requested| Kafka{Apache Kafka 3.7 KRaft}
+        Kafka -->|Consume Task| ImageWorker[Kafka Worker Process]
+        ImageWorker -->|Publish detector.completed| Kafka
+        Kafka -->|Consume Results| TrustEngine
+        TrustEngine -->|Evidential Fusion| TrustEngine
+    end
 ```
 
 ---
 
-## 3. Communication Protocol: Kafka-First
+## 3. Communication & Gateway Boundary Principle
 
-TrustNet AI uses **Apache Kafka 3.7 (KRaft mode)** as its primary asynchronous message broker for detector jobs.
-
-### Active Image Topics
-- `detection.requested.image_deepfake`: Emitted by Scan Management when an image scan is created.
-- `detector.image_deepfake.completed`: Emitted by the Image Deepfake Service when inference and explainability processing finish.
-
-### Topic Schema
-All messages conform to the typed `EventEnvelope` defined in `shared.schemas.events`:
-```json
-{
-  "event_id": "evt-b1a9c3d4",
-  "event_type": "detection.requested.image_deepfake",
-  "timestamp": "2026-08-16T03:00:00Z",
-  "producer": "scan-management-service",
-  "version": "1.0.0",
-  "data": {
-    "scan_id": "scan-ff-c23-0182",
-    "media_path": "storage_uploads/quarantine/image/sample.jpg",
-    "modality": "image"
-  }
-}
-```
+### Architectural Invariant: Single Ingress Point
+- The browser **never** communicates directly with internal microservices on ports 8001, 8002, 8003, or 8004.
+- All client network traffic flows strictly to the **API Gateway** on port `8000` via the configurable `VITE_API_GATEWAY_URL`.
+- The Gateway validates JWT tokens via [`shared/auth/verify_token.py`](file:///c:/Users/Alok/Desktop/MY_PROEJCT/TrustNetAi/TrustNet-Ai/shared/auth/verify_token.py) and decorates forwarded requests with authenticated internal context (`X-User-Id` and `X-User-Role`).
 
 ---
 
-## 4. Image Deepfake Detection Architecture
+## 4. Communication Protocol: Dual Sync/Async Pipelines
 
-The Image Deepfake detection pipeline consists of:
+TrustNet AI supports two distinct execution paths:
 
-1. **Security Intake & Preprocessing (`models.image_deepfake.preprocessing`)**:
-   - MIME type verification, magic-byte inspection, resolution normalization (224x224 RGB), ImageNet mean/std normalization.
-   - Face landmark detection (MTCNN / Haar Cascade).
-2. **Primary Vision Feature Classifier (`models.image_deepfake.inference`)**:
-   - **EfficientNet-B0** convolutional neural network pretrained on ImageNet and fine-tuned on benchmark deepfake datasets (FaceForensics++, Celeb-DF v2).
-   - Produces raw probability $P(\text{REAL})$ (`probability_of_negative_class`).
-3. **Risk Normalization**:
-   - Transforms native probability to unified downstream Risk Score:
-     $$\text{risk\_score} = \text{round}((1.0 - \text{native\_score}) \times 100)$$
-4. **Forensic Analyzers**:
-   - **Spatial Feature Classifier**: Convolutional feature divergence.
-   - **FFT High-Frequency Residual Analyzer**: 2D Discrete Fourier Transform spectrum inspection to detect periodic GAN grid artifacts.
-   - **Error Level Analysis (ELA)**: 8x8 DCT compression error consistency check.
-   - **Face Landmark & Boundary Warping (Face X-Ray)**: Face boundary blending analysis.
-     > **Face vs. Non-Face Policy**: When an image has no detectable human face, face-specific analyzers (e.g. Face X-Ray) are explicitly **SKIPPED** with an audit note `"No human facial landmark identified; skipped to prevent false positives"`. Whole-image spatial and frequency analyzers continue normally.
-5. **Explainability Engine (`models.image_deepfake.explainability`)**:
-   - **Grad-CAM** computes gradient attribution maps on EfficientNet layer 4 feature maps, producing high-resolution saliency overlays.
+### 1. Synchronous Evidential Deepfake Analysis
+- Endpoint: `POST /api/v1/scans/analyze`
+- Best for interactive analyst workstations requiring instant reports.
+- Dispatched through Gateway to Scan Management.
+- CPU-intensive neural transforms and Gabor/FFT filters are offloaded to worker threads via `run_in_threadpool`, ensuring FastAPI's async event loop remains fully responsive.
+- Results are saved to the scan database and returned immediately with complete forensic analyzer telemetry.
+
+### 2. Asynchronous Kafka-First Pipeline
+- Endpoint: `POST /api/v1/scans/upload`
+- Best for bulk media ingestion, automated queues, and distributed workers.
+- Uses **Apache Kafka 3.7 (KRaft mode)**:
+  - `detection.requested.image_deepfake`: Emitted by Scan Management upon file quarantine.
+  - `detector.image_deepfake.completed`: Emitted by Image Deepfake Service when inference and explainability processing complete.
+- Trust Engine consumes completed detector events, applies the cross-service evidential fusion algorithm, and finalizes the Trust Score.
 
 ---
 
-## 5. Trust Engine & Scoring Contract
+## 5. Security & Ingestion Defense
 
-The Trust Engine aggregates detector outputs into a normalized Trust Score Result:
-- **Trust Risk Score**: $0$ (Completely Authentic) to $100$ (Critical Risk / Deepfake).
-- **Risk Level**: `LOW` (0-24), `MEDIUM` (25-49), `HIGH` (50-74), `CRITICAL` (75-100).
-- **Evidence Breakdown**: Structured list of `EvidenceItem` records with feature names, weights, and human-readable observations.
-- **Natural Language Explanation**: Clear synthesis of model confidence and forensic signals.
+Every file upload is validated through defense-in-depth:
+1. **Size Enforcement**: Strict 15MB ceiling (`HTTP 413 Content Too Large`).
+2. **Magic Byte Verification**: Verified using PIL/Pillow header inspection (`HTTP 400 Invalid Image Bytes`).
+3. **Path Traversal Protection**: Storage keys are sanitized using `os.path.basename` and checked for `..` directory traversal sequences.
+4. **CORS Hardening**: Strict origin whitelist configured via `CORS_ALLOWED_ORIGINS` (wildcard `*` is automatically stripped in production).
+5. **No Production Auth Bypass**: Mock/developer tokens are rejected unconditionally in production (`MOCK_AUTH_DISABLED`).
 
 ---
 
-## 6. Frontend Architecture (React + Vite + Tailwind CSS)
+## 6. Frontend Architecture (React 19 + TypeScript + Vite)
 
-The user interface is a high-productivity security workstation designed for forensic analysts and researchers:
-- **Dashboard**: Telemetry metrics, recent scans, risk distribution, status filters.
-- **Image Scan Intake**: Drag & drop zone, file validation (JPEG, PNG, WebP $\le$ 10MB), real-time pipeline execution stepper.
-- **Forensic Inspection Workspace**:
-  - Primary Verdict Banner (`AUTHENTIC`, `SUSPICIOUS`, `AI_GENERATED`) with SVG Risk Gauge.
-  - Saliency Heatmap Studio (Grad-CAM overlay, 0-100% opacity slider, zoom & reset, side-by-side view).
-  - Forensic Evidence Contribution Bars & Notes.
-  - Forensic Analyzers Audit (Status of each detector and non-face skip reasoning).
-  - Technical Provenance Metadata (Model ID, Version, Preprocessing, Latency, Native score).
+The UI is organized as a specialized forensic security workstation:
+- **Modular API Suite** (`frontend/src/services/api/`):
+  - `client.ts`: Central HTTP client routing strictly to `VITE_API_GATEWAY_URL`.
+  - `auth.api.ts`, `scan.api.ts`, `trust.api.ts`, `detection.api.ts`: Specialized domain APIs.
+- **Interactive Forensic Labs**:
+  - Spatial Saliency / Grad-CAM heatmap viewer with adjustable opacity and zoom.
+  - Sub-Pixel Bayer CFA demosaicing & Laplacian edge micro-structure canvas.
+  - Error Level Analysis (ELA) compression surface analyzer.
+- **Native Offline Speech**: Report debrief readouts generated using the browser's native `window.speechSynthesis` API without external cloud audio dependencies.
+- **Client-Side PDF Exporter**: High-resolution forensic audit dossiers generated via `jspdf`.

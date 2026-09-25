@@ -1,9 +1,13 @@
+import io
+import os
 import uuid
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, Header, UploadFile, File, Form, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from PIL import Image as PILImage
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("trustnet.scan")
 
@@ -31,19 +35,30 @@ def get_current_user_id(
     """Extracts and verifies the user_id from x-user-id or Authorization header."""
     if x_user_id:
         return x_user_id
-    if not authorization or "mock_jwt_" in authorization:
+    if authorization:
+        try:
+            payload = verify_token(
+                authorization,
+                secret_key=settings.JWT_SECRET_KEY,
+                algorithm=settings.JWT_ALGORITHM,
+                expected_type="access"
+            )
+            return payload.get("sub", "usr-researcher-1")
+        except TokenVerificationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"code": e.error_code, "message": e.message}
+            )
+
+    env = os.getenv("ENVIRONMENT", "dev").strip().lower()
+    allow_mock = os.getenv("ALLOW_MOCK_AUTH", "false").strip().lower() in ("true", "1", "yes")
+    if env in ("dev", "test") and allow_mock:
         return "usr-researcher-1"
-        
-    try:
-        payload = verify_token(
-            authorization,
-            secret_key=settings.JWT_SECRET_KEY,
-            algorithm=settings.JWT_ALGORITHM,
-            expected_type="access"
-        )
-        return payload.get("sub", "usr-researcher-1")
-    except TokenVerificationError:
-        return "usr-researcher-1"
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={"code": "TOKEN_MISSING", "message": "Authentication required"}
+    )
 
 @router.post("/analyze", response_model=APIResponse[Dict[str, Any]])
 async def analyze_image_direct(
@@ -61,11 +76,35 @@ async def analyze_image_direct(
     scan_id = f"scan-{uuid.uuid4().hex[:10]}"
     file_bytes = await file.read()
 
+    if len(file_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "EMPTY_FILE", "message": "Uploaded file is empty"}
+        )
+    max_size = settings.MAX_IMAGE_SIZE_MB * 1024 * 1024
+    if len(file_bytes) > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
+        )
+    try:
+        img_check = PILImage.open(io.BytesIO(file_bytes))
+        img_check.verify()
+    except Exception as e:
+        logger.error(f"[SCAN ROUTER] Image verification failed: {type(e).__name__}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
+        )
+
+    safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
+
     # Run real forensic model detector
-    detection_res = detector_instance.predict(
+    detection_res = await run_in_threadpool(
+        detector_instance.predict,
         file_bytes,
         scan_id=scan_id,
-        filename=file.filename,
+        filename=safe_filename,
         enable_explanation=enable_explanation
     )
 
@@ -109,9 +148,7 @@ async def analyze_image_direct(
     # Extract true image dimensions if decodable
     width, height = 1024, 1024
     try:
-        import io
-        from PIL import Image
-        with Image.open(io.BytesIO(file_bytes)) as img:
+        with PILImage.open(io.BytesIO(file_bytes)) as img:
             width, height = img.size
     except Exception:
         pass
