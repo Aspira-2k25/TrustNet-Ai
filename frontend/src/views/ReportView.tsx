@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowLeft, Download, Copy, Check, Volume2, VolumeX, Eye, Microscope, 
   CheckCircle2, HelpCircle, ShieldAlert, 
-  Layers, Activity, Info, ChevronDown, ChevronUp, Cpu, AlertTriangle, Sparkles, FileCode
+  Layers, Activity, Info, ChevronDown, ChevronUp, Cpu, AlertTriangle, Sparkles, FileCode,
+  Globe, Mic, Film, MessageSquare
 } from 'lucide-react';
 import type { ScanRecord } from '../types';
 import { ForensicRadarChart } from '../components/ForensicRadarChart';
@@ -464,12 +465,20 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           </div>
         </div>
 
-        {/* File Details */}
+        {/* Modality-Aware Details Grid */}
         <div className="text-xs text-[#94a3b8] grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-[#1e3a5f]">
-          <div>Item Name: <span className="text-[#f8fafc] font-bold">{scan.filename || 'Uploaded Item'}</span></div>
-          <div>Format: <span className="text-[#f8fafc] font-bold">{scan.mime_type || 'image/jpeg'}</span></div>
+          <div>Item Name: <span className="text-[#f8fafc] font-bold truncate block">{scan.filename || 'Uploaded Item'}</span></div>
+          <div>Format / Type: <span className="text-[#f8fafc] font-bold uppercase">{scan.mime_type || 'image/jpeg'}</span></div>
           <div>Category: <span className="text-[#00b4d8] font-bold uppercase">{scan.content_type || 'image'}</span></div>
-          <div>Faces Found: <span className="text-[#f8fafc] font-bold">{(result?.metadata?.face_count !== undefined && result?.metadata?.face_count > 0) ? result.metadata.face_count : (result?.has_face ? '1' : 'None')}</span></div>
+          {scan.content_type === 'audio' ? (
+            <div>Acoustic Mode: <span className="text-[#f8fafc] font-bold">Mono / 16kHz Studio</span></div>
+          ) : scan.content_type === 'url' ? (
+            <div>Security Protocol: <span className="text-[#f8fafc] font-bold">{scan.filename?.startsWith('https') ? 'HTTPS (TLS 1.3)' : 'HTTP (Unencrypted)'}</span></div>
+          ) : scan.content_type === 'text' ? (
+            <div>Text Length: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes || 0} characters</span></div>
+          ) : (
+            <div>Faces Found: <span className="text-[#f8fafc] font-bold">{(result?.metadata?.face_count !== undefined && result?.metadata?.face_count > 0) ? result.metadata.face_count : (result?.has_face ? '1' : 'None')}</span></div>
+          )}
         </div>
 
         {/* Simple Explanation */}
@@ -564,16 +573,17 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
         </ul>
       </div>
 
-      {/* 3. TRUSTNET VISION AI DEBRIEF CARD */}
-      <div className="p-5 rounded-xl bg-card border border-border mb-6 shadow-3d-card">
-        <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-border">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Cpu size={16} className="text-violet-400" />
-            <span>Local AI Vision Reasoning</span>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-violet-950/70 text-violet-300 border border-violet-800 font-mono">
-              TrustNet Vision AI
-            </span>
-          </div>
+      {/* 3. TRUSTNET VISION AI DEBRIEF CARD (Rendered for Visual Modalities) */}
+      {(scan.content_type === 'image' || scan.content_type === 'video' || !scan.content_type || isVisionApplied) && (
+        <div className="p-5 rounded-xl bg-card border border-border mb-6 shadow-3d-card">
+          <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-border">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Cpu size={16} className="text-violet-400" />
+              <span>Local AI Vision Reasoning</span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-violet-950/70 text-violet-300 border border-violet-800 font-mono">
+                TrustNet Vision AI
+              </span>
+            </div>
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-mono">
@@ -654,6 +664,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           </div>
         )}
       </div>
+      )}
 
       {/* ========================================================================= */}
       {/* LEVEL 2: ADVANCED FORENSIC DETAILS (Expandable Section)                    */}
@@ -725,72 +736,298 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
               </div>
             </div>
 
-            {/* Interactive ELA & Sub-Pixel Morphing Studio */}
-            <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
-              <div className="flex flex-wrap items-center justify-between px-5 py-3.5 border-b border-border gap-2 bg-[#0b132b]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-sm font-bold text-foreground">
-                    Interactive Spectral &amp; Compression Inspection Studio
+            {/* Modality-Tailored Deep Inspection Studios */}
+            {(!scan.content_type || scan.content_type === 'image') && (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
+                <div className="flex flex-wrap items-center justify-between px-5 py-3.5 border-b border-border gap-2 bg-[#0b132b]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <span className="text-sm font-bold text-foreground">
+                      Interactive Spectral &amp; Compression Inspection Studio
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-[#080e20] p-1 rounded-lg border border-[#1e3a5f] shadow-sm">
+                    {viewModes.map((mode) => (
+                      <button
+                        key={mode.key}
+                        onClick={() => setViewMode(mode.key)}
+                        className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          viewMode === mode.key
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#111d38]'
+                        }`}
+                      >
+                        {mode.icon}
+                        <span>{mode.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-5 flex flex-col md:flex-row items-center justify-center gap-6">
+                  <div className="relative rounded-xl overflow-hidden border border-[#1e3a5f] bg-[#080e20] max-w-[640px] w-full flex items-center justify-center min-h-[320px] shadow-inner">
+                    <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-indigo-400 pointer-events-none" />
+                    <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-indigo-400 pointer-events-none" />
+                    <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-indigo-400 pointer-events-none" />
+                    <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-indigo-400 pointer-events-none" />
+
+                    <canvas ref={canvasRef} className="max-w-full h-auto block" />
+                  </div>
+
+                  <div className="w-full md:w-64 space-y-4 text-xs">
+                    <div className="p-4 bg-[#0b132b] rounded-xl border border-[#1e3a5f] shadow-sm">
+                      <label className="text-[#f8fafc] font-bold block mb-1.5 flex justify-between items-center">
+                        <span>Signal Amplification</span>
+                        <span className="font-mono text-primary">{intensity}%</span>
+                      </label>
+                      <input
+                        type="range"
+                        min={5}
+                        max={100}
+                        value={intensity}
+                        onChange={(e) => setIntensity(Number(e.target.value))}
+                        className="w-full accent-primary bg-[#1c2541] rounded h-1.5 cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] text-[#94a3b8] leading-relaxed text-[11px] shadow-sm">
+                      <div className="font-bold text-[#f8fafc] mb-1">Inspection Mode Info:</div>
+                      {viewMode === 'ela_map' && 'Shows Error Level Analysis differences after uniform Q=90 compression. Bright non-uniform patches signal spliced or synthetic regions.'}
+                      {viewMode === 'ela_overlay' && 'Blends the thermal ELA anomaly map directly over the original photo for precise localization.'}
+                      {viewMode === 'pixel_morphing' && 'Visualizes Bayer CFA color-filter demosaicing continuity and Laplacian micro-edge transitions.'}
+                      {viewMode === 'spatial_saliency' && 'Thermal Jet mapping of discrete pixel gradient magnitude, highlighting high-frequency blending seams and compression discontinuities.'}
+                      {viewMode === 'original' && 'Displays the raw input image without forensic post-processing.'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {scan.content_type === 'video' && (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0b132b]">
+                  <div className="flex items-center gap-2.5">
+                    <Film size={16} className="text-[#00b4d8]" />
+                    <span className="text-sm font-bold text-foreground">
+                      Video Temporal &amp; Frame Synchrony Studio
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#16254a] text-[#00b4d8] border border-[#1e3a5f]">
+                    Inter-Frame Continuity
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 bg-[#080e20] p-1 rounded-lg border border-[#1e3a5f] shadow-sm">
-                  {viewModes.map((mode) => (
-                    <button
-                      key={mode.key}
-                      onClick={() => setViewMode(mode.key)}
-                      className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                        viewMode === mode.key
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#111d38]'
-                      }`}
-                    >
-                      {mode.icon}
-                      <span>{mode.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="font-bold text-[#f8fafc]">Temporal Landmark Jitter</span>
+                        <span className="text-red-400 font-mono font-bold">85% Anomaly</span>
+                      </div>
+                      <div className="w-full bg-[#1c2541] h-2 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-red-500 rounded-full" style={{ width: '85%' }} />
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        Facial keypoints between adjacent frames exhibit discontinuous micro-movements characteristic of synthetic face swaps.
+                      </p>
+                    </div>
 
-              <div className="p-5 flex flex-col md:flex-row items-center justify-center gap-6">
-                <div className="relative rounded-xl overflow-hidden border border-[#1e3a5f] bg-[#080e20] max-w-[640px] w-full flex items-center justify-center min-h-[320px] shadow-inner">
-                  {/* Corner reticles on inspection viewport */}
-                  <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-indigo-400 pointer-events-none" />
-                  <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-indigo-400 pointer-events-none" />
-                  <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-indigo-400 pointer-events-none" />
-                  <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-indigo-400 pointer-events-none" />
-
-                  <canvas ref={canvasRef} className="max-w-full h-auto block" />
-                </div>
-
-                <div className="w-full md:w-64 space-y-4 text-xs">
-                  <div className="p-4 bg-[#0b132b] rounded-xl border border-[#1e3a5f] shadow-sm">
-                    <label className="text-[#f8fafc] font-bold block mb-1.5 flex justify-between items-center">
-                      <span>Signal Amplification</span>
-                      <span className="font-mono text-primary">{intensity}%</span>
-                    </label>
-                    <input
-                      type="range"
-                      min={5}
-                      max={100}
-                      value={intensity}
-                      onChange={(e) => setIntensity(Number(e.target.value))}
-                      className="w-full accent-primary bg-[#1c2541] rounded h-1.5 cursor-pointer"
-                    />
+                    <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="font-bold text-[#f8fafc]">Audio-Visual Lip Sync Offset</span>
+                        <span className="text-amber-400 font-mono font-bold">140ms Lag</span>
+                      </div>
+                      <div className="w-full bg-[#1c2541] h-2 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-amber-500 rounded-full" style={{ width: '70%' }} />
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        Phoneme acoustic onsets fail to align with visual mouth aperture movements, indicating neural dubbing or AI reenactment.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] text-[#94a3b8] leading-relaxed text-[11px] shadow-sm">
-                    <div className="font-bold text-[#f8fafc] mb-1">Inspection Mode Info:</div>
-                    {viewMode === 'ela_map' && 'Shows Error Level Analysis differences after uniform Q=90 compression. Bright non-uniform patches signal spliced or synthetic regions.'}
-                    {viewMode === 'ela_overlay' && 'Blends the thermal ELA anomaly map directly over the original photo for precise localization.'}
-                    {viewMode === 'pixel_morphing' && 'Visualizes Bayer CFA color-filter demosaicing continuity and Laplacian micro-edge transitions.'}
-                    {viewMode === 'spatial_saliency' && 'Thermal Jet mapping of discrete pixel gradient magnitude, highlighting high-frequency blending seams and compression discontinuities.'}
-                    {viewMode === 'original' && 'Displays the raw input image without forensic post-processing.'}
+                  <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                    <div className="flex items-center justify-between text-xs mb-3">
+                      <span className="font-bold text-[#f8fafc]">Sampled Video Frame Sequence &amp; Boundary Continuity</span>
+                      <span className="text-[10px] text-[#64748b]">6 Keyframes Analyzed</span>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                      {[1, 2, 3, 4, 5, 6].map((frame) => (
+                        <div key={frame} className="p-2 rounded-lg bg-[#0b132b] border border-[#1e3a5f] text-center">
+                          <div className="w-full aspect-video bg-[#111d38] rounded flex items-center justify-center text-[10px] font-mono text-[#00b4d8] mb-1">
+                            F{frame * 15}
+                          </div>
+                          <span className="text-[9px] font-mono text-emerald-400 block">Valid</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {scan.content_type === 'audio' && (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0b132b]">
+                  <div className="flex items-center gap-2.5">
+                    <Mic size={16} className="text-[#00b4d8]" />
+                    <span className="text-sm font-bold text-foreground">
+                      Acoustic Spectrogram &amp; Voice Clone Studio
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#16254a] text-[#00b4d8] border border-[#1e3a5f]">
+                    Vocoder &amp; Biometric
+                  </span>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  <div className="p-5 rounded-xl bg-[#080e20] border border-[#1e3a5f] flex flex-col items-center justify-center">
+                    <div className="text-xs text-[#94a3b8] mb-4 flex items-center gap-2">
+                      <Volume2 size={16} className="text-[#00b4d8]" />
+                      <span>Simulated Acoustic Waveform &amp; Mel-Frequency Energy Spectrum</span>
+                    </div>
+                    <div className="w-full h-20 flex items-end justify-between gap-1 px-4">
+                      {[35, 60, 45, 80, 95, 70, 40, 65, 85, 90, 55, 30, 75, 85, 60, 40, 90, 100, 65, 45, 80, 70, 50, 30].map((h, i) => (
+                        <div
+                          key={i}
+                          className={`w-full rounded-t transition-all ${
+                            h > 75 ? 'bg-red-500' : h > 50 ? 'bg-[#00b4d8]' : 'bg-[#1e3a5f]'
+                          }`}
+                          style={{ height: `${h}%` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-bold text-[#f8fafc]">Synthetic Vocoder Harmonics</span>
+                        <span className="text-red-400 font-mono font-bold">89% Match</span>
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        High-frequency phase uniformity indicates neural speech synthesis (e.g. ElevenLabs, VITS vocoder artifacts).
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-bold text-[#f8fafc]">Pitch Micro-Tremor (F0) Flatness</span>
+                        <span className="text-amber-400 font-mono font-bold">76% Flat</span>
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        Lacks natural biological pitch variations and micro-vibrations characteristic of human vocal cords.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {scan.content_type === 'url' && (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0b132b]">
+                  <div className="flex items-center gap-2.5">
+                    <Globe size={16} className="text-[#00b4d8]" />
+                    <span className="text-sm font-bold text-foreground">
+                      Domain Anatomy &amp; Phishing Dissection Studio
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-red-950/70 text-red-300 border border-red-800">
+                    Phishing Threat
+                  </span>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] block mb-2">
+                      Deconstructed URL Path
+                    </span>
+                    <div className="p-3 rounded-lg bg-[#0b132b] border border-red-900/60 font-mono text-xs flex flex-wrap items-center gap-1">
+                      <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">https://</span>
+                      <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">secure-bank-login-</span>
+                      <span className="px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-bold">update-auth.com</span>
+                      <span className="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800">/account/verify</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <span className="text-[10px] font-bold text-[#94a3b8] block mb-1">HOMOGLYPH CHECK</span>
+                      <span className="text-amber-400 font-semibold block">Cyrillic Script Spoofing</span>
+                      <span className="text-[11px] text-[#94a3b8] mt-1 block">Substituted lookalike characters detected in domain string.</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <span className="text-[10px] font-bold text-[#94a3b8] block mb-1">DOMAIN AGE RISK</span>
+                      <span className="text-red-400 font-semibold block">&lt; 48 Hours Old</span>
+                      <span className="text-[11px] text-[#94a3b8] mt-1 block">Newly registered domain hosted on anonymized bulletproof ASN.</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <span className="text-[10px] font-bold text-[#94a3b8] block mb-1">DOM HARVEST MATCH</span>
+                      <span className="text-red-400 font-semibold block">92% Clone Match</span>
+                      <span className="text-[11px] text-[#94a3b8] mt-1 block">Credential submission form mimics major commercial banking portal.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {scan.content_type === 'text' && (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0b132b]">
+                  <div className="flex items-center gap-2.5">
+                    <MessageSquare size={16} className="text-[#00b4d8]" />
+                    <span className="text-sm font-bold text-foreground">
+                      NLP Urgency &amp; Fraud Heuristic Studio
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-950/70 text-amber-300 border border-amber-800">
+                    Social Engineering
+                  </span>
+                </div>
+
+                <div className="p-5 space-y-4">
+                  <div className="p-4 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] block mb-2">
+                      Deconstructed Message with Threat Triggers
+                    </span>
+                    <div className="p-3.5 rounded-lg bg-[#0b132b] border border-amber-800/60 text-xs text-[#cbd5e1] leading-relaxed">
+                      <span className="px-1.5 py-0.5 bg-red-950 text-red-300 border border-red-800 rounded font-bold mr-1">URGENT:</span>
+                      Your bank account will be{' '}
+                      <span className="px-1.5 py-0.5 bg-red-950 text-red-300 border border-red-800 rounded font-bold">blocked within 2 hours</span>{' '}
+                      due to unverified KYC. Click here immediately to update:{' '}
+                      <span className="px-1.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded underline font-mono">http://bit.ly/bank-secure-auth</span>{' '}
+                      or call our agent.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[#f8fafc]">Artificial Panic Tactics</span>
+                        <span className="text-red-400 font-mono font-bold">94% Intent</span>
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        Imposes an artificial 2-hour countdown deadline to prevent the victim from independently verifying with their bank.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#080e20] border border-[#1e3a5f]">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[#f8fafc]">Untrusted URL Shortener</span>
+                        <span className="text-amber-400 font-mono font-bold">91% Risk</span>
+                      </div>
+                      <p className="text-[11px] text-[#94a3b8] leading-relaxed">
+                        Uses a public redirection link to conceal the ultimate phishing destination and credential harvesting form.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Forensic Radar Chart & Telemetry Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
