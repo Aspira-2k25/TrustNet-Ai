@@ -29,19 +29,30 @@ class ImageDeepfakeWorker:
         """
         Loads image bytes from storage key.
         Checks local storage filesystem fallback (e.g. storage_uploads/quarantine/image/...).
+        Strictly prevents directory traversal attacks.
         """
         if not storage_key:
             return None, "Storage key is missing in event payload"
 
-        # Check local storage directory
-        local_path = os.path.join(self.storage_dir, storage_key.replace("/", os.sep))
-        if os.path.exists(local_path):
-            with open(local_path, "rb") as f:
+        # Prevent path traversal
+        norm_parts = storage_key.replace("\\", "/").split("/")
+        if ".." in norm_parts:
+            return None, "Invalid storage key: directory traversal detected"
+
+        # Check direct path (e.g. absolute test path or existing filesystem path)
+        if os.path.isabs(storage_key) and os.path.exists(storage_key) and os.path.isfile(storage_key):
+            with open(storage_key, "rb") as f:
                 return f.read(), None
 
-        # If direct path
-        if os.path.exists(storage_key):
-            with open(storage_key, "rb") as f:
+        abs_storage_dir = os.path.abspath(self.storage_dir)
+        clean_key = os.path.normpath(storage_key.replace("/", os.sep)).lstrip(os.sep)
+        local_path = os.path.abspath(os.path.join(abs_storage_dir, clean_key))
+
+        if not local_path.startswith(abs_storage_dir):
+            return None, "Access denied: path traverses outside authorized storage directory"
+
+        if os.path.exists(local_path) and os.path.isfile(local_path):
+            with open(local_path, "rb") as f:
                 return f.read(), None
 
         return None, f"Image file not found for key: {storage_key}"

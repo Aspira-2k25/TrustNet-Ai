@@ -25,32 +25,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
   const result = scan.result;
 
-  if (scan.status === 'FAILED' || (result as any)?.status === 'FAILED') {
-    return (
-      <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-xl mx-auto text-left shadow-lg">
-          <div className="flex items-center gap-3 text-red-700 mb-4">
-            <AlertTriangle className="w-8 h-8 shrink-0" />
-            <h2 className="text-xl font-bold">Forensic Scan Failed</h2>
-          </div>
-          <p className="text-slate-600 text-sm mb-4 leading-relaxed">
-            The forensic analyzer encountered an error processing this file. Please verify the media format or retry the scan.
-          </p>
-          {((result as any)?.error_message || (scan as any)?.error_message) && (
-            <div className="p-3 bg-white border border-red-200 rounded-lg text-xs font-mono text-red-600 mb-6 break-all shadow-sm">
-              {(result as any)?.error_message || (scan as any)?.error_message}
-            </div>
-          )}
-          <button
-            onClick={onBack}
-            className="px-5 py-2.5 bg-primary hover:bg-indigo-500 text-primary-foreground rounded-xl text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
-          >
-            <ArrowLeft className="w-4 h-4" /> Return to Upload
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const isFailed = scan.status === 'FAILED' || (result as any)?.status === 'FAILED';
 
   const trustScore = scan.trust_score;
   const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 10.2;
@@ -127,6 +102,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
   // Real pixel-level canvas computation for ELA / Sub-Pixel Morphing
   useEffect(() => {
+    if (isFailed) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -311,7 +287,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
         ctx.putImageData(outputImageData, 0, 0);
       }
     };
-  }, [scan.image_preview_url, viewMode, intensity, semanticVerdict]);
+  }, [scan.image_preview_url, viewMode, intensity, semanticVerdict, isFailed]);
 
   // Clean up audio on unmount
   useEffect(() => {
@@ -321,6 +297,33 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
       }
     };
   }, []);
+
+  if (isFailed) {
+    return (
+      <div className="max-w-4xl mx-auto py-12 px-4 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-xl mx-auto text-left shadow-lg">
+          <div className="flex items-center gap-3 text-red-700 mb-4">
+            <AlertTriangle className="w-8 h-8 shrink-0" />
+            <h2 className="text-xl font-bold">Forensic Scan Failed</h2>
+          </div>
+          <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+            The forensic analyzer encountered an error processing this file. Please verify the media format or retry the scan.
+          </p>
+          {((result as any)?.error_message || (scan as any)?.error_message) && (
+            <div className="p-3 bg-white border border-red-200 rounded-lg text-xs font-mono text-red-600 mb-6 break-all shadow-sm">
+              {(result as any)?.error_message || (scan as any)?.error_message}
+            </div>
+          )}
+          <button
+            onClick={onBack}
+            className="px-5 py-2.5 bg-primary hover:bg-indigo-500 text-primary-foreground rounded-xl text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4" /> Return to Upload
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);

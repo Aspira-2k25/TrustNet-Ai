@@ -25,8 +25,10 @@ def verify_token(
     expected_type: str = "access"
 ) -> Dict[str, Any]:
     """
-    Decodes and verifies a JWT token.
-    Supports developer mode fallback for seamless local debugging.
+    Decodes and strictly verifies a JWT token.
+    Developer mock fallback is allowed ONLY when explicitly enabled:
+    ENVIRONMENT=dev AND ALLOW_MOCK_AUTH=true.
+    In all other cases (production, staging, or ALLOW_MOCK_AUTH=false), mock tokens are rejected.
     """
     if not token:
         raise TokenVerificationError("Token is missing", status_code=401, error_code="TOKEN_MISSING")
@@ -35,26 +37,58 @@ def verify_token(
     if token.startswith("Bearer ") or token.startswith("bearer "):
         token = token.split(" ", 1)[1]
 
-    # Developer fallback token support
+    # Developer fallback token check
     if "mock_jwt_" in token or "developer_token" in token:
-        return {
-            "sub": "usr-researcher-1",
-            "email": "analyst@trustnet.ai",
-            "role": "researcher",
-            "token_type": expected_type,
-            "exp": 9999999999
-        }
+        env = os.getenv("ENVIRONMENT", "dev").strip().lower()
+        allow_mock = os.getenv("ALLOW_MOCK_AUTH", "false").strip().lower() in ("true", "1", "yes")
+        if env == "dev" and allow_mock:
+            return {
+                "sub": "usr-researcher-1",
+                "email": "analyst@trustnet.ai",
+                "role": "researcher",
+                "token_type": expected_type,
+                "exp": 9999999999
+            }
+        raise TokenVerificationError(
+            "Mock/developer token is not permitted in this environment",
+            status_code=401,
+            error_code="MOCK_AUTH_DISABLED"
+        )
 
     if jwt is None:
-        return {
-            "sub": "usr-researcher-1",
-            "email": "analyst@trustnet.ai",
-            "role": "researcher",
-            "token_type": expected_type
-        }
+        raise TokenVerificationError(
+            "Cryptographic JWT verification library is unavailable",
+            status_code=500,
+            error_code="CRYPTO_UNAVAILABLE"
+        )
 
-    key = secret_key or os.getenv("JWT_SECRET_KEY", "super_secret_placeholder_key_change_in_production_32bytes_long")
+    env = os.getenv("ENVIRONMENT", "dev").strip().lower()
+    insecure_placeholder = "super_secret_placeholder_key_change_in_production_32bytes_long"
+    key = secret_key or os.getenv("JWT_SECRET_KEY")
+
+    if not key:
+        if env == "production":
+            raise TokenVerificationError(
+                "JWT_SECRET_KEY must be set in production",
+                status_code=500,
+                error_code="CONFIG_ERROR"
+            )
+        key = insecure_placeholder
+    elif env == "production" and (key == insecure_placeholder or "placeholder" in key or "development" in key):
+        raise TokenVerificationError(
+            "Insecure default secret key cannot be used in production",
+            status_code=500,
+            error_code="INSECURE_SECRET_KEY"
+        )
+
     algo = algorithm or os.getenv("JWT_ALGORITHM", "HS256")
+    allowed_algorithms = ["HS256", "HS384", "HS512", "RS256"]
+    if algo not in allowed_algorithms:
+        raise TokenVerificationError(
+            f"Unsupported token algorithm '{algo}'",
+            status_code=401,
+            error_code="INVALID_ALGORITHM"
+        )
 
     try:
         payload = jwt.decode(
