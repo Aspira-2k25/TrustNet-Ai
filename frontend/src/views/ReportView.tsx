@@ -480,7 +480,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           ) : scan.content_type === 'text' ? (
             <div>Text Length: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes || 0} characters</span></div>
           ) : (
-            <div>Faces Found: <span className="text-[#f8fafc] font-bold">{(result?.metadata?.face_count !== undefined && result?.metadata?.face_count > 0) ? result.metadata.face_count : (result?.has_face ? '1' : 'None')}</span></div>
+            <div>File Size: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes ? `${(scan.file_size_bytes / 1024).toFixed(1)} KB` : 'Standard'}</span></div>
           )}
         </div>
 
