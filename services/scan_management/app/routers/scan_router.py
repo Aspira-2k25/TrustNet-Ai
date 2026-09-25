@@ -90,7 +90,8 @@ async def analyze_image_direct(
     try:
         img_check = PILImage.open(io.BytesIO(file_bytes))
         img_check.verify()
-    except Exception:
+    except Exception as e:
+        logger.error(f"[SCAN ROUTER] Image verification failed: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
@@ -147,9 +148,7 @@ async def analyze_image_direct(
     # Extract true image dimensions if decodable
     width, height = 1024, 1024
     try:
-        import io
-        from PIL import Image
-        with Image.open(io.BytesIO(file_bytes)) as img:
+        with PILImage.open(io.BytesIO(file_bytes)) as img:
             width, height = img.size
     except Exception:
         pass

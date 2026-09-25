@@ -2,6 +2,12 @@ import os
 from typing import Dict, Any, Optional
 
 try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+try:
     import jwt
     from jwt.exceptions import PyJWTError, ExpiredSignatureError, InvalidTokenError
 except ImportError:
