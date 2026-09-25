@@ -79,12 +79,22 @@ class ImageDeepfakeWorker:
             )
         else:
             filename = None
+            enable_explanation = False
             if event.payload.metadata and isinstance(event.payload.metadata, dict):
                 filename = event.payload.metadata.get("original_filename")
+                enable_explanation = bool(
+                    event.payload.metadata.get("enable_explanation", False) or
+                    event.payload.metadata.get("enable_deep_vision", False)
+                )
             if not filename and storage_key:
                 filename = os.path.basename(storage_key)
 
-            result = self.detector.predict(image_bytes, scan_id=scan_id, filename=filename)
+            result = self.detector.predict(
+                image_bytes,
+                scan_id=scan_id,
+                filename=filename,
+                enable_explanation=enable_explanation
+            )
 
         completed_event = DetectorCompletedEvent(
             payload=result
