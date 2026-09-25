@@ -3,6 +3,8 @@ echo =======================================================
 echo          TrustNet AI - Local Development Launcher
 echo =======================================================
 echo.
+set ENVIRONMENT=dev
+set ALLOW_MOCK_AUTH=true
 
 REM Check Python virtual environment
 if not exist ".venv" (

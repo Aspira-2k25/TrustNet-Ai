@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Dict, Any
 from fastapi import Request, Header, HTTPException, status
 from shared.auth.verify_token import verify_token, TokenVerificationError

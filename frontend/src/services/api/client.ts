@@ -24,8 +24,9 @@ class HttpClient {
 
   getHeaders(customHeaders: Record<string, string> = {}, requiresAuth: boolean = true): Record<string, string> {
     const headers: Record<string, string> = { ...customHeaders };
-    if (requiresAuth && this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    const effectiveToken = this.token || (import.meta.env.DEV ? 'mock_jwt_developer_token' : null);
+    if (requiresAuth && effectiveToken) {
+      headers['Authorization'] = `Bearer ${effectiveToken}`;
     }
     return headers;
   }
