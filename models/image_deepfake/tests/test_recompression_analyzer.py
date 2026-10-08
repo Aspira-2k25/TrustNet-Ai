@@ -51,3 +51,25 @@ def test_recompression_analyzer_schema():
     res = analyzer.analyze(create_smooth_image())
     required_keys = {"status", "already_recompressed", "recompression_score", "blockiness_ratio", "finding"}
     assert required_keys.issubset(res.keys())
+
+
+@pytest.mark.parametrize("transpose", [False, True])
+@pytest.mark.parametrize("offset,expected", [(0, True), (1, False)])
+def test_block_boundary_alignment(transpose, offset, expected):
+    # True 8x8 boundaries must be distinguished from edges one pixel later.
+    stripe = (((np.maximum(np.arange(64) - offset, 0) // 8) % 2) * 200).astype(np.uint8)
+    grid = np.tile(stripe, (64, 1))
+    if transpose:
+        grid = grid.T
+    buf = io.BytesIO()
+    Image.fromarray(grid).save(buf, format="PNG")
+    result = RecompressionAnalyzer().analyze(buf.getvalue())
+    assert result["status"] == "APPLIED"
+    assert result["already_recompressed"] is expected
+
+
+def test_uniform_image_has_no_block_artifacts():
+    buf = io.BytesIO()
+    Image.new("RGB", (64, 64), (100, 100, 100)).save(buf, format="PNG")
+    result = RecompressionAnalyzer().analyze(buf.getvalue())
+    assert result["already_recompressed"] is False

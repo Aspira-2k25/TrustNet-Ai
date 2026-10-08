@@ -58,24 +58,25 @@ class RecompressionAnalyzer:
             # Horizontal boundary differences vs internal differences
             if w >= 32 and h >= 32:
                 # Vertical grid lines across columns
-                col_indices = np.arange(1, w - 1)
                 diffs_x = np.abs(gray[:, 1:] - gray[:, :-1])
+                col_indices = np.arange(diffs_x.shape[1])
 
-                boundary_cols = [c for c in col_indices if c % 8 == 0 and c < diffs_x.shape[1]]
-                internal_cols = [c for c in col_indices if c % 8 != 0 and c < diffs_x.shape[1]]
+                # Difference index 7 crosses pixels 7 -> 8, the first block boundary.
+                boundary_cols = col_indices[(col_indices + 1) % 8 == 0]
+                internal_cols = col_indices[(col_indices + 1) % 8 != 0]
 
-                boundary_diff_x = float(np.mean(diffs_x[:, boundary_cols])) if boundary_cols else 1.0
-                internal_diff_x = float(np.mean(diffs_x[:, internal_cols])) if internal_cols else 1.0
+                boundary_diff_x = float(np.mean(diffs_x[:, boundary_cols])) if boundary_cols.size else 1.0
+                internal_diff_x = float(np.mean(diffs_x[:, internal_cols])) if internal_cols.size else 1.0
 
                 # Vertical differences across rows
-                row_indices = np.arange(1, h - 1)
                 diffs_y = np.abs(gray[1:, :] - gray[:-1, :])
+                row_indices = np.arange(diffs_y.shape[0])
 
-                boundary_rows = [r for r in row_indices if r % 8 == 0 and r < diffs_y.shape[0]]
-                internal_rows = [r for r in row_indices if r % 8 != 0 and r < diffs_y.shape[0]]
+                boundary_rows = row_indices[(row_indices + 1) % 8 == 0]
+                internal_rows = row_indices[(row_indices + 1) % 8 != 0]
 
-                boundary_diff_y = float(np.mean(diffs_y[boundary_rows, :])) if boundary_rows else 1.0
-                internal_diff_y = float(np.mean(diffs_y[internal_rows, :])) if internal_rows else 1.0
+                boundary_diff_y = float(np.mean(diffs_y[boundary_rows, :])) if boundary_rows.size else 1.0
+                internal_diff_y = float(np.mean(diffs_y[internal_rows, :])) if internal_rows.size else 1.0
 
                 boundary_avg = (boundary_diff_x + boundary_diff_y) / 2.0
                 internal_avg = max(1e-5, (internal_diff_x + internal_diff_y) / 2.0)
