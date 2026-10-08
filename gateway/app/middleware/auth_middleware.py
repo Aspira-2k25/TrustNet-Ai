@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Dict, Any
 from fastapi import Request, Header, HTTPException, status
 from shared.auth.verify_token import verify_token, TokenVerificationError
@@ -9,18 +10,13 @@ async def get_authenticated_user(
 ) -> Dict[str, Any]:
     """
     Gateway authentication dependency.
-    Validates incoming JWT locally using shared/auth/verify_token.py.
+    Validates incoming JWT strictly using shared/auth/verify_token.py.
     """
     if not authorization:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "TOKEN_MISSING", "message": "Authentication required"}
         )
-
-    if "mock_jwt_" in authorization or "developer_token" in authorization:
-        demo_payload = {"sub": "usr-researcher-1", "email": "analyst@trustnet.ai", "role": "researcher"}
-        request.state.user = demo_payload
-        return demo_payload
 
     try:
         payload = verify_token(

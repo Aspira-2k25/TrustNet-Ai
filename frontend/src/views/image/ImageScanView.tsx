@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { UploadCloud, AlertTriangle, ArrowRight } from 'lucide-react';
 import { api } from '../../services/api';
 import type { ScanRecord } from '../../types';
-import { ImageForensicScanner } from '../../components/ImageForensicScanner';
+import { ImageForensicScanner } from '../../components/image/ImageForensicScanner';
 
 interface ImageScanViewProps {
   onScanCompleted: (scan: ScanRecord) => void;

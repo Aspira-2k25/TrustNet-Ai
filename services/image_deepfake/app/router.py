@@ -1,12 +1,17 @@
+import io
+import os
 import uuid
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from pydantic import BaseModel
+from PIL import Image as PILImage
 
 from shared.schemas.api_response import APIResponse, ResponseMeta
 from shared.schemas.detection_result import DetectionResult
 from shared.utils.ids import generate_request_id
 from services.image_deepfake.app.worker import worker
+
+from starlette.concurrency import run_in_threadpool
 
 router = APIRouter(prefix="", tags=["Inference"])
 
@@ -24,10 +29,32 @@ async def detect_image_file(
     request_id = generate_request_id()
     image_bytes = await file.read()
     
-    result = worker.detector.predict(
+    if len(image_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "EMPTY_FILE", "message": "Uploaded file is empty"}
+        )
+    if len(image_bytes) > 15 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail={"code": "FILE_TOO_LARGE", "message": "File exceeds maximum allowed size of 15MB"}
+        )
+    try:
+        img_check = PILImage.open(io.BytesIO(image_bytes))
+        img_check.verify()
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
+        )
+
+    safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
+
+    result = await run_in_threadpool(
+        worker.detector.predict,
         image_bytes,
         scan_id=scan_id or str(uuid.uuid4()),
-        filename=file.filename,
+        filename=safe_filename,
         enable_explanation=enable_explanation
     )
     if getattr(result, "status", None) and str(result.status).upper().endswith("FAILED"):
@@ -57,7 +84,8 @@ async def detect_image_key(
             detail={"code": "FILE_NOT_FOUND", "message": error_err}
         )
         
-    result = worker.detector.predict(
+    result = await run_in_threadpool(
+        worker.detector.predict,
         image_bytes,
         scan_id=scan_id,
         enable_explanation=req.enable_explanation
