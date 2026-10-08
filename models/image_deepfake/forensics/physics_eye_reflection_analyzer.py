@@ -20,12 +20,34 @@ class PhysicsEyeReflectionAnalyzer:
     def __init__(self):
         # We attempt to load OpenCV's default Haar cascades for eye detection if supported
         self.eye_cascade = None
+        self.face_cascade = None
         if cv2 is not None and hasattr(cv2, 'CascadeClassifier'):
             try:
                 # Load haarcascade_eye.xml from cv2.data
                 self.eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+                self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
             except Exception:
                 self.eye_cascade = None
+
+    @staticmethod
+    def _select_eye_pair(eyes, faces):
+        # Associate eyes with one face before comparing light reflections.
+        for fx, fy, fw, fh in sorted(faces, key=lambda face: face[2] * face[3], reverse=True):
+            face_eyes = sorted(
+                [eye for eye in eyes
+                 if eye[0] >= fx and eye[1] >= fy
+                 and eye[0] + eye[2] <= fx + fw
+                 and eye[1] + eye[3] <= fy + fh
+                 and eye[1] + eye[3] / 2 <= fy + fh * 0.65],
+                key=lambda eye: eye[0],
+            )
+            for i, e1 in enumerate(face_eyes):
+                for e2 in face_eyes[i + 1:]:
+                    if e1[0] + e1[2] > e2[0]:
+                        continue  # Overlapping detections cannot be separate eyes.
+                    if abs((e1[1] + e1[3] / 2) - (e2[1] + e2[3] / 2)) <= max(e1[3], e2[3]) * 0.8:
+                        return e1, e2
+        return None
 
     def analyze(self, image_bytes: bytes) -> Dict[str, Any]:
         """
@@ -35,7 +57,8 @@ class PhysicsEyeReflectionAnalyzer:
             - physics_anomaly_score (float)
             - finding (str)
         """
-        if cv2 is None or self.eye_cascade is None or self.eye_cascade.empty():
+        if (cv2 is None or self.eye_cascade is None or self.eye_cascade.empty()
+                or self.face_cascade is None or self.face_cascade.empty()):
             return {
                 "status": "SKIPPED",
                 "is_physics_violation": False,
@@ -68,17 +91,17 @@ class PhysicsEyeReflectionAnalyzer:
                     "finding": f"Corneal specular reflection analysis requires at least 2 visible eyes for light consistency (detected: {len(eyes)}). Skipped."
                 }
 
-            # Sort eyes left-to-right and find the best horizontal eye pair
-            eyes = sorted(eyes, key=lambda e: e[0])
-            best_pair = None
-            for i in range(len(eyes) - 1):
-                e1, e2 = eyes[i], eyes[i + 1]
-                # Check horizontal alignment (eyes roughly on same level)
-                if abs(e1[1] - e2[1]) <= max(e1[3], e2[3]) * 0.8:
-                    best_pair = (e1, e2)
-                    break
+            faces = self.face_cascade.detectMultiScale(
+                gray, scaleFactor=1.1, minNeighbors=5, minSize=(60, 60)
+            )
+            best_pair = self._select_eye_pair(eyes, faces)
             if best_pair is None:
-                best_pair = (eyes[0], eyes[1])
+                return {
+                    "status": "SKIPPED",
+                    "is_physics_violation": False,
+                    "physics_anomaly_score": 0.0,
+                    "finding": "No aligned pair of separate eyes within the same detected face; reflection comparison skipped."
+                }
 
             reflection_vectors = []
 

@@ -47,7 +47,11 @@ class HttpClient {
       let errorMessage = `API request failed with status ${response.status}`;
       try {
         const errorJson = await response.json();
-        if (errorJson.detail) {
+        if (errorJson.error) {
+          errorMessage = typeof errorJson.error === 'string'
+            ? errorJson.error
+            : (errorJson.error.message || JSON.stringify(errorJson.error));
+        } else if (errorJson.detail) {
           errorMessage = typeof errorJson.detail === 'string'
             ? errorJson.detail
             : (errorJson.detail.message || JSON.stringify(errorJson.detail));
