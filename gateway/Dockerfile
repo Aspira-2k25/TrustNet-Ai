@@ -1,19 +1,9 @@
 FROM python:3.11-slim
-
 WORKDIR /app
-
-# Copy shared library and service requirements
-COPY shared /shared
-COPY gateway/requirements.txt /app/requirements.txt
-
-# Install dependencies (this uses the editable install for /shared)
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy service code
-COPY gateway/app /app/app
-
-# Expose port
+COPY shared /app/shared
+COPY gateway/requirements.txt /app/gateway/requirements.txt
+RUN pip install --no-cache-dir -r gateway/requirements.txt
+COPY gateway /app/gateway
+ENV PYTHONPATH=/app
 EXPOSE 8000
-
-# Run uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "gateway.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

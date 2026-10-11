@@ -25,10 +25,10 @@ def test_metadata_analyzer_detects_chatgpt_filename():
     
     # 1. Test ChatGPT image filename
     res = analyzer.analyze(raw_bytes, filename="ChatGPT Image Mar 2, 2026, 11_11_56 PM.png")
-    assert res["is_ai_signature_found"] is True
-    assert res["metadata_anomaly_score"] == 1.0
-    assert "Chatgpt" in res["generator_name"] or "Chatgpt" in res["ai_tool"]
-    assert "Filename" in res["finding"]
+    neutral = analyzer.analyze(raw_bytes, filename="camera.png")
+    assert res["is_ai_signature_found"] is False
+    assert res["metadata_anomaly_score"] == neutral["metadata_anomaly_score"]
+    assert res["generator_name"] is None
 
 def test_metadata_analyzer_detects_dalle_and_midjourney():
     analyzer = MetadataAnalyzer()
@@ -36,13 +36,13 @@ def test_metadata_analyzer_detects_dalle_and_midjourney():
     
     # Test DALL-E
     res_dalle = analyzer.analyze(raw_bytes, filename="DALL-E 2026-03-02 cat in hoodie.png")
-    assert res_dalle["is_ai_signature_found"] is True
-    assert "Dall-E" in res_dalle["generator_name"] or "Dalle" in res_dalle["generator_name"]
+    assert res_dalle["is_ai_signature_found"] is False
+    assert res_dalle["metadata_anomaly_score"] == analyzer.analyze(raw_bytes, filename="camera.png")["metadata_anomaly_score"]
 
     # Test Midjourney
     res_mj = analyzer.analyze(raw_bytes, filename="user_midjourney_v6_ultra_cat.png")
-    assert res_mj["is_ai_signature_found"] is True
-    assert "Midjourney" in res_mj["generator_name"]
+    assert res_mj["is_ai_signature_found"] is False
+    assert res_mj["metadata_anomaly_score"] == res_dalle["metadata_anomaly_score"]
 
 def test_metadata_analyzer_detects_png_prompt_info():
     analyzer = MetadataAnalyzer()
@@ -50,8 +50,10 @@ def test_metadata_analyzer_detects_png_prompt_info():
     raw_bytes = create_sample_png_bytes(info_dict={"parameters": "a cat wearing a blue hoodie, masterpiece, 8k, detailed"})
     
     res = analyzer.analyze(raw_bytes, filename="unknown_art.png")
-    assert res["is_ai_signature_found"] is True
-    assert res["metadata_anomaly_score"] == 1.0
+    assert res["is_ai_signature_found"] is False
+    assert res["has_unverified_generator_clue"] is True
+    assert "Unverified" in res["finding"]
+    assert res["metadata_anomaly_score"] == 0.08
 
 def test_scene_analyzer_identifies_digital_art_illustration():
     analyzer = SceneContextAnalyzer()
@@ -91,10 +93,11 @@ def test_efficientnet_detector_evaluates_chatgpt_image_as_ai():
     result = detector.predict(raw_bytes, scan_id="test-chatgpt-scan", filename="ChatGPT Image Mar 2, 2026, 11_11_56 PM.png")
     
     assert result.status == StatusEnum.SUCCESS
-    assert result.verdict in ("LIKELY_AI_MANIPULATED", "AI_GENERATED")
-    assert result.risk_score >= 90.0
-    assert result.metadata.get("ai_signature_found") is True
-    assert "Chatgpt" in str(result.metadata.get("generator_name")) or "Chatgpt" in str(result.explanation)
+    neutral = detector.predict(raw_bytes, scan_id="test-camera", filename="camera.png")
+    assert result.risk_score == neutral.risk_score
+    assert result.verdict == neutral.verdict
+    assert result.label == neutral.label
+    assert result.metadata.get("ai_signature_found") is False
 
 def test_real_restaurant_photo_evaluated_as_authentic():
     from PIL import ImageDraw

@@ -3,6 +3,8 @@ import uuid
 from datetime import datetime, timezone
 import pytest
 import httpx
+from unittest.mock import AsyncMock
+from services.scan_management.app.core.broker import publisher
 from PIL import Image
 
 # Import microservice apps
@@ -38,7 +40,7 @@ def create_valid_test_jpeg() -> bytes:
     return buf.getvalue()
 
 @pytest.mark.anyio
-async def test_full_end_to_end_multimodal_pipeline():
+async def test_full_end_to_end_multimodal_pipeline(monkeypatch):
     """
     E2E Test Scenario 1: Happy Path Multimodal Pipeline
     1. Register user and obtain JWT access token.
@@ -47,6 +49,10 @@ async def test_full_end_to_end_multimodal_pipeline():
     4. Perform calibrated weighted fusion in Trust Score Engine.
     5. Verify cross-cutting traceability (scan_id, evidence items, risk level).
     """
+    # In-process contract scenario; publication seam is mocked. This is not
+    # evidence of live Kafka delivery, acknowledgement or worker processing.
+    dispatch=AsyncMock(return_value=True)
+    monkeypatch.setattr(publisher,'publish_detection_requested',dispatch)
     # Step 1: User Registration & Authentication
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=auth_app), base_url="http://auth") as auth_client:
         email = f"analyst_{uuid.uuid4().hex[:8]}@trustnet.ai"
@@ -72,6 +78,8 @@ async def test_full_end_to_end_multimodal_pipeline():
         )
         assert upload_res.status_code == 202
         scan_data = upload_res.json()["data"]
+        assert scan_data['status']=='QUEUED' and scan_data['result'] is None
+        dispatch.assert_awaited_once()
         scan_id = scan_data["id"]
         storage_key = scan_data["media_storage_key"]
         assert scan_data["user_id"] == user_id

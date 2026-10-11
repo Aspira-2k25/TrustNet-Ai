@@ -2,4 +2,7 @@ fastapi>=0.100.0
 uvicorn>=0.23.0
 httpx>=0.24.1
 pytest
--e ../shared
+-e ./shared
+
+pydantic-settings>=2,<3
+PyJWT>=2.8

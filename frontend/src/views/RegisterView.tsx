@@ -9,9 +9,9 @@ interface RegisterViewProps {
 }
 
 export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, onGoToLogin }) => {
-  const [name, setName] = useState<string>('Alex Johnson');
-  const [email, setEmail] = useState<string>('alex@example.com');
-  const [password, setPassword] = useState<string>('SecurePass123!');
+  const [name, setName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 

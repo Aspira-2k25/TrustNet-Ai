@@ -19,14 +19,25 @@ from services.scan_management.app.schemas.scan_schemas import (
     ScanResponse,
     ScanListResponse
 )
+from shared.constants.modules import ModuleEnum
+from shared.constants.status import StatusEnum
 from shared.schemas.api_response import APIResponse, ResponseMeta
 from shared.utils.ids import generate_request_id
 from shared.auth.verify_token import verify_token, TokenVerificationError
 from services.scan_management.app.config.settings import settings
-from models.image_deepfake.inference.efficientnet_detector import EfficientNetDetector
 
 router = APIRouter(prefix="/scans", tags=["Scans"])
-detector_instance = EfficientNetDetector()
+detector_instance = None
+
+def image_detector():
+    global detector_instance
+    if detector_instance is None:
+        try:
+            from models.image_deepfake.inference.efficientnet_detector import EfficientNetDetector
+        except ImportError:
+            raise HTTPException(503, 'Image inference dependencies are unavailable in this scam-only runtime')
+        detector_instance = EfficientNetDetector()
+    return detector_instance
 
 def get_current_user_id(
     authorization: Optional[str] = Header(None),
@@ -59,6 +70,10 @@ def get_current_user_id(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail={"code": "TOKEN_MISSING", "message": "Authentication required"}
     )
+
+@router.get("/limits")
+async def scan_limits(user_id: str = Depends(get_current_user_id)):
+    return APIResponse(data={"image_mb": settings.MAX_IMAGE_SIZE_MB, "audio_mb": settings.MAX_AUDIO_SIZE_MB, "video_mb": settings.MAX_VIDEO_SIZE_MB, "message_characters": 10000}, meta=ResponseMeta(request_id=generate_request_id()))
 
 @router.post("/analyze", response_model=APIResponse[Dict[str, Any]])
 async def analyze_image_direct(
@@ -101,14 +116,14 @@ async def analyze_image_direct(
 
     # Run real forensic model detector
     detection_res = await run_in_threadpool(
-        detector_instance.predict,
+        image_detector().predict,
         file_bytes,
         scan_id=scan_id,
         filename=safe_filename,
         enable_explanation=enable_explanation
     )
 
-    if getattr(detection_res, "status", None) and str(detection_res.status).upper().endswith("FAILED"):
+    if getattr(detection_res.status, "value", str(detection_res.status)) not in ("SUCCESS", "PARTIAL_SUCCESS"):
         logger.error(f"[SCAN ROUTER] Forensic detection failed for scan {scan_id}: {detection_res.error_code} - {detection_res.error_message}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -120,26 +135,6 @@ async def analyze_image_direct(
     
     risk_score = detection_res.risk_score
     risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))
-
-    # Attempt saving scan record to DB history
-    try:
-        from services.scan_management.app.db_models.scan import Scan
-        db_scan = Scan(
-            id=scan_id,
-            user_id=user_id,
-            status="SUCCESS",
-            content_type="image",
-            filename=file.filename or "uploaded_media.jpg",
-            file_size_bytes=len(file_bytes),
-            mime_type=file.content_type or "image/jpeg"
-        )
-        db.add(db_scan)
-        await db.commit()
-    except Exception:
-        try:
-            await db.rollback()
-        except Exception:
-            pass
 
     is_contradiction = bool(detection_res.metadata.get("is_contradiction", False)) if detection_res.metadata else False
 
@@ -185,10 +180,59 @@ async def analyze_image_direct(
         "trust_score": trust_score_data
     }
 
+    from services.scan_management.app.db_models.scan import Scan, ScanAssessment
+    db.add(Scan(id=scan_id, user_id=user_id, status="SUCCESS", content_type="image",
+                filename=safe_filename, file_size_bytes=len(file_bytes), mime_type=file.content_type))
+    db.add(ScanAssessment(scan_id=scan_id, assessment={"result": detection_res.model_dump(mode="json"), "trust_score": trust_score_data, "dimensions": {"width": width, "height": height}}))
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        logger.error("Image persistence failed scan=%s", scan_id)
+        raise HTTPException(503, "Analysis completed but could not be saved; retry later")
+
     return APIResponse(
         data=scan_record,
         meta=ResponseMeta(request_id=request_id)
     )
+
+@router.post("/scam/analyze", response_model=APIResponse[Dict[str, Any]])
+async def analyze_scam(req: ScanCreateTextRequest, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    import httpx
+    from shared.schemas.detection_result import DetectionResult
+    from services.scan_management.app.db_models.scan import Scan, ScanAssessment
+    from services.trust_engine.app.services.fusion_engine import fusion_engine
+    scan_id = str(uuid.uuid4())
+    try:
+        async with httpx.AsyncClient(timeout=settings.SCAM_SERVICE_TIMEOUT_SECONDS) as client:
+            response = await client.post(settings.SCAM_SERVICE_URL.rstrip("/") + "/infer", json={**req.model_dump(mode='json'), "scan_id": scan_id})
+        if response.status_code != 200:
+            raise HTTPException(response.status_code, response.json().get("detail", "Scam service unavailable"))
+        result = DetectionResult.model_validate(response.json()["data"])
+        if result.scan_id != scan_id or result.module != ModuleEnum.scam_message:
+            raise ValueError("Mismatched scam service response")
+        if result.status not in (StatusEnum.SUCCESS, StatusEnum.PARTIAL_SUCCESS):
+            raise HTTPException(503, "Scam assessment failed or unavailable")
+    except httpx.TimeoutException:
+        raise HTTPException(504, "Scam service timeout")
+    except httpx.RequestError:
+        raise HTTPException(503, "Scam service unavailable")
+    except (ValueError, KeyError):
+        raise HTTPException(502, "Invalid scam service response")
+    trust = fusion_engine.fuse([result], scan_id).model_dump(mode="json")
+    trust["module_scores"] = {"scam_message": result.risk_score}
+    trust["contradiction_detected"] = trust["contradiction_flag"]
+    assessment = {"raw_input": req.canonical_text(), "result": result.model_dump(mode="json"), "trust_score": trust}
+    scan = Scan(id=scan_id, user_id=user_id, status="SUCCESS", content_type="text", raw_input=req.text[:4096], filename="message.txt", mime_type="text/plain", file_size_bytes=len(req.text.encode("utf-8")))
+    db.add(scan); db.add(ScanAssessment(scan_id=scan_id, assessment=assessment))
+    try:
+        await db.commit(); await db.refresh(scan)
+    except Exception:
+        await db.rollback()
+        logger.error("Scam persistence failed scan=%s", scan_id)
+        raise HTTPException(503, "Assessment could not be saved; retry later")
+    scan.saved_assessment = assessment
+    return APIResponse(data=ScanService(db)._to_response(scan).model_dump(), meta=ResponseMeta(request_id=generate_request_id()))
 
 @router.post("/upload", response_model=APIResponse[ScanResponse], status_code=status.HTTP_202_ACCEPTED)
 async def create_file_scan(
@@ -222,7 +266,7 @@ async def create_text_scan(
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    result = await service.create_text_scan(user_id=user_id, text=req.text)
+    result = await service.create_text_scan(user_id=user_id, text=req.text, message_context=req.model_dump(mode='json',exclude={'text'}))
     
     return APIResponse(
         data=result,

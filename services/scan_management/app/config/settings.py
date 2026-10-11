@@ -17,6 +17,9 @@ class ScanSettings(BaseSettings):
         default="./storage_uploads",
         description="Local storage directory for media uploads fallback"
     )
+    KAFKA_ENABLED: bool = False
+    SCAM_SERVICE_URL: str = "http://localhost:8005"
+    SCAM_SERVICE_TIMEOUT_SECONDS: float = 35
     MAX_IMAGE_SIZE_MB: int = Field(default=10)
     MAX_AUDIO_SIZE_MB: int = Field(default=25)
     MAX_VIDEO_SIZE_MB: int = Field(default=200)

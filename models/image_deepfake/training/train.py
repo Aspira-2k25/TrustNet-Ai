@@ -91,6 +91,11 @@ def evaluate_model(
 
 def run_training(config_path: str, output_dir: str = "checkpoints", dry_run: bool = False):
     """Executes full training pipeline according to config YAML."""
+    from pathlib import Path
+    deployed = Path(__file__).resolve().parents[1]
+    target = Path(output_dir).resolve()
+    if deployed in target.parents or target == deployed:
+        raise ValueError("Training output must be outside deployed image artifacts")
     os.makedirs(output_dir, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[*] Starting TrustNet AI Image Deepfake Training on device: {device}")
@@ -109,22 +114,31 @@ def run_training(config_path: str, output_dir: str = "checkpoints", dry_run: boo
             }
         }
 
-    # Mock dataset creation for verification / dry-run
-    train_samples = [
-        ("dummy_real_1.jpg", 0, "person_01"),
-        ("dummy_fake_1.jpg", 1, "person_01"),
-        ("dummy_real_2.jpg", 0, "person_02"),
-        ("dummy_fake_2.jpg", 1, "person_02"),
-    ]
-    val_samples = [
-        ("dummy_real_3.jpg", 0, "person_03"),
-        ("dummy_fake_3.jpg", 1, "person_03"),
-    ]
+    if dry_run:
+        train_samples = [("__dry_run__", 0, "test01"), ("__dry_run__", 1, "test02")]
+        val_samples = [("__dry_run__", 0, "test03"), ("__dry_run__", 1, "test04")]
+    else:
+        import json
+        data = config.get("data", {})
+        if not data.get("train_manifest") or not data.get("validation_manifest"):
+            raise ValueError("Real training requires data.train_manifest and validation_manifest JSON arrays of [path,label,identity]")
+        def load_manifest(name):
+            with open(data[name], encoding="utf-8") as stream:
+                samples = json.load(stream)
+            if not samples or any(len(row) != 3 or row[1] not in [0, 1] or not row[2] for row in samples):
+                raise ValueError("Manifest must contain valid labelled samples with identity groups")
+            from PIL import Image
+            for path, _, _ in samples:
+                with Image.open(path) as image:
+                    image.verify()
+            return samples
+        train_samples = load_manifest("train_manifest")
+        val_samples = load_manifest("validation_manifest")
 
     verify_zero_identity_leakage(train_samples, val_samples, [])
 
-    train_ds = DeepfakeDataset(train_samples, transform=DEFAULT_TRAIN_TRANSFORMS)
-    val_ds = DeepfakeDataset(val_samples, transform=DEFAULT_VAL_TRANSFORMS)
+    train_ds = DeepfakeDataset(train_samples, transform=DEFAULT_TRAIN_TRANSFORMS, dry_run=dry_run)
+    val_ds = DeepfakeDataset(val_samples, transform=DEFAULT_VAL_TRANSFORMS, dry_run=dry_run)
 
     train_loader = DataLoader(train_ds, batch_size=config["training"]["batch_size"], shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=config["training"]["batch_size"], shuffle=False)
@@ -146,7 +160,7 @@ def run_training(config_path: str, output_dir: str = "checkpoints", dry_run: boo
 
         print(f"Epoch [{epoch}/{epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_metrics['loss']:.4f} | Val AUC: {val_metrics['auc']:.4f}")
 
-        if val_metrics["auc"] >= best_auc:
+        if val_metrics["auc"] is not None and val_metrics["auc"] >= best_auc:
             best_auc = val_metrics["auc"]
             checkpoint_path = os.path.join(output_dir, "best_model.pt")
             torch.save(model.state_dict(), checkpoint_path)

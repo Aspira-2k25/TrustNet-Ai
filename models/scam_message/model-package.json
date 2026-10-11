@@ -1,0 +1,49 @@
+{
+  "model_version": "message-distilbert-lexical-links-hybrid-4",
+  "filename": "TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip",
+  "sha256": "1e499d55a042ee7268d6a49da91d81e60f1c776a936d675b92575fdbc4e50623",
+  "bytes": 248559032,
+  "files": {
+    "config.json": {
+      "sha256": "9fb3ba38c298d650e5e811c2c75bcfb61e322d858a9df6d08fb2561f14d5ffac",
+      "bytes": 750
+    },
+    "hybrid_config.json": {
+      "sha256": "278d89d34d660c46967318a7dedbb2886c5af9c7b356c10f1de18f41eb95ef14",
+      "bytes": 656352
+    },
+    "hybrid_weights.npz": {
+      "sha256": "33f948cd432f786bb989720bf505b12eb346c7ca4ed034fe1868d8ad9ab9b581",
+      "bytes": 967726
+    },
+    "manifest.json": {
+      "sha256": "a557ef16ca6d5d53c61735b1284967716beb2716a72ca657347a99de21faef19",
+      "bytes": 79144
+    },
+    "model.safetensors": {
+      "sha256": "1a47b442ad8c847cbc1a78a0cd00cae344c57ae15ae3291f22997630c5cfe3a9",
+      "bytes": 267835644
+    },
+    "runtime.json": {
+      "sha256": "d884c20fbf2d9228241cc572308145c2ac5caee0a8ba48415c9dec8249ab4db2",
+      "bytes": 249
+    },
+    "special_tokens_map.json": {
+      "sha256": "5aa43c2f985a25296d5a5ce621c2f77376ca8091a47993c492fd5460b895b140",
+      "bytes": 732
+    },
+    "tokenizer.json": {
+      "sha256": "f385e8b538113c54e2d21410f68ba66666ef6b407ae98d6228d1f22c240112c8",
+      "bytes": 711495
+    },
+    "tokenizer_config.json": {
+      "sha256": "98c1e2312148806ae9efbc66076206792e8b328b0654b9e40d96d7a2f8918f0f",
+      "bytes": 1449
+    },
+    "vocab.txt": {
+      "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
+      "bytes": 231508
+    }
+  },
+  "distribution": "Share this archive separately; no remote upload or Git LFS configured."
+}

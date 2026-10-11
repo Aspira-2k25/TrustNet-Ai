@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { assessmentVerdict } from '../services/verdict';
 import type { ScanRecord } from '../types';
 import { Search, ArrowUpRight, ShieldAlert, ShieldCheck, Activity, Image, Plus, Film, Mic, Globe, Star } from 'lucide-react';
 
@@ -13,8 +14,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
   const [selectedModalityFilter, setSelectedModalityFilter] = useState<'ALL' | 'image' | 'video' | 'audio' | 'url' | 'text'>('ALL');
 
   const totalScans = scans.length;
-  const threatScans = scans.filter((s) => (s.trust_score?.trust_risk_score || 0) >= 50).length;
-  const safeScans = scans.filter((s) => (s.trust_score?.trust_risk_score || 0) < 50 && s.status === 'SUCCESS').length;
+  const threatScans = scans.filter((s) => s.result && ['SUCCESS','PARTIAL_SUCCESS'].includes(s.status) && (s.trust_score?.trust_risk_score ?? s.result.risk_score) >= 50).length;
+  const safeScans = scans.filter((s) => s.result && (s.trust_score?.trust_risk_score ?? s.result.risk_score) < 50 && s.status === 'SUCCESS').length;
 
   const filteredScans = scans.filter((s) => {
     const matchesSearch =
@@ -52,7 +53,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-950/70 text-rose-300 border border-rose-800">
             <Star size={13} className="text-rose-400" />
-            Reviews / Text
+            Messages / Reviews
           </span>
         );
       default:
@@ -92,7 +93,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
         <div className="bg-[#111d38] border border-[#1e3a5f] rounded-xl p-5 shadow-3d-card">
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xs font-bold text-[#94a3b8] uppercase tracking-wider">
-              Total Checks Done
+              Checks Loaded
             </span>
             <div className="w-8 h-8 rounded-lg bg-[#0b132b] border border-[#1e3a5f] flex items-center justify-center text-[#00b4d8]">
               <Activity size={16} />
@@ -105,27 +106,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
         <div className="bg-[#111d38] border border-[#1e3a5f] rounded-xl p-5 shadow-3d-card">
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xs font-bold text-red-400 uppercase tracking-wider">
-              Fakes &amp; Scams Found
+              Higher-risk Assessments
             </span>
             <div className="w-8 h-8 rounded-lg bg-red-950/70 border border-red-800 flex items-center justify-center text-red-400">
               <ShieldAlert size={16} />
             </div>
           </div>
           <div className="text-3xl font-bold font-mono text-red-400">{threatScans}</div>
-          <span className="text-xs text-[#64748b]">Flagged as altered or fraudulent</span>
+          <span className="text-xs text-[#64748b]">Automated risk estimates, not confirmed fraud</span>
         </div>
 
         <div className="bg-[#111d38] border border-[#1e3a5f] rounded-xl p-5 shadow-3d-card">
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-              Verified Real Content
+              Lower-risk Assessments
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-950/70 border border-emerald-800 flex items-center justify-center text-emerald-400">
               <ShieldCheck size={16} />
             </div>
           </div>
           <div className="text-3xl font-bold font-mono text-emerald-400">{safeScans}</div>
-          <span className="text-xs text-[#64748b]">Confirmed authentic &amp; safe</span>
+          <span className="text-xs text-[#64748b]">Lower signal does not establish safety</span>
         </div>
       </div>
 
@@ -183,7 +184,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
           <tbody className="divide-y divide-[#1e3a5f] text-xs">
             {filteredScans.length > 0 ? (
               filteredScans.map((scan) => {
-                const isSafe = (scan.trust_score?.trust_risk_score || 0) < 50;
+
                 return (
                   <tr
                     key={scan.id}
@@ -200,15 +201,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
                       {scan.filename}
                     </td>
                     <td className="py-3 px-4">
-                      {isSafe ? (
-                        <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                          Real &amp; Safe
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-red-950 text-red-300 border border-red-800">
-                          Fake / Scam Detected
-                        </span>
-                      )}
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#16254a] text-sky-300 border border-[#1e3a5f]">{assessmentVerdict(scan)}</span>
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-mono font-bold text-[#f8fafc]">

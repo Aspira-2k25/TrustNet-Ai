@@ -82,3 +82,14 @@ Thumbs.db
 
 # Scratch directory
 scratch/
+
+.venv-scam/
+runtime_state/
+
+# Large selected weights are distributed as a checksummed model package.
+models/scam_message/artifacts/model.safetensors
+exports/
+runtime-logs/
+.env.*
+!.env.example
+!**/.env.example

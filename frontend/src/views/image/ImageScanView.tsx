@@ -1,8 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, AlertTriangle, ArrowRight } from 'lucide-react';
+import { scanApi } from '../../services/api/scan.api';
 import { api } from '../../services/api';
 import type { ScanRecord } from '../../types';
 import { ImageForensicScanner } from '../../components/image/ImageForensicScanner';
+
+const IMAGE_LIMIT_MB = Number(import.meta.env.VITE_MAX_IMAGE_SIZE_MB || 10);
 
 interface ImageScanViewProps {
   onScanCompleted: (scan: ScanRecord) => void;
@@ -18,14 +21,17 @@ export const ImageScanView: React.FC<ImageScanViewProps> = ({ onScanCompleted, o
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     setErrorMessage(null);
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setErrorMessage('Invalid format. Please select a JPG, PNG, or WebP image.');
       return;
     }
-    if (file.size > 25 * 1024 * 1024) {
-      setErrorMessage('File size exceeds the 25 MB limit.');
+    let maximum = IMAGE_LIMIT_MB;
+    try {const res = await scanApi.getLimits();maximum = res.data.image_mb;}
+    catch {setErrorMessage('Upload limits unavailable; check your connection and login.');return;}
+    if (file.size > maximum * 1024 * 1024) {
+      setErrorMessage(`File size exceeds the ${maximum} MB limit.`);
       return;
     }
     setSelectedFile(file);
@@ -129,7 +135,7 @@ export const ImageScanView: React.FC<ImageScanViewProps> = ({ onScanCompleted, o
                   Upload Image File for Verification
                 </h3>
                 <p className="text-xs text-[#94a3b8] mb-3">
-                  Supports JPEG, PNG, and WebP (up to 25 MB). Zero external retention.
+                  Supports JPEG, PNG, and WebP (up to 10 MB). Retention depends on configured services.
                 </p>
                 <button
                   type="button"
@@ -172,7 +178,7 @@ export const ImageScanView: React.FC<ImageScanViewProps> = ({ onScanCompleted, o
                 : 'bg-[#0077b6] hover:bg-[#0096c7] text-white shadow-3d-sm'
             }`}
           >
-            <span>{isProcessing ? 'Processing 3D Forensics...' : 'Execute Image Scan'}</span>
+            <span>{isProcessing ? 'Processing image assessment...' : 'Execute Image Scan'}</span>
             <ArrowRight size={14} className="text-[#38bdf8]" />
           </button>
         </div>

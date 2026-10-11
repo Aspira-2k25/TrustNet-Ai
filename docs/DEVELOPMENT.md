@@ -1,8 +1,8 @@
 # TrustNet AI — Developer, Researcher & Agent Handoff Guide
 
 **Baseline Release Version**: `v1.0.0-frozen-baseline`  
-**Automated Tests**: `91 / 91 Passing (100%)`  
-**Baseline Status**: Strictly Frozen for Reproducibility  
+**Automated Tests**: Historical claims superseded by the external 2026-10-11 QA handoff; current suite includes pre-existing and obsolete-assertion failures.
+**Baseline Status**: Historical configuration; no independent image accuracy benchmark established.
 
 ---
 
@@ -20,7 +20,7 @@ React 18 UI ──(POST /api/v1/scans/analyze)──► Gateway (8000) ──►
 ### B. Batch Ingestion Pipeline (Asynchronous Kafka 3.7 KRaft)
 Used for headless queue-based bulk media ingestion:
 ```
-Scan Upload ──► Kafka Topic: detection.requested.image_deepfake ──► Deepfake Worker (8003) ──► Kafka Topic: detection.completed.image_deepfake ──► Trust Engine (8004)
+Scan Upload ──► Kafka Topic: detection.requested.image_deepfake ──► Deepfake Worker (8003) ──► Kafka Topic: detector.image_deepfake.completed ──► Trust Engine (8004)
 ```
 
 ---
@@ -145,3 +145,5 @@ When an image is submitted:
 1. **Local EfficientNet-B0 Fine-Tuning**: Train a dedicated binary classification head using FaceForensics++ and Celeb-DF datasets (`models/image_deepfake/training/train.py`).
 2. **Neural Grad-CAM Activation Maps**: Replace client-side spatial gradient visualizer with backpropagated Grad-CAM once the local binary head is fine-tuned.
 3. **Platt Scaling / Isotonic Calibration**: Fit calibration on validation split once a large-scale labelled benchmark dataset is ingested.
+
+Current scam service setup and limits: [services/scam_message/README.md](../services/scam_message/README.md). Compose starts infrastructure; application services require separate processes.

@@ -48,7 +48,7 @@ class ScanService:
         scan = Scan(
             id=scan_id,
             user_id=user_id,
-            status=StatusEnum.SUCCESS.value,
+            status="QUEUED",
             content_type=modality,
             media_storage_key=storage_key,
             filename=sanitized_filename,
@@ -76,33 +76,38 @@ class ScanService:
                 metadata={"original_filename": original_filename, "file_size_bytes": file_size}
             )
         )
-        publisher.publish_detection_requested(event, routing_key=routing_key)
+        await self._dispatch(created_scan, event, routing_key)
 
         return self._to_response(created_scan)
 
-    async def create_text_scan(self, user_id: str, text: str) -> ScanResponse:
+    async def create_text_scan(self, user_id: str, text: str, message_context=None) -> ScanResponse:
+        from shared.schemas.message_input import MessageInput
+        request=MessageInput(text=text,**(message_context or {}))
+        canonical=request.canonical_text()
         scan_id = str(uuid.uuid4())
         scan = Scan(
             id=scan_id,
             user_id=user_id,
-            status=StatusEnum.SUCCESS.value,
+            status="QUEUED",
             content_type="text",
-            raw_input=text,
-            file_size_bytes=len(text.encode("utf-8"))
+            raw_input=canonical[:4096],
+            file_size_bytes=len(canonical.encode("utf-8"))
         )
         created_scan = await self.repo.create(scan)
 
-        # Publish to both scam and review detection
+        from services.scan_management.app.db_models.scan import ScanAssessment
+        self.repo.session.add(ScanAssessment(scan_id=scan_id, assessment={"raw_input": canonical}))
+        # Publish only to the requested scam module.
         event = DetectionRequestedEvent(
             scan_id=scan_id,
             module=ModuleEnum.scam_message,
             timestamp=datetime.now(timezone.utc).isoformat(),
             payload=DetectionRequestedPayload(
                 raw_text=text,
-                metadata={}
+                metadata={'message_context':request.model_dump(mode='json',exclude={'text'})}
             )
         )
-        publisher.publish_detection_requested(event, routing_key=Topics.DETECTION_REQUESTED_TEXT)
+        await self._dispatch(created_scan, event, Topics.DETECTION_REQUESTED_TEXT)
 
         return self._to_response(created_scan)
 
@@ -111,7 +116,7 @@ class ScanService:
         scan = Scan(
             id=scan_id,
             user_id=user_id,
-            status=StatusEnum.SUCCESS.value,
+            status="QUEUED",
             content_type="url",
             raw_input=url,
             file_size_bytes=len(url.encode("utf-8"))
@@ -127,9 +132,19 @@ class ScanService:
                 metadata={}
             )
         )
-        publisher.publish_detection_requested(event, routing_key=Topics.DETECTION_REQUESTED_URL)
+        await self._dispatch(created_scan, event, Topics.DETECTION_REQUESTED_URL)
 
         return self._to_response(created_scan)
+
+    async def _dispatch(self, scan, event, topic):
+        # Persist the scan before publication so the completion consumer can associate it.
+        await self.repo.session.commit()
+        try:
+            await publisher.publish_detection_requested(event, routing_key=topic)
+        except Exception:
+            scan.status = "FAILED"
+            await self.repo.session.commit()
+            raise
 
     async def get_scan(self, scan_id: str, user_id: Optional[str] = None) -> ScanResponse:
         scan = await self.repo.get_by_id(scan_id)
@@ -162,9 +177,11 @@ class ScanService:
             status=scan.status,
             content_type=scan.content_type,
             media_storage_key=scan.media_storage_key,
-            raw_input=scan.raw_input,
+            raw_input=getattr(scan, "saved_assessment", {}).get("raw_input", scan.raw_input),
             filename=scan.filename,
             file_size_bytes=scan.file_size_bytes,
             created_at=scan.created_at.isoformat(),
-            updated_at=scan.updated_at.isoformat()
+            updated_at=scan.updated_at.isoformat(),
+            mime_type=scan.mime_type,
+            **{k: v for k, v in getattr(scan, "saved_assessment", {}).items() if k in ("result", "trust_score", "dimensions")}
         )

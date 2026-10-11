@@ -33,9 +33,11 @@ class DeepfakeDataset(Dataset):
     def __init__(
         self,
         samples: List[Tuple[str, int, str]], # (image_path, label, identity_id)
-        transform: Optional[Callable] = None
+        transform: Optional[Callable] = None,
+        dry_run: bool = False
     ):
         self.samples = samples
+        self.dry_run = dry_run
         self.transform = transform or DEFAULT_VAL_TRANSFORMS
 
     def __len__(self) -> int:
@@ -43,14 +45,16 @@ class DeepfakeDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int, str]:
         path, label, identity_id = self.samples[idx]
-        try:
-            if os.path.exists(path):
-                img = Image.open(path).convert("RGB")
-            else:
-                # Synthetic dummy image fallback if local file path does not exist
-                img = Image.new("RGB", (224, 224), color=(128, 128, 128))
-        except Exception:
+        if path == "__dry_run__":
+            if not getattr(self, "dry_run", False):
+                raise ValueError("Dummy samples require explicit dry_run=True")
             img = Image.new("RGB", (224, 224), color=(128, 128, 128))
+        else:
+            try:
+                with Image.open(path) as source:
+                    img = source.convert("RGB")
+            except Exception as exc:
+                raise ValueError(f"Missing/corrupt training sample: {path}") from exc
 
         tensor = self.transform(img)
         return tensor, label, identity_id

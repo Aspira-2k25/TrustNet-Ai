@@ -24,7 +24,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
       badgeColor: 'bg-indigo-950/70 text-indigo-300 border-indigo-800',
       desc: 'See if someone in a video is swapped, lip-synced, or digitally manipulated.',
       icon: <Film className="text-indigo-400" size={24} />,
-      simpleNote: 'Finds face swaps & fake video clips',
+      simpleNote: 'Planned module — analysis unavailable',
     },
     {
       id: 'audio',
@@ -33,7 +33,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
       badgeColor: 'bg-purple-950/70 text-purple-300 border-purple-800',
       desc: 'Spot fake voices and cloned speech used in fraudulent phone calls or voice notes.',
       icon: <Mic className="text-purple-400" size={24} />,
-      simpleNote: 'Identifies cloned & synthetic voices',
+      simpleNote: 'Planned module — analysis unavailable',
     },
     {
       id: 'phishing',
@@ -42,7 +42,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
       badgeColor: 'bg-emerald-950/70 text-emerald-300 border-emerald-800',
       desc: 'Paste any suspicious link to find out if it is trying to steal passwords or bank details.',
       icon: <Globe className="text-emerald-400" size={24} />,
-      simpleNote: 'Blocks fake login & scam links',
+      simpleNote: 'Planned module — analysis unavailable',
     },
     {
       id: 'scam_msg',
@@ -60,7 +60,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
       badgeColor: 'bg-rose-950/70 text-rose-300 border-rose-800',
       desc: 'Upload CSV or paste batch reviews to detect copy-paste bot rings and rating bursts.',
       icon: <Star className="text-rose-400" size={24} />,
-      simpleNote: 'Catches bot syndicates via CSV batch',
+      simpleNote: 'Planned module — analysis unavailable',
     },
   ];
 
@@ -75,7 +75,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
           <div>
             <span className="font-bold text-sm block text-[#f8fafc]">Safe &amp; Easy Cyber Scam Protection</span>
             <span className="text-xs text-[#94a3b8]">
-              Easily verify whether photos, videos, audio, text messages, website links, or product reviews are authentic or scams.
+              Screen images and English text messages with the connected models. Review the evidence and coverage limits.
             </span>
           </div>
         </div>
@@ -97,11 +97,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#f8fafc] tracking-tight leading-[1.15] font-serif">
-            Check If Images, Videos, Audio, Messages, or Websites Are Real or Fake.
+            Review Image Evidence and Screen Suspicious Messages.
           </h1>
 
           <p className="text-base text-[#94a3b8] leading-relaxed max-w-xl">
-            With modern AI tools creating realistic fakes, anyone can be tricked. TrustNet helps you verify photos, videos, voices, messages, reviews, and web links in seconds with simple, clear results.
+            TrustNet estimates image manipulation and English SMS/email scam risk. Results have limited model coverage; sender identity and linked websites are not verified.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -125,7 +125,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#1e3a5f]">
             <div className="bg-[#111d38] border border-[#1e3a5f] rounded-xl p-4 shadow-sm">
               <div className="text-xl font-bold text-[#00b4d8]">Instant</div>
-              <div className="text-[#94a3b8] text-xs mt-0.5">Results in 1-2 seconds</div>
+              <div className="text-[#94a3b8] text-xs mt-0.5">Timing depends on available services</div>
             </div>
             <div className="bg-[#111d38] border border-[#1e3a5f] rounded-xl p-4 shadow-sm">
               <div className="text-xl font-bold text-[#10b981]">Simple</div>
@@ -149,7 +149,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
                 </span>
               </div>
               <span className="px-2.5 py-0.5 rounded-md bg-[#0b132b] text-[#00b4d8] border border-[#1e3a5f] font-bold text-[11px]">
-                Simple Results
+                Illustrative examples — not scan history
               </span>
             </div>
 
@@ -272,10 +272,10 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
             WHAT YOU CAN CHECK
           </span>
           <h2 className="text-3xl font-bold text-[#f8fafc] font-serif">
-            Detect Digital Deception Across 6 Categories
+            Available Assessments and Planned Modules
           </h2>
           <p className="text-sm text-[#94a3b8] max-w-2xl mt-1">
-            Whether you received an urgent text, a suspicious voice note, a photo that looks strange, or need to audit product reviews, TrustNet gives you an immediate answer.
+            Image and English SMS/email services are connected. Video, audio, website and review integrations remain unavailable.
           </p>
         </div>
 

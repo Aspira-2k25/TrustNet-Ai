@@ -125,7 +125,7 @@ class EfficientNetDetector(BaseDetector):
                 return str(vision_res["simple_explanation"]).strip()
 
             # 1. Deterministic metadata provenance
-            if meta_res.get("is_ai_signature_found"):
+            if meta_res.get("provenance_verified", False):
                 gen_name = meta_res.get("generator_name") or "AI Generative Model"
                 return f"AI generation confirmed: verified metadata signature and provenance markers from {gen_name} detected."
 
@@ -142,15 +142,15 @@ class EfficientNetDetector(BaseDetector):
             if verdict == "LIKELY_AI_MANIPULATED":
                 hf_risk = float(hf_res.get("hf_risk_score") or 0.0)
                 if has_face and (face_res.get("is_manipulated_face") or (hf_res.get("is_hf_applied") and hf_risk >= 70.0)):
-                    return "Face-swap deepfake or synthetic face detected: neural classification and facial boundary features confirm AI generation."
+                    return "Face-related features and available classifier outputs raise manipulation risk; they do not verify AI generation."
                 if has_face and physics_res.get("is_physics_violation"):
                     return "Manipulated facial composition: corneal specular reflections and eye lighting vectors are physically inconsistent with the scene."
                 if scene_type in ["anime_illustration", "digital_art"] or (not has_face and float(scene_res.get("scene_anomaly_score") or 0.0) >= 0.60):
-                    return "AI-generated image detected: latent diffusion rendering artifacts, synthetic tonal transitions, and non-camera sensor characteristics identified."
+                    return "Heuristic scene and texture signals raise manipulation risk; they do not identify a generator or verify AI authorship."
                 if strong_signals:
                     primary = str(strong_signals[0]).lower()
-                    return f"Synthetic manipulation detected: multi-frequency and sensor forensic checks identified {primary}."
-                return "AI-generated or manipulated image: neural classifiers and multi-frequency forensic scans indicate synthetic synthesis."
+                    return f"Heuristic image risk is elevated; reported signal: {primary}. This is not verified provenance."
+                return "Available image signals indicate possible manipulation. Review analyzer availability; this does not verify provenance."
 
             elif verdict == "UNCERTAIN":
                 return "Borderline forensic signals: subtle compression artifacts or conflicting evidence between neural models and physical sensors. Manual verification recommended."
@@ -158,15 +158,15 @@ class EfficientNetDetector(BaseDetector):
             else:  # AUTHENTIC or LIKELY_AUTHENTIC
                 if has_face:
                     face_cnt = face_res.get("face_count", 1)
-                    return f"Authentic human photograph verified: seamless facial boundary continuity across {face_cnt} face(s), natural optical lens characteristics, and consistent lighting."
+                    return f"Image consistent with human photography: seamless facial boundary continuity across {face_cnt} face(s), natural optical lens characteristics, and consistent lighting."
                 if scene_type in ["anime_illustration", "digital_art"]:
-                    return "Human-created digital artwork: consistent vector contours, intentional palette design, and absence of latent diffusion blending artifacts."
+                    return "Illustration-related features were observed. Low manipulation signal cannot establish human or AI authorship."
                 if scene_type == "nature_landscape":
-                    return "Authentic natural landscape capture: realistic depth-of-field optical falloff and continuous sensor Bayer micro-structure verified."
-                return "Authentic camera photograph verified: natural optical lens properties, continuous sub-pixel sensor demosaicing, and uniform single-source compression."
+                    return "Landscape-related heuristic features were observed; source authenticity is not verified."
+                return "Low detected manipulation signal does not establish an authentic or unaltered camera capture."
         except Exception as synth_err:
             logger.warning(f"[EXPLANATION SYNTHESIS] Error generating explanation: {synth_err}")
-            return "Authentic camera photograph verified: natural optical lens properties, continuous sub-pixel sensor demosaicing, and uniform single-source compression."
+            return "Explanation unavailable; inspect the recorded result and analyzer availability."
 
     def predict(
         self,
@@ -466,7 +466,7 @@ class EfficientNetDetector(BaseDetector):
 
             strong_domain_count = len(strong_domains)
             strong_signal_count = len(strong_signals)
-            if meta_res.get("is_ai_signature_found"):
+            if meta_res.get("provenance_verified", False):
                 strong_signal_count += 3
                 strong_domains.add("provenance_metadata")
                 strong_domain_count += 2
@@ -503,7 +503,7 @@ class EfficientNetDetector(BaseDetector):
             is_contradiction = False
 
             # 1. Immediate override for deterministic AI provenance markers (ChatGPT / DALL-E / Midjourney / prompts in metadata)
-            if meta_res.get("is_ai_signature_found"):
+            if meta_res.get("provenance_verified", False):
                 weighted_anomaly = max(0.96, weighted_anomaly)
                 is_contradiction = False
             else:
@@ -640,7 +640,7 @@ class EfficientNetDetector(BaseDetector):
             why_reasons: List[str] = []
 
             # 1. Deterministic AI Provenance Flag (Top priority)
-            if meta_res.get("is_ai_signature_found"):
+            if meta_res.get("provenance_verified", False):
                 why_reasons.append(f"Deterministic AI generator signature detected ({meta_res.get('generator_name')}).")
 
             # 2. Deterministic Covert Steganography Flag
@@ -658,7 +658,7 @@ class EfficientNetDetector(BaseDetector):
                 elif vision_res.get("observations"):
                     why_reasons.append(f"Visual reasoning: {vision_res['observations'][0]}")
             elif vision_res.get("status") == "SKIPPED":
-                why_reasons.append("Fast Scan completed: physical forensics & neural ViT evaluated without vision model latency.")
+                why_reasons.append("Available image engines completed without optional vision reasoning; see actual classifier availability.")
             else:
                 why_reasons.append("Vision analysis unavailable. Result is based on available forensic checks.")
 
@@ -669,7 +669,7 @@ class EfficientNetDetector(BaseDetector):
                 elif hf_risk_val >= 70.0:
                     why_reasons.append(f"Vision Transformer AI model indicates high synthetic deepfake probability ({hf_risk_val:.1f}% risk).")
             elif not has_face and scene_res.get("scene_anomaly_score", 0.0) >= 0.60:
-                why_reasons.append(f"Generative AI synthesis detected: {scene_res.get('finding')}")
+                why_reasons.append(f"Scene heuristic observation: {scene_res.get('finding')}")
             elif is_digital_art and scene_res.get("scene_anomaly_score", 0.0) >= 0.60:
                 why_reasons.append(f"Scene analysis: {scene_res.get('finding')}")
 
@@ -810,7 +810,7 @@ class EfficientNetDetector(BaseDetector):
             # 8. Complete Analyzers Telemetry List
             analyzers = [
                 {
-                    "name": "EfficientNet-B0 Convolutional Backbone",
+                    "name": "ImageNet EfficientNet-B0 feature extractor",
                     "category": "primary_ml",
                     "status": "APPLIED",
                     "finding": f"Extracted 1280-dim convolutional spatial representations (variance: {feature_variance:.2f}). Deepfake head pending dedicated training."
@@ -926,7 +926,9 @@ class EfficientNetDetector(BaseDetector):
             metadata_payload = {
                 "scene_label": scene_label,
                 "generator_name": meta_res.get("generator_name") or meta_res.get("raw_software_tag"),
-                "ai_signature_found": bool(meta_res.get("is_ai_signature_found")),
+                "confidence_definition": "Heuristic signal agreement, not calibrated correctness probability",
+                "provenance_verified": False,
+                "ai_signature_found": bool(meta_res.get("provenance_verified", False)),
                 "exif_missing": bool(meta_res.get("is_exif_missing")),
                 "metadata_anomaly_score": float(meta_res.get("metadata_anomaly_score") or 0.0),
                 "metadata_finding": meta_res.get("finding"),
