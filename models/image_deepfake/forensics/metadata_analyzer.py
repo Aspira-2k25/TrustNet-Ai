@@ -85,6 +85,7 @@ class MetadataAnalyzer:
         """
         try:
             detected_signatures = []
+            filename_clues = []
             extracted_sources = []
             
             # 1. Filename Provenance Check
@@ -93,7 +94,7 @@ class MetadataAnalyzer:
                 for sig in self.AI_SOFTWARE_SIGNATURES:
                     sig_norm = " " + re.sub(r'[\s\-_,\.\(\)\[\]]+', ' ', sig.lower()) + " "
                     if sig_norm in norm_fn or (sig in filename.lower()):
-                        detected_signatures.append((sig, f"Filename ({filename})"))
+                        filename_clues.append((sig, "Filename"))
                         break
 
             # 2. Pillow Image Metadata Inspection (EXIF + PNG info + XMP)
@@ -153,16 +154,19 @@ class MetadataAnalyzer:
             if detected_signatures:
                 top_sig, source = detected_signatures[0]
                 generator_display = top_sig.replace("_", " ").title()
-                finding_msg = f"Deterministic AI Provenance Signature Found: {generator_display} (Source: {source})"
+                finding_msg = f"Unverified generator metadata clue: {generator_display} (Source: {source})"
                 
                 return {
-                    "is_ai_signature_found": True,
+                    "is_ai_signature_found": False,
+                    "has_unverified_generator_clue": True,
+                    "provenance_verified": False,
                     "is_exif_missing": not bool(exif_data),
-                    "metadata_anomaly_score": 1.0,
+                    "metadata_anomaly_score": 0.08,
                     "finding": finding_msg,
                     "raw_software_tag": software or creator_tool or top_sig,
                     "generator_name": generator_display,
                     "ai_tool": generator_display,
+                    "filename_clues": filename_clues,
                     "detected_signatures": [f"{s} ({src})" for s, src in detected_signatures]
                 }
 
@@ -174,7 +178,7 @@ class MetadataAnalyzer:
                     "is_ai_signature_found": False,
                     "is_exif_missing": False,
                     "metadata_anomaly_score": 0.0,
-                    "finding": f"Authentic camera hardware metadata detected ({make} {model}).".strip(),
+                    "finding": f"Editable camera hardware metadata present ({make} {model}).".strip(),
                     "raw_software_tag": software or f"{make} {model}",
                     "generator_name": None,
                     "ai_tool": None
@@ -185,7 +189,7 @@ class MetadataAnalyzer:
                     "is_ai_signature_found": False,
                     "is_exif_missing": True,
                     "metadata_anomaly_score": 0.05,
-                    "finding": "Standard sanitized metadata surface (no external AI generation markers).",
+                    "finding": "No embedded generator markers; provenance is unverified.",
                     "raw_software_tag": None,
                     "generator_name": None,
                     "ai_tool": None
@@ -195,7 +199,7 @@ class MetadataAnalyzer:
                 "is_ai_signature_found": False,
                 "is_exif_missing": False,
                 "metadata_anomaly_score": 0.08,
-                "finding": "Basic metadata headers verified (no AI generator footprints detected).",
+                "finding": "Basic metadata headers present (no AI generator footprints detected).",
                 "raw_software_tag": software,
                 "generator_name": None,
                 "ai_tool": None

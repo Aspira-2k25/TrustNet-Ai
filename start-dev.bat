@@ -1,41 +1,39 @@
 @echo off
-echo =======================================================
-echo          TrustNet AI - Local Development Launcher
-echo =======================================================
-echo.
-set ENVIRONMENT=dev
-set ALLOW_MOCK_AUTH=true
-
-REM Check Python virtual environment
-if not exist ".venv" (
-    echo [ERROR] Virtual environment .venv not found.
-    echo Please create it first: python -m venv .venv
-    echo Then run: .venv\Scripts\activate ^&^& pip install -e shared/
-    pause
+setlocal
+cd /d "%~dp0"
+echo TrustNet AI - Full local launcher
+if not exist ".venv\Scripts\python.exe" (
+    echo [ERROR] Existing image .venv missing. Restore your image environment first.
     exit /b 1
 )
-
-echo [1/3] Checking Apache Kafka 3.7 (Docker)...
-docker info >nul 2>&1
-if %ERRORLEVEL% EQU 0 (
-    docker compose up -d kafka
-) else (
-    echo [NOTE] Docker is offline; microservices will run in standalone REST mode.
+if not exist ".venv-scam\Scripts\python.exe" (
+    echo [ERROR] Scam environment missing. Run install-scam.ps1 first.
+    exit /b 1
 )
-
-echo [2/3] Launching backend microservices in separate windows...
-start "API Gateway (8000)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn gateway.app.main:app --port 8000 --reload --reload-dir "%~dp0.""
-start "Auth Service (8001)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.auth.app.main:app --port 8001 --reload --reload-dir "%~dp0.""
-start "Scan Management (8002)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.scan_management.app.main:app --port 8002 --reload --reload-dir "%~dp0.""
-start "Image Deepfake Worker (8003)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.image_deepfake.app.main:app --port 8003 --reload --reload-dir "%~dp0.""
-start "Trust Engine (8004)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.trust_engine.app.main:app --port 8004 --reload --reload-dir "%~dp0.""
-
-echo [3/3] Launching React Frontend (5173)...
-start "React Frontend (5173)" cmd /k "cd frontend && npm run dev"
-
+if not exist "frontend\node_modules\.bin\vite.cmd" (
+    echo [ERROR] Run npm ci in frontend first.
+    exit /b 1
+)
+REM Check all ports before launching; never kill unrelated processes.
+powershell -NoProfile -Command "$ports = @(8000,8001,8002,8003,8004,8005,5173); $busy = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports }; if ($busy) { Write-Host ('[ERROR] Ports already in use: ' + (($busy.LocalPort | Sort-Object -Unique) -join ', ')); Write-Host '[TIP] Run .\stop-dev.bat to stop existing background services, then re-run start-dev.bat.'; exit 1 }"
+if errorlevel 1 exit /b 1
+REM Normal synchronous website scans do not require Docker/Kafka.
+REM Preserve .env, databases and the original image environment.
+set KAFKA_ENABLED=false
+set ENABLE_KAFKA_CONSUMER=false
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start-scam.ps1"
+if errorlevel 1 (
+    echo [ERROR] Backend readiness failed. Inspect runtime-logs.
+    exit /b 1
+)
+start "Image Deepfake API (8003)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.image_deepfake.app.main:app --host 127.0.0.1 --port 8003"
+start "Trust Engine (8004)" cmd /k ""%~dp0.venv\Scripts\python.exe" -m uvicorn services.trust_engine.app.main:app --host 127.0.0.1 --port 8004"
+start "React Frontend (5173)" cmd /k "cd /d "%~dp0frontend" && npm run dev"
 echo.
-echo =======================================================
-echo  All services launched!
-echo  - Frontend: http://localhost:5173
-echo  - API Gateway: http://localhost:8000/docs
-echo =======================================================
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\check-full-startup.ps1"
+if errorlevel 1 exit /b 1
+echo Website: http://localhost:5173
+echo Check their terminal output for startup errors.
+echo To stop all services cleanly anytime, run: stop-dev.bat
+endlocal
+

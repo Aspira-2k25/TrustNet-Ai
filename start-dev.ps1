@@ -18,19 +18,25 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "[NOTE] Docker is offline; microservices will run in standalone REST mode." -ForegroundColor Yellow
 }
 
-Write-Host "[2/3] Launching backend microservices in separate windows..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn gateway.app.main:app --port 8000 --reload"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.auth.app.main:app --port 8001 --reload"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.scan_management.app.main:app --port 8002 --reload"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.image_deepfake.app.main:app --port 8003 --reload"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.trust_engine.app.main:app --port 8004 --reload"
+Write-Host "[2/3] Starting backend processes..." -ForegroundColor Green
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn gateway.app.main:app --port 8000 --reload"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.auth.app.main:app --port 8001 --reload"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.scan_management.app.main:app --port 8002 --reload"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.image_deepfake.app.main:app --port 8003 --reload"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.trust_engine.app.main:app --port 8004 --reload"
 
+$scamPython = Join-Path $PWD '.venv-scam/Scripts/python.exe'
+if (Test-Path -LiteralPath $scamPython) {
+    Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$scamPython' -m uvicorn services.scam_message.app.main:app --port 8005"
+} else {
+    Write-Host "Scam service not started: install its separate environment per services/scam_message/README.md." -ForegroundColor Yellow
+}
 Write-Host "[3/3] Launching React Frontend (5173)..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD\frontend'; npm run dev"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD\frontend'; npm run dev"
 
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Cyan
-Write-Host " All services launched!" -ForegroundColor Green
+Write-Host " Launch commands issued; check service health before use." -ForegroundColor Green
 Write-Host " - Frontend UI:   http://localhost:5173" -ForegroundColor White
 Write-Host " - API Gateway:   http://localhost:8000/docs" -ForegroundColor White
 Write-Host " - Auth Swagger:  http://localhost:8001/docs" -ForegroundColor White

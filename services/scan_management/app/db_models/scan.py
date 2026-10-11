@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, Integer, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from services.scan_management.app.database.session import Base
 from shared.constants.status import StatusEnum
@@ -61,3 +61,8 @@ class Scan(Base):
 
     def __repr__(self) -> str:
         return f"<Scan id={self.id} user={self.user_id} type={self.content_type} status={self.status}>"
+
+class ScanAssessment(Base):
+    __tablename__ = "scan_assessments"
+    scan_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    assessment: Mapped[dict] = mapped_column(JSON, nullable=False)

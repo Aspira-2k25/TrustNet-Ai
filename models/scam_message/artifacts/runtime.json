@@ -1,0 +1,13 @@
+{
+  "labels": [
+    "ham",
+    "smishing",
+    "spam"
+  ],
+  "temperature": 1.39145549315623,
+  "threshold": 0.45000000000000007,
+  "max_characters": 10000,
+  "window_tokens": 384,
+  "window_stride": 64,
+  "occlusion_budget_seconds": 3
+}

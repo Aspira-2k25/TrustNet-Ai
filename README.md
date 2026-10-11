@@ -1,4 +1,54 @@
+# Run TrustNet AI on Windows
+
+## Your existing PC: one command
+
+Open PowerShell in the main repository folder (the folder containing `start-dev.bat`):
+
+```powershell
+cd "C:\Users\Alok\Desktop\MY_PROEJCT\TrustNetAi\TrustNet-Ai"
+.\start-dev.bat
+```
+
+Wait for **All local service HTTP checks and real scam inference passed**. Then open http://localhost:5173 and register/sign in. Use Image for image uploads or SMS/Email for message scans. Saved results appear in History; reports support PDF download. You do not need to retrain, reinstall dependencies, or start each service manually every time.
+
+The BAT starts gateway (8000), auth (8001), scan/history (8002), image API (8003), trust engine (8004), scam model (8005), and website (5173). It keeps the existing image `.venv` and uses the separate `.venv-scam` for scam/auth/gateway. It preserves your `.env`, databases and image artifacts. Keep the three image/trust/frontend terminal windows open. Normal synchronous website scans need neither Docker/Kafka nor a Groq key. Queued asynchronous deployment is separate.
+
+**Stop:** press Ctrl+C in those three terminals, then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\stop-scam.ps1
+```
+
+**Verify again without restarting:**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check-full-startup.ps1
+```
+
+## First installation / teammate setup
+
+Use Python 3.11 (tested 3.11.9) and Node 24 (tested 24.13.0). Follow [TEAM_SETUP.md](TEAM_SETUP.md) for exact dependency, environment and model installation commands. Git alone does not include the selected transformer weight or virtual environments: obtain `TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip` from the owner and verify/install it using the documented installer. Teammates must separately provision the original image dependencies/model access; do not assume the owner's Hugging Face cache exists. A scam-only fresh installation can use the documented Portable mode.
+
+On this already configured PC, keep `.env` and both existing environments. If the launcher reports missing scam dependencies, run `powershell -ExecutionPolicy Bypass -File .\install-scam.ps1`. For missing frontend dependencies, run `npm ci` inside `frontend`, then return to the repository root. Do not overwrite the image environment with scam requirements.
+
+## If startup fails
+
+- **Port already in use:** an old service is still running. Stop its own terminal/launcher before retrying; do not run both launchers together.
+- **Backend readiness fails:** read `runtime-logs/*.err.log`. Verify model files using `.\.venv-scam\Scripts\python.exe .\verify-scam.py`.
+- **Image/trust/frontend fails:** read its visible terminal error. Other services may already be running; stop them before retrying.
+- **Image Hugging Face analyzer unavailable:** this owner machine has a pre-existing Windows Application Control block on the `_regex` DLL. Service health and other image forensics can work while HF inference remains unavailable. This is unresolved; the launcher does not bypass Windows security or replace the image model. Do not treat an unavailable analyzer as a successful HF assessment.
+
+## Gmail extension (one-time)
+
+Open `chrome://extensions` or `edge://extensions`, enable Developer mode, choose Load unpacked, and select this repository's `extensions/trustnet-mail` folder. In extension Options connect to `http://localhost:8000` using your **TrustNet account**, reload Gmail, open/expand one email, and click TrustNet Scan. Reconnect after token expiry/browser restart. Keep the backend running. Live Gmail installation remains user-dependent and unverified; fixture/API integration was tested. Outlook uses manual website paste.
+
+The following sections contain the original architecture/reference documentation. Use the Windows commands and tested versions above and in TEAM_SETUP for current startup.
+
+---
+
 # Trust Net (TrustNet AI)
+
+For the scam module, start with [TEAM_SETUP.md](TEAM_SETUP.md). It includes the separate checksummed selected-model package, exact Windows startup/smoke commands, email/Gmail extension setup and limitations. Current measured before/after results and verification are in [the continuation handoff](docs/SCAM_CONTINUATION_HANDOFF.md).
 
 Trust Net is a multi-service forensic platform for media authenticity analysis and synthetic content detection. It combines a React 19 security workstation frontend, a FastAPI reverse proxy API gateway, microservice workers, and a physics-informed 15-analyzer image deepfake forensic pipeline.
 
@@ -225,7 +275,7 @@ Run each in separate terminal windows with `.venv` active:
 
 ## Automated Test Suite
 
-TrustNet AI maintains 100% test coverage across shared libraries, ML models, microservices, security boundaries, and end-to-end pipelines.
+Test results vary with model availability and intended behavior changes. No measured coverage percentage is established; see scam/qa in the sibling research workspace and services/scam_message/README.md for this implementation handoff.
 
 Run the complete test suite:
 ```bash
@@ -260,3 +310,8 @@ python -m pytest tests/e2e -v                        # End-to-end multimodal pip
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) - Full system topology & Kafka event flows.
 - [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) - Active status & module audit matrix.
 - [`docs/FILE_STRUCTURE.md`](docs/FILE_STRUCTURE.md) - Repository structure & placement rules.
+
+## Scam message runtime update
+
+See [Scam service setup](services/scam_message/README.md) and [selected model card](models/scam_message/README.md). Docker Compose currently starts infrastructure only; it does not start FastAPI services or the frontend. The image Hugging Face model is preserved.
+

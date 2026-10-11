@@ -113,31 +113,9 @@ class ImageDeepfakeWorker:
 
         return completed_event
 
-    def publish_completed(self, event: DetectorCompletedEvent) -> bool:
-        """
-        Publishes a DetectorCompletedEvent to Kafka topic `detector.image.completed`.
-        """
-        topic = Topics.DETECTOR_IMAGE_COMPLETED
-        scan_id = event.payload.scan_id
-        payload_dict = event.model_dump(mode="json")
-
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running() and self._producer:
-                loop.create_task(
-                    self._producer.send_and_wait(
-                        topic,
-                        key=scan_id,
-                        value=payload_dict
-                    )
-                )
-        except Exception as e:
-            logger.debug(f"Async Kafka send deferred: {str(e)}", extra={"scan_id": scan_id, "request_id": ""})
-
-        logger.info(
-            f"Published DetectorCompletedEvent to Kafka topic '{topic}' (scan_id: {scan_id})",
-            extra={"scan_id": scan_id, "request_id": ""}
-        )
+    async def publish_completed(self, event):
+        from shared.kafka.reliable_worker import send_bounded
+        await send_bounded(self._producer, Topics.DETECTOR_IMAGE_COMPLETED, event.payload.scan_id, event.model_dump(mode="json"))
         return True
 
     def handle_message(self, message_body: bytes) -> Optional[DetectorCompletedEvent]:
@@ -148,7 +126,7 @@ class ImageDeepfakeWorker:
             data = json.loads(message_body.decode("utf-8"))
             event = DetectionRequestedEvent.model_validate(data)
             completed_event = self.process_request(event)
-            self.publish_completed(completed_event)
+            # Parsing/inference only. Reliable consumer owns awaited publication.
             return completed_event
         except Exception as e:
             logger.error(f"Failed to handle image detection message: {str(e)}", extra={"scan_id": "", "request_id": ""})

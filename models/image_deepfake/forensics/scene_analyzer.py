@@ -120,7 +120,7 @@ class SceneContextAnalyzer:
                 line_variance = float(np.std(edge_mag))
                 is_ai_melt = line_variance < 8.0 or line_variance > 88.0
                 scene_anomaly_score = 0.75 if is_ai_melt else 0.12
-                finding = "Geometric perspective lines and structural vanishing symmetry verified." if not is_ai_melt else "Structural warping and perspective distortion anomalies detected in architectural lines."
+                finding = "Geometry-related proxy measurements fall within the configured heuristic range; perspective is not verified." if not is_ai_melt else "Structural warping and perspective distortion anomalies detected in architectural lines."
 
             elif scene_type == "anime_illustration":
                 # AI-generated anime (DALL-E, Midjourney, NovelAI) typically outputs continuous
@@ -130,14 +130,14 @@ class SceneContextAnalyzer:
                 color_entropy = float(np.std(saturation))
                 is_ai_art = (flat_noise > 16.0) or (color_entropy > 0.22) or (avg_saturation > 0.48 and not is_very_limited_palette)
                 scene_anomaly_score = 0.70 if is_ai_art else 0.25
-                finding = "Latent diffusion gradient blending and synthetic character line rendering detected." if is_ai_art else "Hand-drawn / digital illustration style verified. Limited color palette and vector-like outlines consistent with human-created art."
+                finding = "Color/texture proxies raise a heuristic illustration anomaly; generator identity is unverified." if is_ai_art else "Limited-palette/outline features suggest illustration style; human or AI authorship is unverified."
 
             elif scene_type == "nature_landscape":
                 # In AI landscapes, foliage and water ripples have repeating diffusion seeds
                 texture_entropy = float(np.std(gray))
                 is_ai_nature = texture_entropy < 12.0 or texture_entropy > 75.0
                 scene_anomaly_score = 0.75 if is_ai_nature else 0.10
-                finding = "Repetitive texture patterns and unnatural focal plane transitions detected in foliage/ripples." if is_ai_nature else "Organic fractal complexity and natural optical depth-of-field confirmed."
+                finding = "Repetitive texture patterns and unnatural focal plane transitions detected in foliage/ripples." if is_ai_nature else "Texture variation falls within the configured landscape heuristic range; capture provenance is unverified."
 
             elif scene_type == "photograph_portrait":
                 # Quantitative skin-region texture entropy and micro-pore variance
@@ -151,11 +151,11 @@ class SceneContextAnalyzer:
                     finding = (
                         "Unusually smooth texture or high noise grain observed in portrait skin region."
                         if is_suspicious_skin else
-                        "Natural photographic human subject, skin texture entropy, and optical lens characteristics verified."
+                        "Portrait texture proxies fall within the configured heuristic range; capture provenance is unverified."
                     )
                 else:
                     scene_anomaly_score = 0.08
-                    finding = "Natural photographic human subject and optical lens characteristics verified."
+                    finding = "Portrait-like features observed; capture provenance is unverified."
 
             else:
                 # General Media / Animal / Object / Synthetic Scene
@@ -185,10 +185,10 @@ class SceneContextAnalyzer:
 
                 if is_generative_synthesis:
                     scene_anomaly_score = 0.74
-                    finding = "Latent diffusion rendering characteristics detected: synthetic micro-contrast, hyper-stylized tonal saturation, and non-optical depth-of-field transitions."
+                    finding = "Saturation/texture-contrast proxies raise a heuristic anomaly; this does not establish latent diffusion generation."
                 else:
                     scene_anomaly_score = 0.15
-                    finding = f"Semantic scene classified as {scene_label}."
+                    finding = f"Scene heuristic suggests {scene_label}."
 
             return {
                 "scene_type": scene_type,

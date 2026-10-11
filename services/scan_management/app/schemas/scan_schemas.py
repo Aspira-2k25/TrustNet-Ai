@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
+from shared.schemas.message_input import MessageInput
 
-class ScanCreateTextRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=10000, description="The raw message or review text to scan")
+class ScanCreateTextRequest(MessageInput):
+    pass
 
 class ScanCreateURLRequest(BaseModel):
     url: str = Field(..., min_length=4, max_length=2048, description="The URL to scan for phishing")
@@ -18,6 +19,10 @@ class ScanResponse(BaseModel):
     file_size_bytes: Optional[int] = None
     created_at: str
     updated_at: str
+    result: Optional[Dict[str, Any]] = None
+    trust_score: Optional[Dict[str, Any]] = None
+    dimensions: Optional[Dict[str, int]] = None
+    mime_type: Optional[str] = None
 
 class ScanListResponse(BaseModel):
     scans: List[ScanResponse]

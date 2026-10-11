@@ -2,6 +2,7 @@ import io
 import os
 import uuid
 from typing import Optional
+from services.image_deepfake.app.config.settings import settings
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
 from pydantic import BaseModel
 from PIL import Image as PILImage
@@ -34,10 +35,10 @@ async def detect_image_file(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"code": "EMPTY_FILE", "message": "Uploaded file is empty"}
         )
-    if len(image_bytes) > 15 * 1024 * 1024:
+    if len(image_bytes) > settings.MAX_IMAGE_SIZE_MB * 1024 * 1024:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail={"code": "FILE_TOO_LARGE", "message": "File exceeds maximum allowed size of 15MB"}
+            detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
         )
     try:
         img_check = PILImage.open(io.BytesIO(image_bytes))

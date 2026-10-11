@@ -110,15 +110,15 @@ class GradCAM:
         else:
             region_desc = "central facial features (eyes / nose / mouth)"
 
-        contribution = min(1.0, max(0.0, risk_score / 100.0))
+        contribution = 0.0  # No measured contribution to fused risk.
         
         item = EvidenceItem(
             feature_or_region=f"visual_saliency_heatmap ({region_desc})",
             contribution=contribution,
             human_readable_note=(
-                f"Grad-CAM visual saliency concentrated in {region_desc} "
+                f"ImageNet top-class Grad-CAM (not fused deepfake attribution) concentrated in {region_desc} "
                 f"(peak intensity: {peak_intensity:.2f}, spatial mean: {mean_intensity:.2f}). "
-                f"High-frequency compression or blending artifacts detected."
+                f"This visualization explains an ImageNet class activation; it does not detect blending or explain fused risk."
             )
         )
         return [item]

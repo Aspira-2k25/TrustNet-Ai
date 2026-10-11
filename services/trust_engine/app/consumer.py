@@ -50,7 +50,7 @@ class TrustEngineConsumerThread(threading.Thread):
                     bootstrap_servers=self.bootstrap_servers,
                     group_id=self.group_id,
                     auto_offset_reset="earliest",
-                    enable_auto_commit=True,
+                    enable_auto_commit=False,
                     request_timeout_ms=5000
                 )
                 producer = AIOKafkaProducer(
@@ -68,7 +68,17 @@ class TrustEngineConsumerThread(threading.Thread):
                         msg_batch = await asyncio.wait_for(consumer.getmany(timeout_ms=1000, max_records=10), timeout=2.0)
                         for tp, messages in msg_batch.items():
                             for msg in messages:
-                                await self._handle_message(msg.value, producer)
+                                from shared.kafka.reliable_worker import send_bounded
+                                from shared.constants.topics import get_dlq_topic
+                                try:
+                                    event = DetectorCompletedEvent.model_validate_json(msg.value)
+                                    if msg.key != event.payload.scan_id.encode() or msg.topic != "detector." + event.payload.module.value + ".completed":
+                                        raise ValueError("Invalid association")
+                                    await self._handle_message(msg.value, producer)
+                                except ValueError:
+                                    await send_bounded(producer, get_dlq_topic(msg.topic), None, {"error":"INVALID_COMPLETION","partition":msg.partition,"offset":msg.offset})
+                                from aiokafka.structs import OffsetAndMetadata
+                                await consumer.commit({tp:OffsetAndMetadata(msg.offset+1, "")})
                     except asyncio.TimeoutError:
                         continue
                     except Exception as err:
@@ -100,22 +110,32 @@ class TrustEngineConsumerThread(threading.Thread):
 
             if scan_id not in self._scan_buffer:
                 self._scan_buffer[scan_id] = []
-            self._scan_buffer[scan_id].append(event.payload)
+            prior = self._scan_buffer[scan_id]
+            same_module = [r for r in prior if r.module == event.payload.module]
+            if same_module:
+                if same_module[0].model_dump() != event.payload.model_dump():
+                    raise ValueError("Conflicting duplicate report")
+            else:
+                prior.append(event.payload)
 
             # Fuse available reports for this scan
             fused = fusion_engine.fuse(self._scan_buffer[scan_id], scan_id=scan_id)
             score_repo.save(fused)
 
             # Publish trust_score.generated
+            from shared.kafka.reliable_worker import send_bounded
+            if producer is None:
+                raise RuntimeError("Completion publication unavailable")
             if producer:
-                await producer.send_and_wait(
+                await send_bounded(producer,
                     Topics.TRUST_SCORE_GENERATED,
-                    key=scan_id,
-                    value=fused.model_dump(mode="json")
+                    scan_id,
+                    fused.model_dump(mode="json")
                 )
-            logger.info(f"Fused Trust Score generated for scan {scan_id}: {fused.trust_risk_score:.1f}", extra={"scan_id": scan_id, "request_id": ""})
+            logger.info(f"Fused assessment generated for scan {scan_id}: {fused.risk_level.value}", extra={"scan_id": scan_id, "request_id": ""})
         except Exception as e:
-            logger.error(f"Failed to process detector completed message: {str(e)}", extra={"scan_id": "", "request_id": ""})
+            logger.error("Failed to process detector completion", extra={"scan_id": "", "request_id": ""})
+            raise
 
     def stop(self):
         logger.info("Stopping Trust Engine Kafka Consumer thread...", extra={"scan_id": "", "request_id": ""})

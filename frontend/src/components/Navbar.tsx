@@ -12,7 +12,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, user, onLogout }) => {
   const navItems: { label: string; tab: 'landing' | 'scan' | 'dashboard' }[] = [
     { label: 'Home', tab: 'landing' },
-    { label: 'Threat Scanner (All 6 Types)', tab: 'scan' },
+    { label: 'Threat Scanner', tab: 'scan' },
     { label: 'Scan History', tab: 'dashboard' },
   ];
 

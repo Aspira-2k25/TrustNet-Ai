@@ -220,3 +220,7 @@ TrustNet-Ai/models/image_deepfake/
   ]
 }
 ```
+
+## Runtime role and validation clarification (2026-10-11)
+
+EfficientNet loads default ImageNet weights as a feature extractor; the learned deepfake classifier is the existing Hugging Face ViT. EfficientNet Grad-CAM explains an ImageNet top class, never the fused deepfake verdict. Browser maps are pixel-gradient diagnostics. Editable filenames/software/C2PA substrings are unverified context. No C2PA cryptographic verifier is implemented. Image confidence is heuristic signal agreement, not empirical correctness probability. No new image training or labelled accuracy evaluation was performed.

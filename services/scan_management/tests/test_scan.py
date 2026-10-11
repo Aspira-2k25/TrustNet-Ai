@@ -2,6 +2,8 @@ import pytest
 import io
 import uuid
 import httpx
+from unittest.mock import AsyncMock
+from services.scan_management.app.core.broker import publisher
 from PIL import Image
 from services.scan_management.app.main import app
 from services.scan_management.app.database.session import init_db
@@ -13,6 +15,13 @@ def anyio_backend():
 @pytest.fixture(autouse=True)
 async def setup_db():
     await init_db()
+
+@pytest.fixture(autouse=True)
+def acknowledged_unit_dispatch(monkeypatch):
+    # Unit dispatch seam only. Real Kafka verification is separate.
+    dispatch=AsyncMock(return_value=True)
+    monkeypatch.setattr(publisher,'publish_detection_requested',dispatch)
+    return dispatch
 
 @pytest.fixture
 async def client():
@@ -40,6 +49,8 @@ async def test_upload_image_scan_success(client):
     body = response.json()
     assert body["error"] is None
     assert body["data"]["content_type"] == "image"
+    assert body["data"]["status"] == "QUEUED"
+    assert body["data"]["result"] is None
     assert body["data"]["media_storage_key"].startswith("quarantine/image/")
     assert body["data"]["id"] is not None
 
@@ -80,6 +91,8 @@ async def test_create_text_scan_success(client):
     body = response.json()
     assert body["error"] is None
     assert body["data"]["content_type"] == "text"
+    assert body["data"]["status"] == "QUEUED"
+    assert body["data"]["result"] is None
     assert body["data"]["raw_input"] == payload["text"]
 
 @pytest.mark.anyio
@@ -93,6 +106,8 @@ async def test_create_url_scan_success(client):
     body = response.json()
     assert body["error"] is None
     assert body["data"]["content_type"] == "url"
+    assert body["data"]["status"] == "QUEUED"
+    assert body["data"]["result"] is None
     assert body["data"]["raw_input"] == payload["url"]
 
 @pytest.mark.anyio

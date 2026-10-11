@@ -1,6 +1,6 @@
-export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type ScanStatus = 'PENDING' | 'SUCCESS' | 'FAILED';
-export type ClassificationVerdict = 'AUTHENTIC' | 'LIKELY_AUTHENTIC' | 'UNCERTAIN' | 'LIKELY_AI_MANIPULATED' | 'SUSPICIOUS' | 'AI_GENERATED';
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
+export type ScanStatus = 'PENDING' | 'QUEUED' | 'PROCESSING' | 'PARTIAL_SUCCESS' | 'UNAVAILABLE' | 'TIMEOUT' | 'SUCCESS' | 'FAILED';
+export type ClassificationVerdict = 'AUTHENTIC' | 'LIKELY_AUTHENTIC' | 'UNCERTAIN' | 'LIKELY_AI_MANIPULATED' | 'SUSPICIOUS' | 'AI_GENERATED' | 'SMISHING_RISK' | 'SPAM_SCREENING' | 'LOW_SMISHING_SIGNAL' | 'UNKNOWN' | 'NO_STRONG_INDICATORS' | 'LIKELY_SCAM' | 'UNABLE_TO_ASSESS';
 
 export interface EvidenceItem {
   feature_or_region: string;
@@ -58,7 +58,7 @@ export interface DetectionResult {
 
 export interface TrustScoreResult {
   scan_id: string;
-  trust_risk_score: number; // 0.0 to 100.0
+  trust_risk_score: number | null; // 0.0 to 100.0
   risk_level: RiskLevel;
   reporting_modules: string[];
   module_scores: Record<string, number>;
@@ -78,6 +78,7 @@ export interface ScanRecord {
   user_id: string;
   status: ScanStatus;
   content_type: 'image' | 'video' | 'audio' | 'text' | 'url';
+  raw_input?: string;
   media_storage_key?: string;
   filename?: string;
   mime_type?: string;

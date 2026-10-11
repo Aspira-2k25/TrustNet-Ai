@@ -23,7 +23,8 @@ export const SpatialSaliencyViewer: React.FC<SpatialSaliencyViewerProps> = ({
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = imageUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80';
+    if (!imageUrl) return;
+    img.src = imageUrl;
 
     img.onload = () => {
       canvas.width = img.width;
@@ -244,7 +245,7 @@ export const SpatialSaliencyViewer: React.FC<SpatialSaliencyViewerProps> = ({
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
         <Info size={13} color="#94a3b8" />
-        <span>Scientific Note: This visualization computes true spatial derivative matrices. Deep neural backpropagated Grad-CAM is activated when fine-tuned deepfake weights are loaded.</span>
+        <span>This browser visualization shows pixel gradients. It is not neural Grad-CAM and does not explain the fused deepfake verdict.</span>
       </div>
     </div>
   );

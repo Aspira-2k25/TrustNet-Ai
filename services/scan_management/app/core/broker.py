@@ -18,6 +18,8 @@ class KafkaEventPublisher:
         self._producer: Optional[AIOKafkaProducer] = None
 
     async def start(self):
+        if not settings.KAFKA_ENABLED:
+            return
         try:
             self._producer = AIOKafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
@@ -29,6 +31,8 @@ class KafkaEventPublisher:
             logger.info("Kafka producer initialized successfully", extra={"scan_id": "", "request_id": ""})
         except Exception as e:
             logger.warning(f"Kafka producer could not connect to {self.bootstrap_servers} ({str(e)}). Running in fallback mode.", extra={"scan_id": "", "request_id": ""})
+            if self._producer:
+                await self._producer.stop()
             self._producer = None
 
     async def stop(self):
@@ -38,40 +42,21 @@ class KafkaEventPublisher:
             except Exception:
                 pass
 
-    def publish_detection_requested(
-        self,
-        event: DetectionRequestedEvent,
-        topic: Optional[str] = None,
-        routing_key: Optional[str] = None
-    ) -> bool:
-        """
-        Publishes DetectionRequestedEvent to Kafka topic keyed by scan_id.
-        Supports sync/async dispatch with fallback. Accepts topic or routing_key for compatibility.
-        """
-        target_topic = topic or routing_key or "detection.requested.image_deepfake"
-        payload_dict = event.model_dump(mode="json")
-        scan_id = event.scan_id
-
-        # If running within active event loop and producer is connected
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running() and self._producer:
-                loop.create_task(
-                    self._producer.send_and_wait(
-                        target_topic,
-                        key=scan_id,
-                        value=payload_dict
-                    )
-                )
-                logger.info(f"Published DetectionRequestedEvent to Kafka topic '{target_topic}'", extra={"scan_id": scan_id, "request_id": ""})
+    async def publish_detection_requested(self, event, topic=None, routing_key=None) -> bool:
+        from fastapi import HTTPException
+        if self._producer is None:
+            raise HTTPException(503, "Kafka unavailable; asynchronous dispatch not accepted")
+        target_topic = topic or routing_key
+        if not target_topic:
+            raise ValueError("Explicit canonical topic required")
+        for attempt in range(3):
+            try:
+                await asyncio.wait_for(self._producer.send_and_wait(target_topic, key=event.scan_id, value=event.model_dump(mode="json")), 5)
+                logger.info("Published scan=%s topic=%s", event.scan_id, target_topic)
                 return True
-        except Exception as e:
-            logger.debug(f"Async Kafka send deferred: {str(e)}", extra={"scan_id": scan_id, "request_id": ""})
-
-        logger.info(
-            f"Event dispatched (Kafka topic: '{target_topic}', key: '{scan_id}')",
-            extra={"scan_id": scan_id, "request_id": ""}
-        )
-        return True
+            except Exception:
+                if attempt == 2:
+                    raise HTTPException(503, "Kafka dispatch failed")
+                await asyncio.sleep(.25 * (attempt + 1))
 
 publisher = KafkaEventPublisher()
