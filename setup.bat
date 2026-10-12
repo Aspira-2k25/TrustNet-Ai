@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo =======================================================
-echo          TrustNet AI - Automated Setup Script
+echo          TrustNet AI - Automated Full Setup Script
 echo =======================================================
 
 echo [1/5] Checking Python and Node.js...
@@ -39,8 +39,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [4/5] Fixing line endings on model artifacts (CRLF to LF)...
-powershell -NoProfile -Command "Get-ChildItem -Path '%~dp0models\scam_message\artifacts\*' -File | ForEach-Object { $b = [System.IO.File]::ReadAllBytes($_.FullName); $text = [System.Text.Encoding]::UTF8.GetString($b); if ($text.Contains(\"`r`n\")) { $clean = $text.Replace(\"`r`n\", \"`n\"); [System.IO.File]::WriteAllBytes($_.FullName, [System.Text.Encoding]::UTF8.GetBytes($clean)); Write-Host ('Normalized ' + $_.Name) } }"
+echo [4/5] Checking model artifacts...
+if not exist "%~dp0models\scam_message\artifacts\model.safetensors" (
+    if exist "%~dp0exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip" (
+        echo [INFO] model.safetensors missing; extracting from exports ZIP...
+        "%~dp0.venv-scam\Scripts\python.exe" "%~dp0install-scam-model.py" --package "%~dp0exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip"
+    ) else (
+        echo [ERROR] model.safetensors is missing!
+        echo Please copy model.safetensors or the complete artifacts folder into:
+        echo   models\scam_message\artifacts\
+        exit /b 1
+    )
+)
+
+REM Ensure artifact text files use LF line endings (prevents Windows CRLF checksum error)
+powershell -NoProfile -Command "foreach ($f in @('vocab.txt','tokenizer.json','tokenizer_config.json','config.json','special_tokens_map.json')) { $p = Join-Path '%~dp0models\scam_message\artifacts' $f; if (Test-Path $p) { $b = [System.IO.File]::ReadAllBytes($p); $t = [System.Text.Encoding]::UTF8.GetString($b); if ($t.Contains(\"`r`n\")) { [System.IO.File]::WriteAllBytes($p, [System.Text.Encoding]::UTF8.GetBytes($t.Replace(\"`r`n\", \"`n\"))) } } }"
 
 echo [5/5] Installing Frontend dependencies...
 cd /d "%~dp0frontend"

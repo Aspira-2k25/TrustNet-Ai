@@ -1,91 +1,108 @@
-# TrustNet AI — Team Setup Guide 🚀
+# TrustNet AI — Teammate Setup Guide 🚀
 
 Yeh guide teammates ke liye hai taaki bina kisi error ke project setup aur run ho sake.
 
 ---
 
-## 📌 Prerequisites (Pehle Yeh Install Karein)
+## 📌 Prerequisites (Zaroori Software)
 
-1. **Python 3.11**: [Download Python 3.11](https://www.python.org/downloads/)
-   > ⚠️ **Important**: Installation ke time par **"Add python.exe to PATH"** checkbox zaroor tick karein!
+Setup shuru karne se pehle ensure karein ki yeh installed hain:
+1. **Python 3.11**: [Download Python 3.11](https://www.python.org/downloads/)  
+   *(⚠️ Install karte waqt **"Add python.exe to PATH"** checkbox par zaroor tick karein)*
 2. **Node.js (v18 ya v20+)**: [Download Node.js](https://nodejs.org/)
 3. **Git**: [Download Git](https://git-scm.com/)
 
 ---
 
-## ⚡ Option A: Automatic 1-Click Setup (Recommended / Sabse Aasan)
+## 📂 Model / Artifacts File Kahaan Rakhna Hai?
 
-Terminal ya Command Prompt kholein project root folder mein aur sirf yeh ek command run karein:
+Agar aapke paas **`model.safetensors`** file ya poora **`artifacts`** folder hai:
 
+1. Repo ke andar is location par jayein:
+   ```
+   models\scam_message\artifacts\
+   ```
+2. **`model.safetensors`** file ko is folder ke andar paste karein.
+   *(Agar poora `artifacts` folder mila hai, toh uske andar ki saari files is folder mein paste karein).*
+
+Iske baad neeche diye gaye setup steps follow karein.
+
+---
+
+## 🎯 Case 1: Jinke Paas Image Setup Already Hai (Sirf Scam Module Setup Chahiye)
+
+> 💡 **Fayda:** Is process se aapka **existing image environment (`.venv`) bilkul touch nahi hoga** aur safe rahega.
+
+### ⚡ 1-Click Setup (Sabse Simple):
+Terminal / CMD mein yeh run karein:
+```cmd
+.\setup-scam.bat
+```
+
+Yeh script automatically:
+- Dedicated `.venv-scam` environment banata hai
+- PyTorch CPU aur scam dependencies install karta hai
+- `model.safetensors` check karta hai (agar missing ho toh zip se auto-extract kar leta hai)
+- Windows line endings (CRLF to LF) automatically theek karta hai
+- Model integrity verify karta hai
+
+---
+
+### 🛠️ Ya Manual Step-by-Step Commands:
+Agar aapko manual commands run karni hain:
+
+```powershell
+# 1. PowerShell me script execution allow karein
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# 2. Scam environment create aur install karein
+powershell -ExecutionPolicy Bypass -File .\install-scam.ps1
+
+# 3. Agar model.safetensors manually nahi dala, toh zip se unpack karein:
+py -3.11 .\install-scam-model.py --package exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip
+
+# 4. Model integrity verify karein
+.\.venv-scam\Scripts\python.exe verify-scam.py
+```
+> Screen par `"integrity": "PASS"` aate hi aapka Scam module 100% ready hai!
+
+---
+
+## 🌟 Case 2: Fresh Teammate (Full Setup - Image + Scam + Frontend)
+
+Agar kisi teammate ko scratch se poora project setup karna hai:
+
+### ⚡ 1-Click Setup:
 ```cmd
 .\setup.bat
 ```
 
-Yeh script automatically:
-- Dono Python virtual environments (`.venv` aur `.venv-scam`) banata hai
-- Compatible PyTorch CPU aur sari python dependencies install karta hai
-- Frontend dependencies (`npm install`) install karta hai
-- Model integrity check verify karta hai
-
-Setup complete hone ke baad direct **Project Start** section par jayein.
-
----
-
-## 🛠️ Option B: Step-by-Step Manual Setup
-
-Agar aap manual commands run karna chahte hain, toh neeche diye gaye steps follow karein:
-
-### Step 1: PowerShell Execution Policy Allow Karein
-Agar PowerShell script run karne par *“running scripts is disabled on this system”* error aaye, toh terminal me pehle yeh run karein:
-
+### 🛠️ Ya Manual Commands:
 ```powershell
+# 1. Permission allow karein
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
 
----
-
-### Step 2: Main Python Environment (`.venv`) Banayein
-
-```powershell
-# Virtual environment create karein
+# 2. Main image environment (.venv)
 python -m venv .venv
-
-# Sari microservice dependencies install karein
 .\install-deps.bat
-```
 
----
-
-### Step 3: Scam Detection Environment (`.venv-scam`) Banayein
-
-```powershell
+# 3. Scam module (.venv-scam)
 powershell -ExecutionPolicy Bypass -File .\install-scam.ps1
-```
 
----
-
-### Step 4: Frontend Dependencies Install Karein
-
-```powershell
+# 4. Frontend dependencies
 cd frontend
 npm install
 cd ..
-```
 
----
-
-### Step 5: Model Integrity Verify Karein
-
-```powershell
+# 5. Model integrity verify karein
 .\.venv-scam\Scripts\python.exe verify-scam.py
 ```
-> Screen par `"integrity": "PASS"` aana chahiye.
 
 ---
 
-## ▶️ Project Kaise Chalayein (Run the Project)
+## ▶️ Project Run Kaise Karein (Start All Services)
 
-Setup ho jane ke baad project start karne ke liye:
+Setup complete hone ke baad project start karne ke liye:
 
 ```cmd
 .\start-dev.bat
@@ -102,47 +119,33 @@ Command run hote hi sabhi microservices aur frontend start ho jayenge:
 
 ---
 
-## ⏹️ Project Kaise Band Karein (Stop Services)
+## ⏹️ Project Stop / Restart Kaise Karein
 
-Jab bhi project stop karna ho:
-
-```cmd
-.\stop-dev.bat
-```
-
-Yeh saare background services aur listening ports (8000–8005, 5173) cleanly band kar dega.
-
----
-
-## 🔄 Project Restart Karna Ho Toh:
-
-```cmd
-.\start-dev.bat --restart
-```
+- **Services Band Karne Ke Liye:**
+  ```cmd
+  .\stop-dev.bat
+  ```
+- **Clean Restart Karne Ke Liye:**
+  ```cmd
+  .\start-dev.bat --restart
+  ```
 
 ---
 
 ## ❓ Common Errors & Solutions
 
 ### Error 1: `running scripts is disabled on this system`
-**Karan:** Windows PowerShell default policy scripts block karti hai.  
-**Solution:** PowerShell me yeh run karein:
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
+- **Solution:** PowerShell me run karein:
+  ```powershell
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  ```
 
 ### Error 2: `Ports already in use: 8000, 8001...`
-**Karan:** Purane background processes abhi bhi chal rahe hain.  
-**Solution:**
-```cmd
-.\stop-dev.bat
-```
-Phir dubara `.\start-dev.bat` chalayein.
+- **Solution:** Purane background processes stop karne ke liye run karein:
+  ```cmd
+  .\stop-dev.bat
+  ```
+  Aur phir `.\start-dev.bat` chalayein.
 
 ### Error 3: `Scam artifact checksum mismatch`
-**Karan:** Windows Git ne clone karte waqt `vocab.txt` ya `tokenizer.json` ki line endings CRLF me convert kar di.  
-**Solution:**
-```powershell
-powershell -Command "Get-ChildItem -Path 'models\scam_message\artifacts\*' -File | ForEach-Object { $b = [System.IO.File]::ReadAllBytes($_.FullName); $text = [System.Text.Encoding]::UTF8.GetString($b); if ($text.Contains(\"`r`n\")) { $clean = $text.Replace(\"`r`n\", \"`n\"); [System.IO.File]::WriteAllBytes($_.FullName, [System.Text.Encoding]::UTF8.GetBytes($clean)); Write-Host ('Fixed: ' + $_.Name) } }"
-```
-Aur phir `.\.venv-scam\Scripts\python.exe verify-scam.py` run karein.
+- **Solution:** Sirf `.\setup-scam.bat` run kar dein. Yeh script automatically Windows ke line-ending issue ko resolve karke official package verify kar deta hai.

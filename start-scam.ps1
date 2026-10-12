@@ -4,7 +4,6 @@ $taskRoot = $PSScriptRoot
 $taskPython = Join-Path $taskRoot '.venv-scam\Scripts\python.exe'
 if (!(Test-Path -LiteralPath $taskPython)) { throw 'Run .\install-scam.ps1 first.' }
 if (!(Test-Path -LiteralPath (Join-Path $taskRoot '.env'))) {
-    if (!$Portable) { throw 'Configure .env from .env.example, using the same JWT secret as your existing TrustNet services.' }
     $taskSecret = & $taskPython -c 'import secrets; print(secrets.token_urlsafe(48))'
     @" 
 ENVIRONMENT=dev
