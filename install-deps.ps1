@@ -30,6 +30,9 @@ function Install-Requirements {
     }
 }
 
+Write-Host "[INSTALL] PyTorch CPU (official wheel)" -ForegroundColor Cyan
+& $python -m pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
+
 Install-Requirements -WorkingDirectory $repoRoot -Arguments @('-e', 'shared/') -Label 'shared editable package'
 Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\auth') -Arguments @('-r', 'requirements.txt') -Label 'services/auth'
 Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\scan_management') -Arguments @('-r', 'requirements.txt') -Label 'services/scan_management'
