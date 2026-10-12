@@ -2,8 +2,15 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = $PSScriptRoot
 $taskPython = Join-Path $taskRoot '.venv-scam\Scripts\python.exe'
 if (!(Test-Path -LiteralPath $taskPython)) {
-    & py -3.11 -m venv (Join-Path $taskRoot '.venv-scam')
-    if ($LASTEXITCODE -ne 0) { throw 'Install Python 3.11 with the Windows launcher first.' }
+    $created = $false
+    try {
+        & py -3.11 -m venv (Join-Path $taskRoot '.venv-scam')
+        if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $taskPython)) { $created = $true }
+    } catch {}
+    if (-not $created) {
+        & python -m venv (Join-Path $taskRoot '.venv-scam')
+    }
+    if (!(Test-Path -LiteralPath $taskPython)) { throw 'Failed to create .venv-scam. Install Python 3.11 and ensure it is in PATH.' }
 }
 & $taskPython -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 if ($LASTEXITCODE -ne 0) { throw 'CPU PyTorch installation failed.' }
