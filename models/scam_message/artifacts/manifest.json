@@ -1,0 +1,2543 @@
+{
+  "engine": "distilbert_hybrid",
+  "model_version": "message-distilbert-lexical-links-hybrid-4",
+  "detector_id": "scam_message.distilbert-lexical-links.v4",
+  "preprocessing_version": "unicode-window384-stride64-tfidf-url14.v4",
+  "task": "ham / phishing-smishing-fraud / unsolicited spam; legacy positive class name smishing is retained for schema compatibility. No sender/authorship claim.",
+  "evaluated_domains": [
+    "English SMS",
+    "English email"
+  ],
+  "evaluation_scope": "Limited source-labelled collections, not modern inbox or universal safety",
+  "pretrained_source": {
+    "model": "distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "revision": "714eb0fa89d2f80546fda750413ed43d93601a13",
+    "license": "Apache-2.0",
+    "model_card": "https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+    "initialization": "Existing SST2 checkpoint; new three-class head; all layers fine-tuned locally"
+  },
+  "training_sources": [
+    {
+      "authors": "Sandhya Mishra; Devpriya Soni (2022)",
+      "doi": "10.17632/f45bkkt8pr.1",
+      "license": "CC BY 4.0",
+      "retrieved_via": "PhishNet author research repository original unmodified Dataset1; Mendeley download challenged; archive checksum unavailable",
+      "csv_sha256": "649844f1c62a6b27e145eaf17a65f7010c56c390e11a794ea8329993a05ba71e",
+      "repository_revision": "cab60bbec804f2719c9b603d6555a55d6ad6d70a"
+    },
+    {
+      "authors": "Agarwal, Papasavva, Suarez-Tangil, Vasek (2025)",
+      "doi": "10.1145/3730567.3764431",
+      "license": "CC BY 4.0",
+      "source": "IMC25 reportsmishing; English source-labelled fraud; collection-specific URL placeholders"
+    },
+    {
+      "authors": "Jose Nazario",
+      "source": "https://monkey.org/~jose/phishing/phishing-2024",
+      "license": "CC BY 4.0",
+      "limitations": "Hand-classified personal-inbox corpus, possible label errors; raw mail not distributed"
+    },
+    {
+      "authors": "SpamAssassin public corpus contributors",
+      "source": "https://spamassassin.apache.org/old/publiccorpus/readme.html",
+      "license": "Original senders retain copyright; publicly provided for spam-filter development/research, no blanket CC grant",
+      "labels": "easy_ham remains ham; spam_2 remains spam, never automatically fraud",
+      "distribution": "No raw emails included in runtime or model archive"
+    },
+    {
+      "authors": "SpamAssassin public corpus contributors",
+      "source": "https://spamassassin.apache.org/old/publiccorpus/",
+      "corpora": "easy_ham_2 and spam_2002 for corrective development; original labels retained",
+      "license": "Original senders retain copyright; public spam-filter development/research corpus, no blanket CC grant",
+      "distribution": "No raw email distributed"
+    }
+  ],
+  "training": {
+    "seed": 1729,
+    "reason": "V3 domain-adapted model falsely classified OTP confidentiality/receipt and warning content. Lexical-only correction still failed an explicit model-probability gate; refinement is necessary, not a marginal new experiment.",
+    "initial_checkpoint_sha256": "58854beca997c0f4b759a9e34d3844cc732a0040d63daed6758043fe3e070de7",
+    "real_train_retention_sample": 1200,
+    "authored_train_n": 352,
+    "authored_weight": 4,
+    "sample_method": "Seeded stratified real training retention sample only; no validation/calibration/final rows used for fitting.",
+    "train_layers": "Existing DistilBERT layers4-5 and classifier; embeddings/layers0-3 frozen",
+    "epochs_max": 3,
+    "lr": 2e-05,
+    "batch_size": 2,
+    "gradient_accumulation": 8,
+    "selection": "Prefer checkpoints where all separate authored ham challenge probabilities <.5 and non-fraud argmax, fraud challenge argmax recall >=75%; among them highest real validation macro-F1. If no standalone checkpoint passes, preserve best validation checkpoint and evaluate mixtures under the same strict gate; no gate override.",
+    "development_sha256": "5f4a75e77ac47880d7d401e6c63e85b6d916bbe335707d739a36773abbf6e27d",
+    "final_holdout_accessed": false,
+    "completed": true,
+    "history": [
+      {
+        "epoch": 1,
+        "loss": 0.6580122416543281,
+        "validation_macro_f1": 0.9342598438267925,
+        "authored_gate": false,
+        "authored_ham_positive_probabilities": [
+          0.014256411131764938,
+          0.0023965859701844438,
+          0.04717913516000393,
+          0.0023130276119088106,
+          0.08642078290950893,
+          0.01334184668399935,
+          0.728623722464545,
+          0.0014473621373116813
+        ],
+        "seconds": 301.55964329995913
+      },
+      {
+        "epoch": 2,
+        "loss": 0.09080268082469194,
+        "validation_macro_f1": 0.947982664466181,
+        "authored_gate": false,
+        "authored_ham_positive_probabilities": [
+          0.0012952810390686677,
+          0.00031844066676595145,
+          0.013615879136529532,
+          0.00047127503462498767,
+          0.12331227125060962,
+          0.007221460295293336,
+          0.8063935082150233,
+          0.00036660603279802895
+        ],
+        "seconds": 634.3354587999638
+      },
+      {
+        "epoch": 3,
+        "loss": 0.04420771351431686,
+        "validation_macro_f1": 0.9350049136140989,
+        "authored_gate": false,
+        "authored_ham_positive_probabilities": [
+          0.0015323510872191867,
+          0.0004042690509574753,
+          0.03569617217119763,
+          0.0006692129774506265,
+          0.7769793621576554,
+          0.0027641601646132656,
+          0.36737119818839103,
+          0.0003754768659056093
+        ],
+        "seconds": 924.674901499995
+      }
+    ],
+    "selected_rank": [
+      0,
+      0.947982664466181
+    ],
+    "seconds": 1061.8786484999582,
+    "gpu_peak_mb": 642.3056640625
+  },
+  "evaluation": {
+    "seed": 1729,
+    "selected": "semantic-lexical-links-0.5",
+    "selection_policy": "On separate authored challenge, ham fraud alerts must be zero and fraud alert recall >=75%; on real validation ham FPR<=1% and spam FPR<=10%. Among eligible models choose maximum real validation macro-F1 then alert recall. This gate is frozen before fitting. Strong correction gate additionally requires every authored benign challenge to have fraud probability <.5 and non-fraud argmax. This gate rejects hiding high benign fraud probabilities below a raised alert threshold; frozen before the weight8 fit.",
+    "development_sha256": "5f4a75e77ac47880d7d401e6c63e85b6d916bbe335707d739a36773abbf6e27d",
+    "final_holdout_sha256": "7d603fa40e23118d11876cf5c8ccdd3b255c6ca1d488951323f566a6bc49a648",
+    "validation": {
+      "macro_f1": 0.9601266570997535,
+      "fraud_alert_recall": {
+        "value": 0.9523809523809523,
+        "n": 252,
+        "successes": 240,
+        "wilson_95": [
+          0.9186238416022449,
+          0.9725530655767954
+        ]
+      },
+      "legitimate_fpr": {
+        "value": 0.0039447731755424065,
+        "n": 1014,
+        "successes": 4,
+        "wilson_95": [
+          0.0015350822457797205,
+          0.010098810948563183
+        ]
+      },
+      "spam_fpr": {
+        "value": 0.04032258064516129,
+        "n": 248,
+        "successes": 10,
+        "wilson_95": [
+          0.022047454935716266,
+          0.07262106760357204
+        ]
+      },
+      "threshold": 0.45000000000000007
+    },
+    "final_holdout": {
+      "n": 577,
+      "labels": [
+        "ham",
+        "smishing",
+        "spam"
+      ],
+      "class_counts": [
+        200,
+        299,
+        78
+      ],
+      "scope": "All labelled examples retained, including abstentions",
+      "accuracy": 0.9740034662045061,
+      "macro_f1": 0.9646667285782882,
+      "per_class": {
+        "ham": {
+          "precision": 0.966183574879227,
+          "recall": 1.0,
+          "f1-score": 0.9828009828009828,
+          "support": 200.0
+        },
+        "smishing": {
+          "precision": 1.0,
+          "recall": 0.959866220735786,
+          "f1-score": 0.9795221843003413,
+          "support": 299.0
+        },
+        "spam": {
+          "precision": 0.9036144578313253,
+          "recall": 0.9615384615384616,
+          "f1-score": 0.9316770186335404,
+          "support": 78.0
+        },
+        "accuracy": 0.9740034662045061,
+        "macro avg": {
+          "precision": 0.9565993442368508,
+          "recall": 0.9738015607580826,
+          "f1-score": 0.9646667285782882,
+          "support": 577.0
+        },
+        "weighted avg": {
+          "precision": 0.975248947463932,
+          "recall": 0.9740034662045061,
+          "f1-score": 0.9741908788898003,
+          "support": 577.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          200,
+          0,
+          0
+        ],
+        [
+          4,
+          287,
+          8
+        ],
+        [
+          3,
+          0,
+          75
+        ]
+      ],
+      "fraud_argmax_recall": {
+        "value": 0.959866220735786,
+        "n": 299,
+        "successes": 287,
+        "wilson_95": [
+          0.9311707234156454,
+          0.9768951704381468
+        ]
+      },
+      "fraud_alert_recall": {
+        "value": 0.9565217391304348,
+        "n": 299,
+        "successes": 286,
+        "wilson_95": [
+          0.9270440828347487,
+          0.9744176954273794
+        ]
+      },
+      "fraud_high_probability_recall": {
+        "value": 0.9531772575250836,
+        "n": 299,
+        "successes": 285,
+        "wilson_95": [
+          0.9229509198757542,
+          0.9719067427947101
+        ]
+      },
+      "fraud_false_negative_rate": {
+        "value": 0.043478260869565216,
+        "n": 299,
+        "successes": 13,
+        "wilson_95": [
+          0.02558230457262052,
+          0.07295591716525125
+        ]
+      },
+      "legitimate_fpr": {
+        "value": 0.0,
+        "n": 200,
+        "successes": 0,
+        "wilson_95": [
+          1.734723475976807e-18,
+          0.018845326377266575
+        ]
+      },
+      "spam_fpr": {
+        "value": 0.0,
+        "n": 78,
+        "successes": 0,
+        "wilson_95": [
+          0,
+          0.04693780971219429
+        ]
+      },
+      "promotional_fpr": {
+        "value": null,
+        "n": 0,
+        "successes": 0,
+        "wilson_95": null
+      },
+      "fraud_pr_auc": 0.9993919572354375,
+      "fraud_brier": 0.022379242751934692,
+      "log_loss": 0.09972485082053875,
+      "fraud_ece_10_bins": 0.04029842054544291,
+      "threshold": 0.45000000000000007,
+      "abstained": 6,
+      "coverage": 0.9896013864818024,
+      "operational_fraud_alert_recall": {
+        "value": 0.9498327759197325,
+        "n": 299,
+        "successes": 284,
+        "wilson_95": [
+          0.9188880862800552,
+          0.9693654607987452
+        ]
+      },
+      "presentation": {
+        "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+        "counts": {
+          "LIKELY_SCAM": 270,
+          "SUSPICIOUS": 27,
+          "UNABLE_TO_ASSESS": 6,
+          "NO_STRONG_INDICATORS": 274
+        },
+        "fraud_likely_scam_recall": {
+          "value": 0.903010033444816,
+          "n": 299,
+          "successes": 270,
+          "wilson_95": [
+            0.8641770822344281,
+            0.9316188465610769
+          ]
+        },
+        "fraud_threshold_qualified_suspicious_recall": {
+          "value": 0.046822742474916385,
+          "n": 299,
+          "successes": 14,
+          "wilson_95": [
+            0.028093257205289855,
+            0.07704908012424586
+          ]
+        },
+        "fraud_uncertainty_only_reviews": {
+          "value": 0.026755852842809364,
+          "n": 299,
+          "successes": 8,
+          "wilson_95": [
+            0.013618669541996347,
+            0.05189897423755571
+          ]
+        }
+      },
+      "populations": {
+        "email": {
+          "n": 427,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            200,
+            149,
+            78
+          ],
+          "scope": "All labelled examples retained, including abstentions",
+          "accuracy": 0.9695550351288056,
+          "macro_f1": 0.9626664842182083,
+          "per_class": {
+            "ham": {
+              "precision": 0.970873786407767,
+              "recall": 1.0,
+              "f1-score": 0.9852216748768473,
+              "support": 200.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9328859060402684,
+              "f1-score": 0.9652777777777778,
+              "support": 149.0
+            },
+            "spam": {
+              "precision": 0.9146341463414634,
+              "recall": 0.9615384615384616,
+              "f1-score": 0.9375,
+              "support": 78.0
+            },
+            "accuracy": 0.9695550351288056,
+            "macro avg": {
+              "precision": 0.9618359775830768,
+              "recall": 0.9648081225262434,
+              "f1-score": 0.9626664842182083,
+              "support": 427.0
+            },
+            "weighted avg": {
+              "precision": 0.970763982895053,
+              "recall": 0.9695550351288056,
+              "f1-score": 0.9695450207593873,
+              "support": 427.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              200,
+              0,
+              0
+            ],
+            [
+              3,
+              139,
+              7
+            ],
+            [
+              3,
+              0,
+              75
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9328859060402684,
+            "n": 149,
+            "successes": 139,
+            "wilson_95": [
+              0.8808721748001737,
+              0.9631396593929052
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9261744966442953,
+            "n": 149,
+            "successes": 138,
+            "wilson_95": [
+              0.8726467125157193,
+              0.9582796668836684
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9194630872483222,
+            "n": 149,
+            "successes": 137,
+            "wilson_95": [
+              0.8645097721380501,
+              0.9533311524676464
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.0738255033557047,
+            "n": 149,
+            "successes": 11,
+            "wilson_95": [
+              0.04172033311633155,
+              0.12735328748428063
+            ]
+          },
+          "legitimate_fpr": {
+            "value": 0.0,
+            "n": 200,
+            "successes": 0,
+            "wilson_95": [
+              1.734723475976807e-18,
+              0.018845326377266575
+            ]
+          },
+          "spam_fpr": {
+            "value": 0.0,
+            "n": 78,
+            "successes": 0,
+            "wilson_95": [
+              0,
+              0.04693780971219429
+            ]
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": 0.9980582845499768,
+          "fraud_brier": 0.02543445721637515,
+          "log_loss": 0.11821103762920107,
+          "fraud_ece_10_bins": 0.044351245042826545,
+          "threshold": 0.45000000000000007,
+          "abstained": 6,
+          "coverage": 0.9859484777517564,
+          "operational_fraud_alert_recall": {
+            "value": 0.912751677852349,
+            "n": 149,
+            "successes": 136,
+            "wilson_95": [
+              0.856452134172779,
+              0.9483033356392266
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 125,
+              "SUSPICIOUS": 23,
+              "UNABLE_TO_ASSESS": 6,
+              "NO_STRONG_INDICATORS": 273
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.8389261744966443,
+              "n": 149,
+              "successes": 125,
+              "wilson_95": [
+                0.7715108261690149,
+                0.8893046409123879
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.0738255033557047,
+              "n": 149,
+              "successes": 11,
+              "wilson_95": [
+                0.04172033311633155,
+                0.12735328748428063
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.04697986577181208,
+              "n": 149,
+              "successes": 7,
+              "wilson_95": [
+                0.022940723482127327,
+                0.09379107794372024
+              ]
+            }
+          }
+        },
+        "sms": {
+          "n": 150,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            150,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9866666666666667,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9866666666666667,
+              "f1-score": 0.9932885906040269,
+              "support": 150.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9866666666666667,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3288888888888889,
+              "f1-score": 0.33109619686800895,
+              "support": 150.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9866666666666667,
+              "f1-score": 0.993288590604027,
+              "support": 150.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              148,
+              1
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.013333333333333334,
+            "n": 150,
+            "successes": 2,
+            "wilson_95": [
+              0.0036641291512270503,
+              0.04730690870036751
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.013682065576494177,
+          "log_loss": 0.04710083903854674,
+          "fraud_ece_10_bins": 0.02876138014289094,
+          "threshold": 0.45000000000000007,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 145,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 1
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.9666666666666667,
+              "n": 150,
+              "successes": 145,
+              "wilson_95": [
+                0.9243482038212211,
+                0.9856795681019074
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.02,
+              "n": 150,
+              "successes": 3,
+              "wilson_95": [
+                0.006824751322967459,
+                0.05714668327038608
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.006666666666666667,
+              "n": 150,
+              "successes": 1,
+              "wilson_95": [
+                0.0011778013350174366,
+                0.03679283977481815
+              ]
+            }
+          }
+        }
+      },
+      "sources": {
+        "spamassassin-easy_ham_2-new": {
+          "n": 200,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            200,
+            0,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 1.0,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 200.0
+            },
+            "smishing": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "f1-score": 0.3333333333333333,
+              "support": 200.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1-score": 1.0,
+              "support": 200.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              200,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_high_probability_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_false_negative_rate": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "legitimate_fpr": {
+            "value": 0.0,
+            "n": 200,
+            "successes": 0,
+            "wilson_95": [
+              1.734723475976807e-18,
+              0.018845326377266575
+            ]
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.0011250508729408603,
+          "log_loss": 0.019530054586194074,
+          "fraud_ece_10_bins": 0.004958101829081983,
+          "threshold": 0.45000000000000007,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 0,
+              "SUSPICIOUS": 2,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 198
+            },
+            "fraud_likely_scam_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            }
+          }
+        },
+        "spamassassin-spam_2002-new": {
+          "n": 78,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            0,
+            78
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9615384615384616,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "spam": {
+              "precision": 1.0,
+              "recall": 0.9615384615384616,
+              "f1-score": 0.9803921568627451,
+              "support": 78.0
+            },
+            "accuracy": 0.9615384615384616,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.32051282051282054,
+              "f1-score": 0.32679738562091504,
+              "support": 78.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9615384615384616,
+              "f1-score": 0.9803921568627451,
+              "support": 78.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              3,
+              0,
+              75
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_high_probability_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_false_negative_rate": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": 0.0,
+            "n": 78,
+            "successes": 0,
+            "wilson_95": [
+              0,
+              0.04693780971219429
+            ]
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.0010542378721786632,
+          "log_loss": 0.14361585320599918,
+          "fraud_ece_10_bins": 0.012147489286910184,
+          "threshold": 0.45000000000000007,
+          "abstained": 3,
+          "coverage": 0.9615384615384616,
+          "operational_fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 0,
+              "SUSPICIOUS": 3,
+              "UNABLE_TO_ASSESS": 3,
+              "NO_STRONG_INDICATORS": 72
+            },
+            "fraud_likely_scam_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            }
+          }
+        },
+        "nazario-2023-new": {
+          "n": 149,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            149,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9328859060402684,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9328859060402684,
+              "f1-score": 0.9652777777777778,
+              "support": 149.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9328859060402684,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.31096196868008946,
+              "f1-score": 0.32175925925925924,
+              "support": 149.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9328859060402684,
+              "f1-score": 0.9652777777777778,
+              "support": 149.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              3,
+              139,
+              7
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9328859060402684,
+            "n": 149,
+            "successes": 139,
+            "wilson_95": [
+              0.8808721748001737,
+              0.9631396593929052
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9261744966442953,
+            "n": 149,
+            "successes": 138,
+            "wilson_95": [
+              0.8726467125157193,
+              0.9582796668836684
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9194630872483222,
+            "n": 149,
+            "successes": 137,
+            "wilson_95": [
+              0.8645097721380501,
+              0.9533311524676464
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.0738255033557047,
+            "n": 149,
+            "successes": 11,
+            "wilson_95": [
+              0.04172033311633155,
+              0.12735328748428063
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.07082733223338313,
+          "log_loss": 0.23736956778766516,
+          "fraud_ece_10_bins": 0.14011480646632435,
+          "threshold": 0.45000000000000007,
+          "abstained": 3,
+          "coverage": 0.9798657718120806,
+          "operational_fraud_alert_recall": {
+            "value": 0.912751677852349,
+            "n": 149,
+            "successes": 136,
+            "wilson_95": [
+              0.856452134172779,
+              0.9483033356392266
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 125,
+              "SUSPICIOUS": 18,
+              "UNABLE_TO_ASSESS": 3,
+              "NO_STRONG_INDICATORS": 3
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.8389261744966443,
+              "n": 149,
+              "successes": 125,
+              "wilson_95": [
+                0.7715108261690149,
+                0.8893046409123879
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.0738255033557047,
+              "n": 149,
+              "successes": 11,
+              "wilson_95": [
+                0.04172033311633155,
+                0.12735328748428063
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.04697986577181208,
+              "n": 149,
+              "successes": 7,
+              "wilson_95": [
+                0.022940723482127327,
+                0.09379107794372024
+              ]
+            }
+          }
+        },
+        "imc25-unused-new-groups": {
+          "n": 150,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            150,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9866666666666667,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9866666666666667,
+              "f1-score": 0.9932885906040269,
+              "support": 150.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9866666666666667,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3288888888888889,
+              "f1-score": 0.33109619686800895,
+              "support": 150.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9866666666666667,
+              "f1-score": 0.993288590604027,
+              "support": 150.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              1,
+              148,
+              1
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.013333333333333334,
+            "n": 150,
+            "successes": 2,
+            "wilson_95": [
+              0.0036641291512270503,
+              0.04730690870036751
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.013682065576494177,
+          "log_loss": 0.04710083903854674,
+          "fraud_ece_10_bins": 0.02876138014289094,
+          "threshold": 0.45000000000000007,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 145,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 1
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.9666666666666667,
+              "n": 150,
+              "successes": 145,
+              "wilson_95": [
+                0.9243482038212211,
+                0.9856795681019074
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.02,
+              "n": 150,
+              "successes": 3,
+              "wilson_95": [
+                0.006824751322967459,
+                0.05714668327038608
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.006666666666666667,
+              "n": 150,
+              "successes": 1,
+              "wilson_95": [
+                0.0011778013350174366,
+                0.03679283977481815
+              ]
+            }
+          }
+        }
+      }
+    },
+    "previous_v3_same_final": {
+      "n": 577,
+      "labels": [
+        "ham",
+        "smishing",
+        "spam"
+      ],
+      "class_counts": [
+        200,
+        299,
+        78
+      ],
+      "scope": "All labelled examples retained, including abstentions",
+      "accuracy": 0.975736568457539,
+      "macro_f1": 0.9655281689677455,
+      "per_class": {
+        "ham": {
+          "precision": 0.9707317073170731,
+          "recall": 0.995,
+          "f1-score": 0.9827160493827161,
+          "support": 200.0
+        },
+        "smishing": {
+          "precision": 0.9965635738831615,
+          "recall": 0.9698996655518395,
+          "f1-score": 0.9830508474576272,
+          "support": 299.0
+        },
+        "spam": {
+          "precision": 0.9135802469135802,
+          "recall": 0.9487179487179487,
+          "f1-score": 0.9308176100628931,
+          "support": 78.0
+        },
+        "accuracy": 0.975736568457539,
+        "macro avg": {
+          "precision": 0.960291842704605,
+          "recall": 0.9712058714232628,
+          "f1-score": 0.9655281689677455,
+          "support": 577.0
+        },
+        "weighted avg": {
+          "precision": 0.9763918705610731,
+          "recall": 0.975736568457539,
+          "f1-score": 0.9758738073679019,
+          "support": 577.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          199,
+          1,
+          0
+        ],
+        [
+          2,
+          290,
+          7
+        ],
+        [
+          4,
+          0,
+          74
+        ]
+      ],
+      "fraud_argmax_recall": {
+        "value": 0.9698996655518395,
+        "n": 299,
+        "successes": 290,
+        "wilson_95": [
+          0.9437934099147904,
+          0.9840848307139936
+        ]
+      },
+      "fraud_alert_recall": {
+        "value": 0.9832775919732442,
+        "n": 299,
+        "successes": 294,
+        "wilson_95": [
+          0.9614581273416436,
+          0.992836575653796
+        ]
+      },
+      "fraud_high_probability_recall": {
+        "value": 0.9632107023411371,
+        "n": 299,
+        "successes": 288,
+        "wilson_95": [
+          0.9353346055559926,
+          0.9793354038894635
+        ]
+      },
+      "fraud_false_negative_rate": {
+        "value": 0.016722408026755852,
+        "n": 299,
+        "successes": 5,
+        "wilson_95": [
+          0.007163424346203942,
+          0.0385418726583563
+        ]
+      },
+      "legitimate_fpr": {
+        "value": 0.015,
+        "n": 200,
+        "successes": 3,
+        "wilson_95": [
+          0.00511423779325831,
+          0.04316572879269026
+        ]
+      },
+      "spam_fpr": {
+        "value": 0.02564102564102564,
+        "n": 78,
+        "successes": 2,
+        "wilson_95": [
+          0.007060093472759203,
+          0.08875270035675845
+        ]
+      },
+      "promotional_fpr": {
+        "value": null,
+        "n": 0,
+        "successes": 0,
+        "wilson_95": null
+      },
+      "fraud_pr_auc": 0.999197472880302,
+      "fraud_brier": 0.020036709312212356,
+      "log_loss": 0.0999238306149205,
+      "fraud_ece_10_bins": 0.03462913225516527,
+      "threshold": 0.25,
+      "abstained": 6,
+      "coverage": 0.9896013864818024,
+      "operational_fraud_alert_recall": {
+        "value": 0.9732441471571907,
+        "n": 299,
+        "successes": 291,
+        "wilson_95": [
+          0.9481010257624443,
+          0.9863813304580036
+        ]
+      },
+      "presentation": {
+        "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+        "counts": {
+          "LIKELY_SCAM": 274,
+          "SUSPICIOUS": 27,
+          "UNABLE_TO_ASSESS": 6,
+          "NO_STRONG_INDICATORS": 270
+        },
+        "fraud_likely_scam_recall": {
+          "value": 0.9163879598662207,
+          "n": 299,
+          "successes": 274,
+          "wilson_95": [
+            0.8794863641403519,
+            0.942726027021809
+          ]
+        },
+        "fraud_threshold_qualified_suspicious_recall": {
+          "value": 0.056856187290969896,
+          "n": 299,
+          "successes": 17,
+          "wilson_95": [
+            0.03579781451403212,
+            0.08915686959049542
+          ]
+        },
+        "fraud_uncertainty_only_reviews": {
+          "value": 0.006688963210702341,
+          "n": 299,
+          "successes": 2,
+          "wilson_95": [
+            0.001836275671666143,
+            0.024056674557902266
+          ]
+        }
+      },
+      "populations": {
+        "email": {
+          "n": 427,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            200,
+            149,
+            78
+          ],
+          "scope": "All labelled examples retained, including abstentions",
+          "accuracy": 0.9695550351288056,
+          "macro_f1": 0.9628323583635545,
+          "per_class": {
+            "ham": {
+              "precision": 0.9707317073170731,
+              "recall": 0.995,
+              "f1-score": 0.9827160493827161,
+              "support": 200.0
+            },
+            "smishing": {
+              "precision": 0.9929577464788732,
+              "recall": 0.9463087248322147,
+              "f1-score": 0.9690721649484536,
+              "support": 149.0
+            },
+            "spam": {
+              "precision": 0.925,
+              "recall": 0.9487179487179487,
+              "f1-score": 0.9367088607594937,
+              "support": 78.0
+            },
+            "accuracy": 0.9695550351288056,
+            "macro avg": {
+              "precision": 0.9628964845986488,
+              "recall": 0.9633422245167211,
+              "f1-score": 0.9628323583635545,
+              "support": 427.0
+            },
+            "weighted avg": {
+              "precision": 0.9701335964608121,
+              "recall": 0.9695550351288056,
+              "f1-score": 0.9695509451829117,
+              "support": 427.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              199,
+              1,
+              0
+            ],
+            [
+              2,
+              141,
+              6
+            ],
+            [
+              4,
+              0,
+              74
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9463087248322147,
+            "n": 149,
+            "successes": 141,
+            "wilson_95": [
+              0.8976369864727979,
+              0.9725457573076633
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9731543624161074,
+            "n": 149,
+            "successes": 145,
+            "wilson_95": [
+              0.9330127490514647,
+              0.9895118139037612
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9395973154362416,
+            "n": 149,
+            "successes": 140,
+            "wilson_95": [
+              0.8891975134869227,
+              0.9678997754998474
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.026845637583892617,
+            "n": 149,
+            "successes": 4,
+            "wilson_95": [
+              0.010488186096238764,
+              0.06698725094853536
+            ]
+          },
+          "legitimate_fpr": {
+            "value": 0.015,
+            "n": 200,
+            "successes": 3,
+            "wilson_95": [
+              0.00511423779325831,
+              0.04316572879269026
+            ]
+          },
+          "spam_fpr": {
+            "value": 0.02564102564102564,
+            "n": 78,
+            "successes": 2,
+            "wilson_95": [
+              0.007060093472759203,
+              0.08875270035675845
+            ]
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": 0.9972208782113816,
+          "fraud_brier": 0.022671613576257885,
+          "log_loss": 0.11975819558784473,
+          "fraud_ece_10_bins": 0.037000955045290405,
+          "threshold": 0.25,
+          "abstained": 6,
+          "coverage": 0.9859484777517564,
+          "operational_fraud_alert_recall": {
+            "value": 0.9530201342281879,
+            "n": 149,
+            "successes": 142,
+            "wilson_95": [
+              0.9062089220562797,
+              0.9770592765178727
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 129,
+              "SUSPICIOUS": 23,
+              "UNABLE_TO_ASSESS": 6,
+              "NO_STRONG_INDICATORS": 269
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.8657718120805369,
+              "n": 149,
+              "successes": 129,
+              "wilson_95": [
+                0.8017578737391978,
+                0.9113994125169697
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.087248322147651,
+              "n": 149,
+              "successes": 13,
+              "wilson_95": [
+                0.0516966643607734,
+                0.14354786582722107
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.013422818791946308,
+              "n": 149,
+              "successes": 2,
+              "wilson_95": [
+                0.0036887725239569367,
+                0.047615754933434895
+              ]
+            }
+          }
+        },
+        "sms": {
+          "n": 150,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            150,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9933333333333333,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9933333333333333,
+              "f1-score": 0.9966555183946488,
+              "support": 150.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9933333333333333,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3311111111111111,
+              "f1-score": 0.33221850613154963,
+              "support": 150.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9933333333333333,
+              "f1-score": 0.9966555183946489,
+              "support": 150.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              149,
+              1
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.006666666666666667,
+            "n": 150,
+            "successes": 1,
+            "wilson_95": [
+              0.0011778013350174366,
+              0.03679283977481815
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.012536015173896083,
+          "log_loss": 0.04346200499199611,
+          "fraud_ece_10_bins": 0.02974119698799332,
+          "threshold": 0.25,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 145,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 1
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.9666666666666667,
+              "n": 150,
+              "successes": 145,
+              "wilson_95": [
+                0.9243482038212211,
+                0.9856795681019074
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.02666666666666667,
+              "n": 150,
+              "successes": 4,
+              "wilson_95": [
+                0.010417940822967993,
+                0.06655389051214453
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.0,
+              "n": 150,
+              "successes": 0,
+              "wilson_95": [
+                1.734723475976807e-18,
+                0.0249702443680766
+              ]
+            }
+          }
+        }
+      },
+      "sources": {
+        "spamassassin-easy_ham_2-new": {
+          "n": 200,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            200,
+            0,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.995,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 1.0,
+              "recall": 0.995,
+              "f1-score": 0.9974937343358395,
+              "support": 200.0
+            },
+            "smishing": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.995,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.33166666666666667,
+              "f1-score": 0.33249791144527985,
+              "support": 200.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.995,
+              "f1-score": 0.9974937343358395,
+              "support": 200.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              199,
+              1,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_high_probability_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_false_negative_rate": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "legitimate_fpr": {
+            "value": 0.015,
+            "n": 200,
+            "successes": 3,
+            "wilson_95": [
+              0.00511423779325831,
+              0.04316572879269026
+            ]
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.0024530321386921155,
+          "log_loss": 0.03512816641465763,
+          "fraud_ece_10_bins": 0.009421945786980138,
+          "threshold": 0.25,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 0,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 196
+            },
+            "fraud_likely_scam_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            }
+          }
+        },
+        "spamassassin-spam_2002-new": {
+          "n": 78,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            0,
+            78
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9487179487179487,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "spam": {
+              "precision": 1.0,
+              "recall": 0.9487179487179487,
+              "f1-score": 0.9736842105263158,
+              "support": 78.0
+            },
+            "accuracy": 0.9487179487179487,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3162393162393162,
+              "f1-score": 0.32456140350877194,
+              "support": 78.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9487179487179487,
+              "f1-score": 0.9736842105263158,
+              "support": 78.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              4,
+              0,
+              74
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_high_probability_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_false_negative_rate": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": 0.02564102564102564,
+            "n": 78,
+            "successes": 2,
+            "wilson_95": [
+              0.007060093472759203,
+              0.08875270035675845
+            ]
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.0033892484813811607,
+          "log_loss": 0.16756453575709235,
+          "fraud_ece_10_bins": 0.020473737064294,
+          "threshold": 0.25,
+          "abstained": 3,
+          "coverage": 0.9615384615384616,
+          "operational_fraud_alert_recall": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 0,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 3,
+              "NO_STRONG_INDICATORS": 71
+            },
+            "fraud_likely_scam_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": null,
+              "n": 0,
+              "successes": 0,
+              "wilson_95": null
+            }
+          }
+        },
+        "nazario-2023-new": {
+          "n": 149,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            149,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9463087248322147,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9463087248322147,
+              "f1-score": 0.9724137931034482,
+              "support": 149.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9463087248322147,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.31543624161073824,
+              "f1-score": 0.32413793103448274,
+              "support": 149.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9463087248322147,
+              "f1-score": 0.9724137931034483,
+              "support": 149.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              2,
+              141,
+              6
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9463087248322147,
+            "n": 149,
+            "successes": 141,
+            "wilson_95": [
+              0.8976369864727979,
+              0.9725457573076633
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9731543624161074,
+            "n": 149,
+            "successes": 145,
+            "wilson_95": [
+              0.9330127490514647,
+              0.9895118139037612
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9395973154362416,
+            "n": 149,
+            "successes": 140,
+            "wilson_95": [
+              0.8891975134869227,
+              0.9678997754998474
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.026845637583892617,
+            "n": 149,
+            "successes": 4,
+            "wilson_95": [
+              0.010488186096238764,
+              0.06698725094853536
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.0599047730723219,
+          "log_loss": 0.20832941237600655,
+          "fraud_ece_10_bins": 0.12752463363384092,
+          "threshold": 0.25,
+          "abstained": 3,
+          "coverage": 0.9798657718120806,
+          "operational_fraud_alert_recall": {
+            "value": 0.9530201342281879,
+            "n": 149,
+            "successes": 142,
+            "wilson_95": [
+              0.9062089220562797,
+              0.9770592765178727
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 129,
+              "SUSPICIOUS": 15,
+              "UNABLE_TO_ASSESS": 3,
+              "NO_STRONG_INDICATORS": 2
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.8657718120805369,
+              "n": 149,
+              "successes": 129,
+              "wilson_95": [
+                0.8017578737391978,
+                0.9113994125169697
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.087248322147651,
+              "n": 149,
+              "successes": 13,
+              "wilson_95": [
+                0.0516966643607734,
+                0.14354786582722107
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.013422818791946308,
+              "n": 149,
+              "successes": 2,
+              "wilson_95": [
+                0.0036887725239569367,
+                0.047615754933434895
+              ]
+            }
+          }
+        },
+        "imc25-unused-new-groups": {
+          "n": 150,
+          "labels": [
+            "ham",
+            "smishing",
+            "spam"
+          ],
+          "class_counts": [
+            0,
+            150,
+            0
+          ],
+          "scope": "Fraud-only populations establish positive recall, not precision, false-positive rates or overall reliability",
+          "accuracy": 0.9933333333333333,
+          "macro_f1": null,
+          "per_class": {
+            "ham": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "smishing": {
+              "precision": 1.0,
+              "recall": 0.9933333333333333,
+              "f1-score": 0.9966555183946488,
+              "support": 150.0
+            },
+            "spam": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1-score": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.9933333333333333,
+            "macro avg": {
+              "precision": 0.3333333333333333,
+              "recall": 0.3311111111111111,
+              "f1-score": 0.33221850613154963,
+              "support": 150.0
+            },
+            "weighted avg": {
+              "precision": 1.0,
+              "recall": 0.9933333333333333,
+              "f1-score": 0.9966555183946489,
+              "support": 150.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              149,
+              1
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          "fraud_argmax_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "fraud_alert_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "fraud_high_probability_recall": {
+            "value": 0.9866666666666667,
+            "n": 150,
+            "successes": 148,
+            "wilson_95": [
+              0.9526930912996325,
+              0.9963358708487731
+            ]
+          },
+          "fraud_false_negative_rate": {
+            "value": 0.006666666666666667,
+            "n": 150,
+            "successes": 1,
+            "wilson_95": [
+              0.0011778013350174366,
+              0.03679283977481815
+            ]
+          },
+          "legitimate_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "spam_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "promotional_fpr": {
+            "value": null,
+            "n": 0,
+            "successes": 0,
+            "wilson_95": null
+          },
+          "fraud_pr_auc": null,
+          "fraud_brier": 0.012536015173896083,
+          "log_loss": 0.04346200499199611,
+          "fraud_ece_10_bins": 0.02974119698799332,
+          "threshold": 0.25,
+          "abstained": 0,
+          "coverage": 1.0,
+          "operational_fraud_alert_recall": {
+            "value": 0.9933333333333333,
+            "n": 150,
+            "successes": 149,
+            "wilson_95": [
+              0.9632071602251817,
+              0.9988221986649826
+            ]
+          },
+          "presentation": {
+            "definition": "Actual enrichment policy: unsupported/insufficient or low out-of-domain probability abstains; confidence below .65 reviews; likely requires positive probability >=max(.5,threshold) and remaining confidence/domain checks. Uncertainty-only reviews are not counted as detected fraud.",
+            "counts": {
+              "LIKELY_SCAM": 145,
+              "SUSPICIOUS": 4,
+              "UNABLE_TO_ASSESS": 0,
+              "NO_STRONG_INDICATORS": 1
+            },
+            "fraud_likely_scam_recall": {
+              "value": 0.9666666666666667,
+              "n": 150,
+              "successes": 145,
+              "wilson_95": [
+                0.9243482038212211,
+                0.9856795681019074
+              ]
+            },
+            "fraud_threshold_qualified_suspicious_recall": {
+              "value": 0.02666666666666667,
+              "n": 150,
+              "successes": 4,
+              "wilson_95": [
+                0.010417940822967993,
+                0.06655389051214453
+              ]
+            },
+            "fraud_uncertainty_only_reviews": {
+              "value": 0.0,
+              "n": 150,
+              "successes": 0,
+              "wilson_95": [
+                1.734723475976807e-18,
+                0.0249702443680766
+              ]
+            }
+          }
+        }
+      }
+    },
+    "limitations": "Same broad collection families and historical emails; no prospective modern inbox study, multilingual validation, sender verification or AI-authorship assessment. Authored challenge is fictional. Previous 929 holdout and inspected sources are diagnostic after correction."
+  },
+  "rollback": {
+    "version": "sms-distilbert-linear-hybrid-2",
+    "semantic_sha256": "c0b41afba519c27ea05f8484ac546d1b849641f03fafc87cf3e8c7a2f836a417",
+    "method": "Install the preserved hybrid-2 archive with its matching manifest/runtime source; baseline external checkpoint retained by owner"
+  },
+  "files": {
+    "config.json": "9fb3ba38c298d650e5e811c2c75bcfb61e322d858a9df6d08fb2561f14d5ffac",
+    "hybrid_config.json": "278d89d34d660c46967318a7dedbb2886c5af9c7b356c10f1de18f41eb95ef14",
+    "hybrid_weights.npz": "33f948cd432f786bb989720bf505b12eb346c7ca4ed034fe1868d8ad9ab9b581",
+    "model.safetensors": "1a47b442ad8c847cbc1a78a0cd00cae344c57ae15ae3291f22997630c5cfe3a9",
+    "runtime.json": "d884c20fbf2d9228241cc572308145c2ac5caee0a8ba48415c9dec8249ab4db2",
+    "special_tokens_map.json": "5aa43c2f985a25296d5a5ce621c2f77376ca8091a47993c492fd5460b895b140",
+    "tokenizer.json": "f385e8b538113c54e2d21410f68ba66666ef6b407ae98d6228d1f22c240112c8",
+    "tokenizer_config.json": "98c1e2312148806ae9efbc66076206792e8b328b0654b9e40d96d7a2f8918f0f",
+    "vocab.txt": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+  }
+}

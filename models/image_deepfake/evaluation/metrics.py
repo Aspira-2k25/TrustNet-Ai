@@ -15,16 +15,21 @@ from sklearn.metrics import (
 
 def compute_eer(y_true: Union[List[int], np.ndarray], y_pred_prob: Union[List[float], np.ndarray]) -> float:
     """Computes Equal Error Rate (EER) where FPR == FNR."""
+    if len(set(y_true)) < 2:
+        return None
     try:
         fpr, tpr, thresholds = roc_curve(y_true, y_pred_prob, pos_label=1)
         fnr = 1 - tpr
         eer_idx = np.nanargmin(np.absolute((fnr - fpr)))
         return float((fpr[eer_idx] + fnr[eer_idx]) / 2.0)
     except Exception:
-        return 0.0
+        return None
 
 def compute_confusion_matrix(y_true: Union[List[int], np.ndarray], y_pred: Union[List[int], np.ndarray]) -> Dict[str, int]:
     """Computes standard binary confusion matrix breakdown."""
+    actual, predicted = np.asarray(y_true), np.asarray(y_pred)
+    if actual.ndim != 1 or predicted.ndim != 1 or not len(actual) or actual.shape != predicted.shape or not set(actual).issubset({0, 1}) or not set(predicted).issubset({0, 1}):
+        raise ValueError("Invalid binary confusion matrix inputs")
     try:
         cm = sklearn_confusion_matrix(y_true, y_pred, labels=[0, 1])
         tn, fp, fn, tp = cm.ravel()
@@ -34,28 +39,28 @@ def compute_confusion_matrix(y_true: Union[List[int], np.ndarray], y_pred: Union
             "false_negatives": int(fn),
             "true_positives": int(tp)
         }
-    except Exception:
-        return {
-            "true_negatives": 0,
-            "false_positives": 0,
-            "false_negatives": 0,
-            "true_positives": 0
-        }
+    except Exception as exc:
+        raise ValueError("Confusion matrix unavailable: invalid inputs") from exc
+
 
 def compute_roc_auc(y_true: Union[List[int], np.ndarray], y_scores: Union[List[float], np.ndarray]) -> float:
     """Computes ROC-AUC score with safety fallbacks."""
+    if len(set(y_true)) < 2:
+        return None
     try:
         return float(roc_auc_score(y_true, y_scores))
     except Exception:
-        return 0.5
+        return None
 
 def compute_pr_auc(y_true: Union[List[int], np.ndarray], y_scores: Union[List[float], np.ndarray]) -> float:
     """Computes Precision-Recall AUC score."""
+    if not np.any(np.asarray(y_true) == 1):
+        return None
     try:
         precision, recall, _ = precision_recall_curve(y_true, y_scores)
         return float(sklearn_auc(recall, precision))
     except Exception:
-        return 0.5
+        return None
 
 def compute_evaluation_metrics(y_true: np.ndarray, y_pred_prob: np.ndarray, threshold: float = 0.5) -> Dict[str, float]:
     """
@@ -71,6 +76,8 @@ def compute_evaluation_metrics(y_true: np.ndarray, y_pred_prob: np.ndarray, thre
     """
     y_true = np.array(y_true)
     y_pred_prob = np.array(y_pred_prob)
+    if y_true.ndim != 1 or not 0 <= threshold <= 1 or not len(y_true) or y_true.shape != y_pred_prob.shape or not np.isfinite(y_pred_prob).all() or np.any((y_pred_prob < 0) | (y_pred_prob > 1)) or not set(y_true).issubset({0, 1}):
+        raise ValueError("Invalid binary evaluation inputs")
     y_pred = (y_pred_prob >= threshold).astype(int)
 
     acc = float(accuracy_score(y_true, y_pred))
@@ -80,9 +87,9 @@ def compute_evaluation_metrics(y_true: np.ndarray, y_pred_prob: np.ndarray, thre
     auc = compute_roc_auc(y_true, y_pred_prob)
 
     try:
-        loss = float(log_loss(y_true, y_pred_prob, eps=1e-7))
+        loss = float(log_loss(y_true, y_pred_prob, labels=[0, 1]))
     except Exception:
-        loss = 0.0
+        loss = None
 
     eer = compute_eer(y_true, y_pred_prob)
 
@@ -99,18 +106,18 @@ def compute_evaluation_metrics(y_true: np.ndarray, y_pred_prob: np.ndarray, thre
 
     return {
         "accuracy": round(acc, 4),
-        "precision": round(prec, 4),
-        "recall": round(rec, 4),
-        "recall_sensitivity": round(rec, 4),
-        "specificity": round(spec, 4),
-        "f1_score": round(f1, 4),
-        "false_positive_rate": round(fpr, 4),
-        "false_negative_rate": round(fnr, 4),
-        "auc_roc": round(auc, 4),
-        "auc": round(auc, 4),
-        "pr_auc": round(pr_auc, 4),
-        "log_loss": round(loss, 4),
-        "equal_error_rate": round(eer, 4)
+        "precision": round(prec, 4) if np.any(y_pred == 1) else None,
+        "recall": round(rec, 4) if np.any(y_true == 1) else None,
+        "recall_sensitivity": round(rec, 4) if np.any(y_true == 1) else None,
+        "specificity": round(spec, 4) if tn + fp else None,
+        "f1_score": round(f1, 4) if tp + fp + fn else None,
+        "false_positive_rate": round(fpr, 4) if tn + fp else None,
+        "false_negative_rate": round(fnr, 4) if fn + tp else None,
+        "auc_roc": round(auc, 4) if auc is not None and np.isfinite(auc) else None,
+        "auc": round(auc, 4) if auc is not None and np.isfinite(auc) else None,
+        "pr_auc": round(pr_auc, 4) if pr_auc is not None and np.isfinite(pr_auc) else None,
+        "log_loss": round(loss, 4) if loss is not None and np.isfinite(loss) else None,
+        "equal_error_rate": round(eer, 4) if eer is not None and np.isfinite(eer) else None
     }
 
 calculate_metrics = compute_evaluation_metrics

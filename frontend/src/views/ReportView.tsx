@@ -6,6 +6,8 @@ import {
   Globe, Mic, Film, MessageSquare
 } from 'lucide-react';
 import type { ScanRecord } from '../types';
+import { assessmentVerdict } from '../services/verdict';
+import { ScamResult } from '../components/scam_message/ScamResult';
 import { ForensicRadarChart } from '../components/ForensicRadarChart';
 import { TrustScoreGauge } from '../components/TrustScoreGauge';
 import { exportForensicPDFReport } from '../services/pdfExporter';
@@ -25,10 +27,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
   const result = scan.result;
 
-  const isFailed = scan.status === 'FAILED' || (result as any)?.status === 'FAILED';
+  const isFailed = !result || !['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status) || !['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
 
   const trustScore = scan.trust_score;
-  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 10.2;
+  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
   const rawVerdict = result?.verdict || '';
   const isContradiction = Boolean(result?.metadata?.is_contradiction || trustScore?.contradiction_detected);
 
@@ -51,24 +53,26 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
     VerdictIcon = HelpCircle;
   } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore >= 62.0) {
     semanticVerdict = 'LIKELY AI / MANIPULATED';
-    semanticSubtext = 'Multiple independent signals indicate synthetic or manipulated content.';
+    semanticSubtext = 'Recorded image signals indicate possible manipulation; provenance remains unverified.';
     verdictColorClass = 'bg-red-950/70 border-red-800 text-red-300';
     VerdictIcon = ShieldAlert;
   } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 22.0 && riskScore < 62.0)) {
     semanticVerdict = 'LIKELY AUTHENTIC';
-    semanticSubtext = 'Mostly consistent with real capture, minor compression or sensor variance.';
+    semanticSubtext = 'The recorded model assessment is consistent with real capture; this does not verify provenance.';
     verdictColorClass = 'bg-sky-950/70 border-sky-800 text-sky-300';
     VerdictIcon = CheckCircle2;
   } else {
     semanticVerdict = 'AUTHENTIC';
-    semanticSubtext = 'Low evidence of manipulation across physical and neural analyzers.';
+    semanticSubtext = 'Low detected manipulation signal does not prove authenticity or an unaltered original.';
     verdictColorClass = 'bg-emerald-950/70 border-emerald-800 text-emerald-300';
     VerdictIcon = CheckCircle2;
   }
 
+  semanticVerdict = assessmentVerdict(scan);
+
   // Cross Domain Consistency Score & AI Model Status
-  const consistencyPercent = Math.round((result?.metadata?.cross_domain_consistency ?? result?.confidence ?? 0.92) * 100);
-  const confidencePercent = Math.round((result?.confidence ?? 0.88) * 100);
+  const consistencyPercent = typeof result?.metadata?.cross_domain_consistency === 'number' ? Math.round(result.metadata.cross_domain_consistency * 100) : null;
+  const confidencePercent = Math.round((result?.confidence ?? 0) * 100);
   const hfStatus = result?.metadata?.hf_status || 'skipped';
   const hfRisk = result?.metadata?.hf_risk_score;
   const hfModelName = result?.metadata?.hf_model || 'ViT Deepfake Classifier';
@@ -85,20 +89,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   }
 
   // Dynamic "Why This Result" Explanations
-  const whyReasons: string[] = result?.metadata?.why_reasons && result.metadata.why_reasons.length > 0
-    ? result.metadata.why_reasons
-    : (semanticVerdict === 'LIKELY AI / MANIPULATED'
-        ? [
-            '⚠ High-frequency periodic artifacts detected in 2D Fourier power spectrum.',
-            '⚠ Non-uniform Error Level Analysis surface across foreground and background.',
-            '⚠ Vision Transformer detected generative synthetic patterns.'
-          ]
-        : [
-            '✓ 2D Fourier power spectrum follows natural optical lens roll-off.',
-            '✓ Error Level Analysis confirms homogeneous single-source compression.',
-            '✓ Vision Transformer model indicates authentic camera capture.'
-          ]
-      );
+  const whyReasons: string[] = result?.metadata?.why_reasons || [];
 
   // Real pixel-level canvas computation for ELA / Sub-Pixel Morphing
   useEffect(() => {
@@ -110,7 +101,8 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = scan.image_preview_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80';
+    if (!scan.image_preview_url) return;
+    img.src = scan.image_preview_url;
 
     img.onload = () => {
       const aspect = img.naturalWidth / (img.naturalHeight || 1);
@@ -291,12 +283,14 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
 
   // Clean up audio on unmount
   useEffect(() => {
-    return () => {
+  return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
+
+  if (result?.module === 'scam_message' || scan.result?.module === 'scam_message') return <ScamResult scan={scan} onBack={onBack}/>;
 
   if (isFailed) {
     return (
@@ -349,7 +343,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
     }
 
     const narrative = visionAnalysis?.simple_explanation ||
-      `Analysis verdict: ${semanticVerdict}. Anomaly score: ${riskScore.toFixed(1)} out of 100 with evidence consistency of ${consistencyPercent} percent. ${whyReasons.join('. ')}`;
+      `Analysis verdict: ${semanticVerdict}. Anomaly score: ${riskScore.toFixed(1)} out of 100 with cross-domain consistency ${consistencyPercent === null ? 'unavailable' : consistencyPercent + ' percent'}. ${whyReasons.join('. ')}`;
 
     const utterance = new SpeechSynthesisUtterance(narrative);
     utterance.rate = 1.0;
@@ -457,7 +451,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
             <div className="h-10 w-px bg-[#1e3a5f]" />
             <div className="text-right space-y-1">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Accuracy</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Confidence (heuristic)</div>
                 <div className="text-base font-bold font-mono text-[#f8fafc]">{confidencePercent}%</div>
               </div>
               <div>
@@ -477,7 +471,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
             <div>Acoustic Mode: <span className="text-[#f8fafc] font-bold">Mono / 16kHz Studio</span></div>
           ) : scan.content_type === 'url' ? (
             <div>Security Protocol: <span className="text-[#f8fafc] font-bold">{scan.filename?.startsWith('https') ? 'HTTPS (TLS 1.3)' : 'HTTP (Unencrypted)'}</span></div>
-          ) : scan.content_type === 'text' ? (
+          ) : scan.result?.module === 'scam_message' ? (
             <div>Text Length: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes || 0} characters</span></div>
           ) : (
             <div>File Size: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes ? `${(scan.file_size_bytes / 1024).toFixed(1)} KB` : 'Standard'}</span></div>
@@ -548,7 +542,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
             Why This Result?
           </h2>
           <span className="text-[11px] text-muted-foreground font-normal">
-            (Ground-truth signals computed from deterministic physical & neural layers)
+            (Reported heuristic/model observations; not ground truth)
           </span>
         </div>
 
@@ -661,7 +655,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
             <Info size={14} className="text-[#00b4d8] shrink-0" />
             <span>
               {isVisionSkipped 
-                ? 'Fast Scan mode active: Local vision reasoning was bypassed for instant (~1s) execution. Full multi-spectral physical forensics and neural ViT were evaluated.' 
+                ? 'Optional local vision reasoning was bypassed. Assessment uses the available engines; classifier status is shown below. Timing depends on the available services.'
                 : 'TrustNet Vision AI endpoint not connected or vision model not loaded. Forensic analysis was completed safely using local deterministic scanners (FFT, ELA, PRNU noise, Bayer CFA, Gabor texture, metadata).'}
             </span>
           </div>
@@ -706,7 +700,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                   {riskScore.toFixed(1)} <span className="text-sm font-normal text-slate-400">/ 100</span>
                 </div>
                 <div className="text-[11px] text-slate-500 leading-tight">
-                  Calibrated anomaly degree across all physical, frequency, and deep neural domains.
+                  Weighted engine risk estimate; no empirical image calibration was fitted.
                 </div>
               </div>
 
@@ -717,10 +711,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                   <span>Cross-Domain Agreement</span>
                 </div>
                 <div className="text-2xl font-extrabold text-primary mb-1 font-mono">
-                  {consistencyPercent}%
+                  {consistencyPercent === null ? 'Unavailable' : `${consistencyPercent}%`}
                 </div>
                 <div className="text-[11px] text-slate-500 leading-tight">
-                  Cross-modal consistency across spatial, frequency, compression, and vision layers.
+                  Engine-reported consistency when supplied; not a measured correctness probability.
                 </div>
               </div>
 
@@ -978,7 +972,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
               </div>
             )}
 
-            {scan.content_type === 'text' && (
+            {scan.result?.module === 'scam_message' && (
               <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-3d-card">
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0b132b]">
                   <div className="flex items-center gap-2.5">
@@ -1050,7 +1044,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                 <div className="text-sm font-bold text-foreground mb-4 pb-3 border-b border-border flex items-center justify-between">
                   <span>Analyzer Telemetry Status</span>
                   <span className="text-xs text-muted-foreground font-normal">
-                    {result?.analyzers?.length || 0} modules verified
+                    {result?.analyzers?.length || 0} analyzer status records
                   </span>
                 </div>
 

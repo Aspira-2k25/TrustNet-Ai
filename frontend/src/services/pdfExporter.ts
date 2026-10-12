@@ -1,7 +1,12 @@
+import { assessmentVerdict } from './verdict';
 import { jsPDF } from 'jspdf';
 import type { ScanRecord } from '../types';
 
 export function exportForensicPDFReport(scan: ScanRecord): void {
+  if (scan.content_type === 'text' || scan.result?.module === 'scam_message' || !scan.result || !['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status)) {
+    exportMessagePDF(scan);
+    return;
+  }
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -15,36 +20,15 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
   const result = scan.result;
   const trustScore = scan.trust_score;
-  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 10.2;
-  const rawVerdict = result?.verdict || 'AUTHENTIC';
-  const isContradiction = Boolean(result?.metadata?.is_contradiction || trustScore?.contradiction_detected);
+  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
   const visionAnalysis = scan.vision_analysis || result?.vision_analysis || result?.metadata?.vision_analysis || trustScore?.vision_analysis;
   const isVisionApplied = visionAnalysis?.status === 'APPLIED';
   const lmStudioModel = result?.metadata?.lm_studio_model || visionAnalysis?.model_name || 'Local Vision Model';
 
-  let semanticVerdict = 'AUTHENTIC / NATURAL CAPTURE';
-  let bannerBg = [16, 185, 129]; // Emerald #10b981
-  let bannerText = [255, 255, 255];
-  let subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
-
-  if (rawVerdict === 'UNCERTAIN' || (isContradiction && riskScore >= 46.0 && riskScore <= 54.0)) {
-    semanticVerdict = 'UNCERTAIN / CONFLICTING SIGNALS';
-    bannerBg = [245, 158, 11]; // Amber #f59e0b
-    subtext = 'Signals disagree or evidence is conflicting / insufficient. Manual review recommended.';
-  } else if (rawVerdict === 'LIKELY_AI_MANIPULATED' || rawVerdict === 'AI_GENERATED' || riskScore > 52.0) {
-    semanticVerdict = 'LIKELY AI / MANIPULATED CONTENT';
-    bannerBg = [239, 68, 68]; // Red #ef4444
-    subtext = 'Multiple independent physical & neural signals indicate synthetic media generation.';
-  } else if (rawVerdict === 'LIKELY_AUTHENTIC' || (riskScore >= 25.0 && riskScore <= 52.0)) {
-    semanticVerdict = 'LIKELY AUTHENTIC CAPTURE';
-    bannerBg = [14, 165, 233]; // Sky #0ea5e9
-    subtext = 'Mostly consistent with authentic sensor capture with minor compression variance.';
-  } else {
-    semanticVerdict = 'AUTHENTIC / NATURAL CAPTURE';
-    bannerBg = [16, 185, 129]; // Emerald #10b981
-    bannerText = [255, 255, 255];
-    subtext = 'Low evidence of synthetic manipulation across all analyzed vectors.';
-  }
+  const semanticVerdict = assessmentVerdict(scan);
+  const bannerBg = semanticVerdict.includes('MANIPULATED') ? [239,68,68] : semanticVerdict.includes('UNCERTAIN') ? [245,158,11] : [14,165,233];
+  const bannerText = [255,255,255];
+  const subtext = 'Automated screening; neither provenance nor correctness is verified.';
 
   let y = margin;
 
@@ -113,12 +97,12 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   doc.setFont('helvetica', 'bold');
   doc.text('Content Type:', col3X, y + 5);
   doc.setFont('helvetica', 'normal');
-  doc.text(scan.mime_type || 'image/jpeg', col3X, y + 10.5);
+  doc.text(scan.mime_type || 'Unavailable', col3X, y + 10.5);
 
   doc.setFont('helvetica', 'bold');
   doc.text('Processing Time:', col4X, y + 5);
   doc.setFont('helvetica', 'normal');
-  doc.text(`${result?.processing_time_ms || 180} ms`, col4X, y + 10.5);
+  doc.text(result?.processing_time_ms == null ? 'Unavailable' : `${result.processing_time_ms} ms`, col4X, y + 10.5);
 
   y += 19;
 
@@ -159,9 +143,8 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   doc.setFontSize(8.5);
   doc.setTextColor(51, 65, 85); // Slate-700
 
-  const summaryText = trustScore?.explanation || result?.explanation || 
-    `TrustNet conducted multi-signal forensic verification on media asset ${scan.filename || scan.id}. The system computed a synthesized Risk Score of ${riskScore.toFixed(1)} out of 100 with ${(trustScore?.confidence ? trustScore.confidence * 100 : 94).toFixed(0)}% analytical confidence.`;
-  
+  const summaryText = trustScore?.explanation || result?.explanation || 'No explanation supplied. Missing evidence cannot establish authenticity.';
+
   const splitSummary = doc.splitTextToSize(summaryText, contentWidth);
   doc.text(splitSummary, margin, y);
   y += splitSummary.length * 4 + 4;
@@ -197,12 +180,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
   y += 6;
 
-  const analyzers = result?.analyzers || [
-    { name: 'EfficientNet-B0 Convolutional Backbone', category: 'primary_ml', status: 'APPLIED', finding: 'Spatial feature divergence consistent with generative synthesis.' },
-    { name: 'FFT High-Frequency Residual Analyzer', category: 'frequency', status: 'APPLIED', finding: 'Periodic grid artifacts detected in 2D Fourier Transform spectrum.' },
-    { name: 'Error Level Analysis (ELA)', category: 'compression', status: 'APPLIED', finding: 'Inconsistent 8x8 DCT compression error levels across local regions.' },
-    { name: 'Face Landmark & Boundary Warping', category: 'face_forensics', status: 'APPLIED', finding: 'Blending boundary discontinuities identified along jawline regions.' }
-  ];
+  const analyzers = result?.analyzers || [];
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
@@ -258,20 +236,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   doc.line(margin, y + 2, pageWidth - margin, y + 2);
   y += 6;
 
-  const whyReasons: string[] = result?.metadata?.why_reasons && result.metadata.why_reasons.length > 0
-    ? result.metadata.why_reasons
-    : (semanticVerdict.includes('MANIPULATED') || semanticVerdict.includes('AI')
-        ? [
-            'High-frequency periodic grid artifacts or radial spectral deviation detected in Fourier space.',
-            'Sub-pixel Bayer CFA continuity or multi-scale texture anomaly observed across high-contrast edges.',
-            'Deep vision transformer model flags synthetic generative patterns.'
-          ]
-        : [
-            '2D Fourier power spectrum follows natural optical lens decay.',
-            'Sub-pixel Bayer CFA demosaicing and micro-edge continuity verified across all color channels.',
-            'Error Level Analysis confirms uniform single-source compression matrix.'
-          ]
-      );
+  const whyReasons: string[] = result?.metadata?.why_reasons || [];
 
   doc.setFontSize(7.5);
   whyReasons.forEach((reason) => {
@@ -288,7 +253,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
       doc.text('[ANOMALY]', margin + 2, y);
     } else {
       doc.setTextColor(16, 185, 129); // Emerald
-      doc.text('[VERIFIED]', margin + 2, y);
+      doc.text('[OBSERVATION]', margin + 2, y);
     }
 
     doc.setFont('helvetica', 'normal');
@@ -311,25 +276,19 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
     boxBorder = [252, 165, 165]; // Red border #fca5a5
     titleColor = [185, 28, 28]; // Dark Red #b91c1c
     conclusionHeadline = 'BOTTOM LINE: THIS IMAGE IS LIKELY AI-GENERATED OR ALTERED.';
-    plainEnglishText = 
-      'What this means in simple terms: Our forensic inspection detected clear artificial signatures in this image that do not exist in genuine camera photographs. ' +
-      'Specifically, pixel blending discontinuities around edges, unnatural mathematical grid patterns in light frequency data, and synthetic neural network fingerprints show that this image was created or heavily modified using artificial intelligence tools.';
+    plainEnglishText = 'The recorded assessment indicates manipulation risk. Review the actual supplied evidence; this does not verify provenance or guarantee correctness.';
   } else if (semanticVerdict.includes('AUTHENTIC')) {
     boxBg = [236, 253, 245]; // Light Emerald #ecfdf5
     boxBorder = [110, 231, 183]; // Emerald border #6ee7b7
     titleColor = [4, 120, 87]; // Dark Emerald #047857
     conclusionHeadline = 'BOTTOM LINE: THIS IMAGE APPEARS AUTHENTIC AND GENUINE.';
-    plainEnglishText = 
-      'What this means in simple terms: All automated security tests confirm that this image matches the natural physical properties of a photo taken by a real camera. ' +
-      'The lighting transitions, camera sensor noise patterns, and file compression details are completely consistent with an authentic, un-altered photograph.';
+    plainEnglishText = 'The recorded assessment is consistent with real capture. It does not prove that the media is authentic or unaltered.';
   } else {
     boxBg = [254, 243, 199]; // Light Amber #fef3c7
     boxBorder = [252, 211, 77]; // Amber border #fcd34d
     titleColor = [180, 83, 9]; // Dark Amber #b45309
     conclusionHeadline = 'BOTTOM LINE: RESULTS ARE INCONCLUSIVE (MANUAL REVIEW ADVISED).';
-    plainEnglishText = 
-      'What this means in simple terms: The automated scanners found mixed signals. While some tests look normal, others show minor irregularities in file compression or pixel texture. ' +
-      'We recommend having a human specialist examine the image before drawing a final conclusion.';
+    plainEnglishText = 'Review the recorded evidence and model limitations. This screening does not verify provenance or establish authenticity.';
   }
 
   // Prepend LM Studio Local Vision Reasoning finding if active
@@ -343,6 +302,8 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   const section4TotalNeededHeight = 10 + boxHeight;
 
   // Crucial fix: Check if BOTH Section 4 heading AND Box fit together!
+  conclusionHeadline = `ASSESSMENT: ${semanticVerdict}`;
+
   checkPageBreak(section4TotalNeededHeight);
 
   doc.setFont('helvetica', 'bold');
@@ -396,10 +357,10 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
     doc.setTextColor(79, 70, 229);
-    doc.text('TRUSTNET VERIFIED', pageWidth - margin - 22, footerY + 6, { align: 'center' });
+    doc.text('SCREENING REPORT', pageWidth - margin - 22, footerY + 6, { align: 'center' });
     doc.setFontSize(5.5);
     doc.setFont('helvetica', 'normal');
-    doc.text('DIGITAL SIGNATURE ATTACHED', pageWidth - margin - 22, footerY + 10, { align: 'center' });
+    doc.text('NO VERIFIED PROVENANCE', pageWidth - margin - 22, footerY + 10, { align: 'center' });
 
     // Page numbering
     doc.setFontSize(7.5);
@@ -409,4 +370,40 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
   // Save PDF file download
   doc.save(`TrustNet_Forensic_Report_${scan.id}.pdf`);
+}
+
+function exportMessagePDF(scan: ScanRecord): void {
+  const doc = new jsPDF(); let y=18;
+  const line = (text: string) => {
+    // Keep every codepoint recoverable without asking the standard PDF font
+    // to encode unsupported glyphs (which can corrupt the entire text run).
+    const printable = Array.from(text, c => {
+      const point = c.codePointAt(0)!;
+      return (point >= 32 && point <= 126) || [9, 10, 13].includes(point) ? c : `\\u{${point.toString(16).toUpperCase()}}`;
+    }).join('');
+    const lines: string[] = doc.splitTextToSize(printable,180);
+    lines.forEach(t=>{if(y>275){doc.addPage();y=18;}doc.text(t,15,y);y+=5;}); y+=3;
+  };
+  doc.setFontSize(14);line('TrustNet message assessment');doc.setFontSize(10);
+  line(`Scan: ${scan.id} | ${scan.created_at}`);line(`Verdict: ${assessmentVerdict(scan)}`);
+  const r=scan.result;
+  if(r && ['SUCCESS','PARTIAL_SUCCESS'].includes(r.status) && ['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status)) {
+    const riskLabel=r.metadata?.evaluated_domains?.includes('English email') ? 'Message-model fraud estimate (limited coverage)' : `SMS-model smishing estimate${r.metadata?.message_type==='email'?' (email calibration unavailable)':''}`;
+    line(`${riskLabel}: ${r.risk_score.toFixed(1)}/100`);
+    const dimensions=r.metadata?.assessment_dimensions;
+    if(dimensions){line(`Category: ${dimensions.message_category.value}. ${dimensions.message_category.reason}`);line(`Sender: ${dimensions.sender_verification.status}. ${dimensions.sender_verification.reason}`);line(`AI authorship: ${dimensions.ai_authorship.status}. ${dimensions.ai_authorship.reason}`);}
+    (r.metadata?.sender_link_observations || []).forEach((o:Record<string,unknown>)=>line(Object.entries(o).map(([k,v])=>`${k}: ${String(v)}`).join('; ')));
+    (r.metadata?.next_steps || []).forEach((s:string)=>line(s));
+    if(r.metadata?.optional_explanation){line(`Optional evidence summary: ${r.metadata.optional_explanation.status}. ${r.metadata.optional_explanation.reason || r.metadata.optional_explanation.method}`);(r.metadata.optional_explanation.evidence || []).forEach((e:{note:string})=>line(e.note));}
+    line(`Prediction confidence: ${(r.confidence*100).toFixed(1)}%. ${r.metadata?.confidence_definition || 'Definition unavailable'}`);
+    line(r.explanation || 'Explanation unavailable');
+    line('Original message (non-ASCII codepoints shown as Unicode escapes):');line(scan.raw_input || 'Original message unavailable');
+    line(`Signed model evidence (${r.metadata?.attribution_unit || 'logit margin, not probability points'}):`);
+    r.evidence?.forEach(e=>line(`${e.feature_or_region}: ${e.contribution.toFixed(4)}. ${e.human_readable_note}`));
+    line('Layers:');r.analyzers?.forEach(a=>line(`${a.name}: ${a.status}. ${a.finding || a.reason || 'No finding supplied'}`));
+    (r.metadata?.limitations || []).forEach((l:string)=>line(l));
+    line(`Model: ${r.detector_id} / ${r.model_version}; preprocessing ${r.preprocessing_version}`);
+  } else {line('No successful assessment available. Missing or failed data does not establish safety.');}
+  line('PDF uses a standard font and reversible Unicode escapes for non-ASCII characters. The website preserves the original Unicode text.');
+  doc.save(`TrustNet_Message_${scan.id}.pdf`);
 }

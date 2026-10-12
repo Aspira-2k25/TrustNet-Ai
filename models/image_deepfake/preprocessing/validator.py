@@ -1,10 +1,11 @@
 import io
+import os
 from PIL import Image, UnidentifiedImageError
 from typing import Optional, Tuple
 
 class ImageValidator:
-    def __init__(self, max_size_bytes: int = 15 * 1024 * 1024):  # 15MB default
-        self.max_size_bytes = max_size_bytes
+    def __init__(self, max_size_bytes: Optional[int] = None):  # 15MB default
+        self.max_size_bytes = max_size_bytes if max_size_bytes is not None else int(os.getenv("MAX_IMAGE_SIZE_MB", "10")) * 1024 * 1024
         self.allowed_formats = {"JPEG", "PNG", "WEBP", "BMP", "TIFF", "GIF", "ICO"}
         self.magic_bytes = {
             b'\xFF\xD8\xFF': "JPEG",

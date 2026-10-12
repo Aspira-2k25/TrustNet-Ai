@@ -1,0 +1,20 @@
+[
+  {
+    "text": "Your appointment is confirmed for tomorrow at 10 AM."
+  },
+  {
+    "message_type": "email",
+    "subject": "Member newsletter",
+    "text": "Save 20% this weekend. Browse the shop you normally use. Unsubscribe if you no longer want updates."
+  },
+  {
+    "message_type": "email",
+    "subject": "Account access",
+    "text": "Your access is suspended. Reply with your password and one-time code to restore access.",
+    "claimed_sender": "support@bank.example",
+    "reply_to": "agent@other.invalid"
+  },
+  {
+    "text": "Congratulations! Claim your cash prize by paying a processing fee today."
+  }
+]

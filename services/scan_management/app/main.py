@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -18,7 +19,17 @@ async def lifespan(app: FastAPI):
     await init_db()
     await publisher.start()
     logger.info("Scan Management Service initialized successfully.")
+    task = None
+    if settings.KAFKA_ENABLED:
+        from services.scan_management.app.completion_consumer import consume_completions
+        task = asyncio.create_task(consume_completions())
     yield
+    if task:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
     await publisher.stop()
     logger.info("Scan Management Service shutting down...")
 

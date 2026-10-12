@@ -8,16 +8,15 @@ interface ForensicRadarChartProps {
 export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) => {
   const data = useMemo(() => {
     const riskScore = scan.trust_score?.trust_risk_score ?? scan.result?.risk_score ?? 15;
-    const evidence = scan.trust_score?.evidence || [];
+    const evidence = scan.result?.evidence || scan.trust_score?.evidence || [];
     const contentType = scan.content_type || 'image';
 
-    const getEvidenceScore = (keyword: string, fallbackScore: number) => {
-      const item = evidence.find(e => 
-        e.feature_or_region.toLowerCase().includes(keyword.toLowerCase()) || 
-        (e.human_readable_note && e.human_readable_note.toLowerCase().includes(keyword.toLowerCase()))
-      );
-      if (item) return Math.min(100, Math.round(item.contribution * 100));
-      return fallbackScore;
+    const getEvidenceScore = (keyword: string, _fallbackScore: number): number | null => {
+      const aliases: Record<string,string[]> = {frequency:['fft','spectral'],ela:['compression_error'],spatial:['efficientnet_spatial']};
+      const terms = aliases[keyword] || [keyword];
+      const item = evidence.find(e => terms.some(term => e.feature_or_region.toLowerCase().includes(term)));
+      if (item && item.contribution >= 0 && item.contribution <= 1) return Math.round(item.contribution * 100);
+      return null;
     };
 
     const base = riskScore;
@@ -30,7 +29,7 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         { subject: 'Spectral Roll-off', score: getEvidenceScore('spectral', base > 50 ? base + 2 : base) },
         { subject: 'Acoustic Ambiance', score: getEvidenceScore('room', base > 50 ? base - 12 : Math.max(5, base - 20)) },
         { subject: 'Neural TTS Glitch', score: getEvidenceScore('synthetic', base > 50 ? 94 : 8) },
-      ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
+      ];
     }
 
     if (contentType === 'video') {
@@ -41,7 +40,7 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         { subject: 'Inter-Frame Continuity', score: getEvidenceScore('jitter', base > 50 ? base - 8 : Math.max(5, base - 15)) },
         { subject: 'Phoneme Alignment', score: getEvidenceScore('lip', base > 50 ? base - 5 : Math.max(5, base - 10)) },
         { subject: 'Neural Reenactment ViT', score: getEvidenceScore('synthetic', base > 50 ? 92 : 12) },
-      ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
+      ];
     }
 
     if (contentType === 'url') {
@@ -52,7 +51,7 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         { subject: 'Redirect Chain Risk', score: getEvidenceScore('redirect', base > 50 ? base - 5 : Math.max(5, base - 15)) },
         { subject: 'DOM Credential Harvester', score: getEvidenceScore('credential', base > 50 ? base - 4 : Math.max(5, base - 10)) },
         { subject: 'Brand Impersonation', score: getEvidenceScore('spoof', base > 50 ? 96 : 10) },
-      ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
+      ];
     }
 
     if (contentType === 'text') {
@@ -63,7 +62,7 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         { subject: 'Authority Impersonation', score: getEvidenceScore('authority', base > 50 ? base - 6 : Math.max(5, base - 15)) },
         { subject: 'Syntactic Pattern Repetition', score: getEvidenceScore('duplicate', base > 50 ? base - 10 : Math.max(5, base - 20)) },
         { subject: 'Fraud Intent Index', score: getEvidenceScore('panic', base > 50 ? 95 : 12) },
-      ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
+      ];
     }
 
     // Default: Image Forensics
@@ -85,14 +84,14 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         score: getEvidenceScore('noise', base > 50 ? base + 5 : base),
       },
       {
-        subject: 'Deep Spatial',
+        subject: 'ImageNet feature signal',
         score: getEvidenceScore('spatial', base),
       },
       {
         subject: 'Semantic Context',
         score: getEvidenceScore('semantic', base > 50 ? 95 : 10),
       },
-    ].map(d => ({ ...d, score: Math.min(100, Math.max(2, d.score)) }));
+    ];
   }, [scan]);
 
   return (
@@ -101,18 +100,18 @@ export const ForensicRadarChart: React.FC<ForensicRadarChartProps> = ({ scan }) 
         <div key={idx} className="w-full">
           <div className="flex justify-between items-end mb-1.5">
             <span className="text-[11px] text-muted-foreground font-medium">{item.subject}</span>
-            <span className="text-[11px] font-semibold text-primary font-mono">{item.score}%</span>
+            <span className="text-[11px] font-semibold text-primary font-mono">{item.score === null ? 'Unavailable' : `${item.score ?? 0}%`}</span>
           </div>
           <div className="w-full bg-[#1e3a5f] h-1.5 rounded-full overflow-hidden flex shadow-inner">
             <div 
-              className={`h-full rounded-full transition-all duration-1000 ease-out ${item.score > 60 ? 'bg-destructive' : item.score > 30 ? 'bg-warning' : 'bg-primary'}`}
-              style={{ width: `${item.score}%` }} 
+              className={`h-full rounded-full transition-all duration-1000 ease-out ${(item.score ?? 0) > 60 ? 'bg-destructive' : (item.score ?? 0) > 30 ? 'bg-warning' : 'bg-primary'}`}
+              style={{ width: `${item.score ?? 0}%` }}
             />
           </div>
         </div>
       ))}
       <div className="mt-4 pt-3 border-t border-border w-full text-center">
-        <div className="text-[10px] text-muted-foreground font-medium">Multi-vector Synthesis</div>
+        <div className="text-[10px] text-muted-foreground font-medium">Reported heuristic evidence strength; not calibrated correctness</div>
       </div>
     </div>
   );

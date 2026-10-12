@@ -39,11 +39,13 @@ class LocalViTDeepfakeDetector:
     def _get_pipeline(self):
         if self._pipeline is None and self._load_error is None:
             try:
+                import os
                 from transformers import pipeline
-                # device=-1 forces CPU; change to 0 if a CUDA GPU is available.
+                token = os.getenv("HUGGINGFACE_API_KEY") or None
                 self._pipeline = pipeline(
                     "image-classification",
                     model=self.model_name,
+                    token=token,
                     device=-1,
                 )
             except Exception as e:

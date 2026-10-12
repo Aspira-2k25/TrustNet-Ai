@@ -1,156 +1,31 @@
-import React, { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
-import type { ScanRecord } from '../../types';
-
-interface ScamMessageScanViewProps {
-  onScanCompleted: (scan: ScanRecord) => void;
-  onViewReport: (scan: ScanRecord) => void;
-}
-
-export const ScamMessageScanView: React.FC<ScamMessageScanViewProps> = ({ onScanCompleted, onViewReport }) => {
-  const [messageText, setMessageText] = useState<string>(
-    "URGENT: Your bank account will be blocked within 2 hours due to unverified KYC. Click here immediately to update: http://bit.ly/bank-secure-auth or call our agent."
-  );
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
-  const handleAnalyze = () => {
-    if (!messageText.trim()) return;
-    setIsProcessing(true);
-
-    setTimeout(() => {
-      setIsProcessing(false);
-
-      const mockScamScan: ScanRecord = {
-        id: 'scan-scam-' + Math.random().toString(36).substring(2, 9),
-        user_id: 'usr-analyst-1',
-        status: 'SUCCESS',
-        content_type: 'text',
-        filename: 'suspicious_sms_message.txt',
-        file_size_bytes: messageText.length,
-        mime_type: 'text/plain',
-        created_at: new Date().toISOString(),
-        result: {
-          scan_id: 'scan-scam-sample',
-          module: 'scam_message',
-          detector_id: 'scam_message.nlp.v1',
-          model_version: 'v1.0.0',
-          preprocessing_version: 'v1.0.0',
-          native_score: 0.08,
-          native_score_semantics: 'probability_of_negative_class',
-          risk_score: 92,
-          confidence: 0.96,
-          label: 'fake',
-          verdict: 'AI_GENERATED',
-          has_face: false,
-          status: 'SUCCESS',
-          evidence: [
-            {
-              feature_or_region: 'artificial_urgency_panic',
-              contribution: 0.94,
-              human_readable_note: 'High-pressure countdown tactics and threats of account suspension.',
-            },
-            {
-              feature_or_region: 'malicious_shortener_link',
-              contribution: 0.91,
-              human_readable_note: 'Shortened redirect URL masking untrusted external destination.',
-            },
-          ],
-          analyzers: [
-            { name: 'Scam Semantic & Urgency Detector', category: 'intent', status: 'APPLIED', finding: 'High probability of social engineering fraud and credential theft.' },
-          ],
-          processing_time_ms: 76,
-          timestamp: new Date().toISOString(),
-        },
-        trust_score: {
-          scan_id: 'scan-scam-sample',
-          trust_risk_score: 92,
-          risk_level: 'CRITICAL',
-          reporting_modules: ['scam_message'],
-          module_scores: { scam_message: 92 },
-          confidence: 0.96,
-          contradiction_detected: false,
-          evidence: [
-            {
-              feature_or_region: 'artificial_urgency_panic',
-              contribution: 0.94,
-              human_readable_note: 'Artificial panic tactics detected threatening immediate account suspension.',
-            },
-          ],
-          explanation: 'Warning: This message is a fraudulent scam. It uses fake urgency and suspicious shortened links to trick you into revealing personal information.',
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      onScanCompleted(mockScamScan);
-      onViewReport(mockScamScan);
-    }, 1200);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-[#111d38] border border-[#1e3a5f] rounded-2xl p-6 shadow-3d-card mb-6">
-        <div className="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-[#f8fafc] font-serif">
-              Scam Message &amp; Fraud Text Detector
-            </h2>
-            <p className="text-xs text-[#94a3b8] mt-0.5">
-              Paste suspicious SMS, WhatsApp messages, lottery texts, or urgent emails to see if they are fraud attempts.
-            </p>
-          </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-950/70 text-amber-300 border border-amber-800">
-            SMS &amp; Text Messages
-          </span>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-xs font-bold text-[#94a3b8] mb-1.5">
-              Paste Suspicious Message Text
-            </label>
-            <textarea
-              rows={4}
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Paste the SMS, WhatsApp message, or email you received..."
-              className="w-full p-3.5 rounded-xl bg-[#0b132b] border border-[#1e3a5f] text-xs text-[#f8fafc] outline-none focus:border-[#00b4d8] transition-all"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-lg bg-[#0b132b] border border-[#1e3a5f]">
-              <span className="text-[11px] font-bold text-amber-400 block mb-1">Checks Fake Urgency</span>
-              <span className="text-[#94a3b8]">Catches fake bank alerts, threats of account block, and lottery scams.</span>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0b132b] border border-[#1e3a5f]">
-              <span className="text-[11px] font-bold text-[#00b4d8] block mb-1">Clear Advice</span>
-              <span className="text-[#94a3b8]">Tells you immediately whether to ignore, delete, or report the message.</span>
-            </div>
-          </div>
-        </div>
-
-        {isProcessing && (
-          <div className="mb-6 p-3.5 rounded-xl bg-[#0b132b] border border-amber-800 text-xs text-amber-300 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-            <span>Scanning message for fraud tactics, urgent keywords, and phishing links...</span>
-          </div>
-        )}
-
-        <div className="flex items-center justify-end pt-4 border-t border-[#1e3a5f]">
-          <button
-            onClick={handleAnalyze}
-            disabled={!messageText.trim() || isProcessing}
-            className={`px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer ${
-              !messageText.trim() || isProcessing
-                ? 'bg-[#1c2541] text-[#64748b] border border-[#1e3a5f] cursor-not-allowed'
-                : 'bg-[#0077b6] hover:bg-[#0096c7] text-white shadow-3d-sm'
-            }`}
-          >
-            <span>{isProcessing ? 'Checking Message...' : 'Check If Message Is a Scam'}</span>
-            <ArrowRight size={14} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+import React, {useState} from 'react';
+import {ArrowRight,RotateCcw,MessageSquare} from 'lucide-react';
+import type {ScanRecord} from '../../types';
+import {scanApi} from '../../services/api/scan.api';
+import {ScamResult} from '../../components/scam_message/ScamResult';
+interface Props {onScanCompleted:(scan:ScanRecord)=>void;onViewReport:(scan:ScanRecord)=>void}
+const examples=['Your account will be blocked today. Send your OTP immediately.','Your OTP is 482193. Do not share it with anyone.','Reminder: your appointment is tomorrow at 10 AM.','Pay a processing fee to claim your prize.','This is a warning about a scam message asking people to send OTPs.'];
+export const ScamMessageScanView:React.FC<Props>=({onScanCompleted,onViewReport})=>{
+ const [messageText,setMessageText]=useState('');const [isProcessing,setIsProcessing]=useState(false);const [error,setError]=useState('');const [scan,setScan]=useState<ScanRecord|null>(null);
+ const [mode,setMode]=useState<'sms'|'email'>('sms'); const [subject,setSubject]=useState(''); const [sender,setSender]=useState(''); const [reply,setReply]=useState(''); const [html,setHtml]=useState(false); const [optional,setOptional]=useState(false);
+ const handleAnalyze=async()=>{
+  if(!messageText.trim()||isProcessing)return;
+  if(Array.from(messageText).length+(mode==='email'?Array.from(subject).length+2:0)>10000){setError('Subject and message exceed 10,000 characters. Shorten explicitly; content is never silently discarded.');return;}
+  setIsProcessing(true);setError('');setScan(null);
+  try{const result=await scanApi.analyzeScam(messageText,mode==='email'?{message_type:mode,subject,claimed_sender:sender,reply_to:reply,text_format:html?'html':'plain',optional_analysis:optional}:{message_type:mode,optional_analysis:optional});setScan(result);onScanCompleted(result);}
+  catch(e){setError(e instanceof Error?e.message:'Message analysis failed');}
+  finally{setIsProcessing(false);}
+ };
+ return <div className="space-y-6"><div className="rounded-2xl border border-[#1e3a5f] bg-[#0b132b] p-6 md:p-8 space-y-5 shadow-3d-card"><h2 className="font-bold text-xl flex gap-3 items-center"><MessageSquare className="text-sky-400"/>Check a message</h2>
+ <p className="text-sm text-slate-400">English SMS/email screening separates fraud signals from spam. Evaluation covers limited labelled collections; modern inbox reliability, sender identity, linked sites and AI authorship are not established.</p>
+ <label className="block text-sm">Input type <select disabled={isProcessing} value={mode} onChange={e=>{setMode(e.target.value as 'sms'|'email');setScan(null);}} className="bg-[#111d38] p-2 rounded"><option value="sms">Text message</option><option value="email">Selected email</option></select></label>
+ {mode==='email'&&<div className="grid gap-3 md:grid-cols-2">{[['Subject',subject,setSubject,500],['Claimed sender',sender,setSender,320],['Reply-to (if available)',reply,setReply,320]].map(([label,value,setter,max])=><label key={String(label)} className="text-sm">{String(label)}<input value={String(value)} maxLength={Number(max)} disabled={isProcessing} onChange={e=>(setter as (v:string)=>void)(e.target.value)} className="block w-full bg-[#111d38] p-2 rounded mt-1"/></label>)}<label className="text-sm"><input type="checkbox" checked={html} disabled={isProcessing} onChange={e=>setHtml(e.target.checked)}/> Body contains HTML (decoded as text; never executed)</label></div>}
+ <label className="block text-sm">Message<textarea value={messageText} onChange={e=>setMessageText(e.target.value)} disabled={isProcessing} rows={8} placeholder="Paste a message to analyze…" className="block mt-2 w-full rounded-xl p-4 bg-[#111d38] border border-[#1e3a5f] resize-y focus:outline-sky-500"/></label>
+ <div className="flex justify-between text-xs text-slate-400"><span>All accepted text windows are processed. Highlight offsets refer to decoded text including the subject.</span><span>{Array.from(messageText).length+(mode==='email'?Array.from(subject).length+2:0)}/10000</span></div>
+ <label className="block text-xs text-slate-300"><input type="checkbox" disabled={isProcessing} checked={optional} onChange={e=>setOptional(e.target.checked)}/> Optional Groq evidence summary: sends up to ten bounded evidence fragments and local notes to Groq. Full body and sender are not sent. Requires backend opt-in/key; local scanning always remains available.</label>
+ <details><summary className="text-sm cursor-pointer text-sky-300">Try an example (not benchmark results)</summary><div className="flex flex-wrap gap-2 pt-3">{examples.map((t,i)=><button key={t} disabled={isProcessing} onClick={()=>setMessageText(t)} className="text-xs px-3 py-2 bg-[#16254a] rounded-lg">Example {i+1}</button>)}</div></details>
+ {error&&<p role="alert" className="text-red-300 bg-red-950 p-3 rounded-lg">{error}</p>}
+ <div className="flex flex-wrap justify-end gap-3"><button disabled={isProcessing} onClick={()=>{setMessageText('');setScan(null);setError('');}} className="flex gap-2 items-center px-4 py-2 text-sm"><RotateCcw size={14}/>Clear</button><button onClick={handleAnalyze} disabled={!messageText.trim()||isProcessing} className="bg-[#0077b6] disabled:opacity-50 px-6 py-3 rounded-xl text-sm font-bold flex items-center gap-2">{isProcessing?'Analyzing message…':'Analyze message'}<ArrowRight size={14}/></button></div>
+ {isProcessing&&<p role="status" className="text-sm text-sky-300">Waiting for model inference and saved assessment…</p>}
+ </div>{scan&&<><ScamResult scan={scan}/><button onClick={()=>onViewReport(scan)} className="text-sky-300">Open saved report</button></>}</div>;
 };

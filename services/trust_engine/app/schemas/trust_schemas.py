@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any
 from shared.schemas.evidence import EvidenceItem
 
 class RiskLevelEnum(str, Enum):
+    UNKNOWN = "UNKNOWN"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -11,7 +12,7 @@ class RiskLevelEnum(str, Enum):
 
 class TrustScoreResult(BaseModel):
     scan_id: str
-    trust_risk_score: float = Field(..., ge=0.0, le=100.0, description="Universal risk score [0, 100]")
+    trust_risk_score: Optional[float] = Field(..., ge=0.0, le=100.0, description="Universal risk score [0, 100]")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in combined assessment [0, 1]")
     risk_level: RiskLevelEnum
     contradiction_flag: bool = Field(default=False)
@@ -20,4 +21,5 @@ class TrustScoreResult(BaseModel):
     evidence: List[EvidenceItem] = Field(default_factory=list)
     explanation: str
     timestamp: str
+    status: str = "SUCCESS"
     metadata: Dict[str, Any] = Field(default_factory=dict)

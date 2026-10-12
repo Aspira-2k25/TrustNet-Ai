@@ -24,7 +24,10 @@ async def fuse_detection_results(req: FuseRequest):
             detail={"code": "EMPTY_RESULTS", "message": "At least one DetectionResult is required for fusion"}
         )
 
-    fused = fusion_engine.fuse(req.results, scan_id=req.scan_id)
+    try:
+        fused = fusion_engine.fuse(req.results, scan_id=req.scan_id)
+    except ValueError as exc:
+        raise HTTPException(422, detail={"code": "INVALID_FUSION_INPUT", "message": str(exc)})
     score_repo.save(fused)
 
     return APIResponse(

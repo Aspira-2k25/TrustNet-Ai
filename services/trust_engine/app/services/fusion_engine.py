@@ -49,6 +49,17 @@ class FusionEngine:
         """
         Executes the 4-step fusion algorithm defined in Master Spec Section 5.2.
         """
+        target_id = scan_id or (results[0].scan_id if results else "unknown")
+        if any(r.scan_id != target_id for r in results):
+            raise ValueError("Cannot fuse reports belonging to different scans")
+        # Identical retries are deduplicated; conflicting duplicate modules are rejected.
+        unique = {}
+        for result in results:
+            key = result.module.value
+            if key in unique and unique[key].model_dump() != result.model_dump():
+                raise ValueError("Conflicting duplicate module report")
+            unique[key] = result
+        results = list(unique.values())
         # Step 1: Normalization & Validation Pass
         valid_results = [
             r for r in results
@@ -59,9 +70,10 @@ class FusionEngine:
             target_scan_id = scan_id or (results[0].scan_id if results else "unknown")
             return TrustScoreResult(
                 scan_id=target_scan_id,
-                trust_risk_score=0.0,
+                trust_risk_score=None,
                 confidence=0.0,
-                risk_level=RiskLevelEnum.LOW,
+                risk_level=RiskLevelEnum.UNKNOWN,
+                status="FAILED",
                 contradiction_flag=False,
                 contradiction_details="No successful detector reports available for fusion.",
                 reporting_modules=[],
@@ -80,13 +92,25 @@ class FusionEngine:
         # Normalize weights
         norm_weights = [w / total_raw_weight for w in raw_weights]
 
-        # Apply maximum single module weight rule if multiple modules report
-        if len(valid_results) > 1 and self.max_ratio > 0:
-            capped_weights = [min(w, self.max_ratio) for w in norm_weights]
-            capped_sum = sum(capped_weights) or 1.0
-            effective_weights = [w / capped_sum for w in capped_weights]
-        else:
-            effective_weights = norm_weights
+        # A cap of 0.40 is infeasible with one/two modules. Preserve single
+        # module weight 1; use equal 0.5 weights for two. For >=3, water-fill.
+        n = len(valid_results)
+        cap = max(float(self.max_ratio), 1.0 / n)
+        effective_weights = [0.0] * n
+        remaining = set(range(n))
+        budget = 1.0
+        while remaining:
+            mass = sum(max(0.0, raw_weights[i]) for i in remaining)
+            proposed = {i: budget * (max(0.0, raw_weights[i]) / mass if mass else 1 / len(remaining)) for i in remaining}
+            saturated = [i for i in remaining if proposed[i] > cap + 1e-12]
+            if not saturated:
+                for i in remaining:
+                    effective_weights[i] = proposed[i]
+                break
+            for i in saturated:
+                effective_weights[i] = cap
+                budget -= cap
+                remaining.remove(i)
 
         # Compute fused risk score and raw confidence
         fused_risk = sum(r.risk_score * w for r, w in zip(valid_results, effective_weights))
@@ -136,7 +160,7 @@ class FusionEngine:
             explanation += f" Note: {contradiction_details}"
 
         # Propagate vision reasoning telemetry if present in reporting modules
-        fused_metadata: Dict[str, Any] = {}
+        fused_metadata: Dict[str, Any] = {"effective_weights": dict(zip(reporting_modules, effective_weights)), "effective_cap": cap, "weight_policy": "cap relaxed to 1/n when mathematically infeasible", "confidence_definition": "weighted detector confidence; not empirical calibration"}
         for r in valid_results:
             if hasattr(r, 'vision_analysis') and r.vision_analysis:
                 fused_metadata['vision_analysis'] = r.vision_analysis

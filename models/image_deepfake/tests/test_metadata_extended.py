@@ -26,8 +26,9 @@ def test_extended_generator_signatures_filename():
     for gen in modern_generators:
         filename = f"image_generated_by_{gen.replace(' ', '_')}_output.jpg"
         res = analyzer.analyze(img_bytes, filename=filename)
-        assert res["is_ai_signature_found"] is True, f"Failed for generator: {gen}"
-        assert res["metadata_anomaly_score"] >= 0.80
+        assert res["is_ai_signature_found"] is False, f"Editable filename must not verify generator: {gen}"
+        assert res["metadata_anomaly_score"] == analyzer.analyze(img_bytes, filename="camera.jpg")["metadata_anomaly_score"]
+        assert res["generator_name"] is None
 
 
 def test_clean_camera_filename_not_flagged():

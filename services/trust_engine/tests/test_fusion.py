@@ -79,9 +79,10 @@ def test_contradiction_detection_applies_penalty():
 def test_empty_results_fallback():
     engine = FusionEngine()
     fused = engine.fuse([])
-    assert fused.trust_risk_score == 0.0
+    assert fused.trust_risk_score is None
     assert fused.confidence == 0.0
-    assert fused.risk_level == RiskLevelEnum.LOW
+    assert fused.risk_level == RiskLevelEnum.UNKNOWN
+    assert fused.status == 'FAILED'
 
 @pytest.mark.anyio
 async def test_fuse_http_endpoint(client):

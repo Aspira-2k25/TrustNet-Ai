@@ -1,5 +1,6 @@
 import time
 from collections import defaultdict
+from fastapi.responses import JSONResponse
 from fastapi import Request, HTTPException, status
 from gateway.app.config.settings import settings
 
@@ -30,9 +31,9 @@ async def rate_limit_middleware(request: Request, call_next):
         
     client_ip = request.client.host if request.client else "unknown"
     if not limiter.is_allowed(client_ip):
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail={"code": "RATE_LIMIT_EXCEEDED", "message": "Too many requests. Please slow down."}
+            content={"code": "RATE_LIMIT_EXCEEDED", "message": "Too many requests. Please slow down."}
         )
         
     return await call_next(request)

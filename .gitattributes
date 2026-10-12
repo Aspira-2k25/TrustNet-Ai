@@ -1,0 +1,2 @@
+# Keep artifact files exact byte-for-byte to protect checksums
+models/scam_message/artifacts/* binary
