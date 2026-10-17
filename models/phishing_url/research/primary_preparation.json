@@ -1,0 +1,100 @@
+{
+  "source": "taruntiwarihp/phishing-site-urls",
+  "version": 1,
+  "source_rows": 549346,
+  "original_label_counts": {
+    "bad": 156422,
+    "good": 392924
+  },
+  "retained_rows": 500085,
+  "exclusions": {
+    "invalid_url": 9002,
+    "unrecognized_suffix": 312,
+    "duplicate_rows_removed": 39944,
+    "conflicting_url_groups": 1,
+    "conflicting_rows_quarantined": 3
+  },
+  "original_label_mapping": {
+    "good": 0,
+    "bad": 1
+  },
+  "archive_sha256": "d2076cdfb371b9da65b7b8b8fcf71d2b1a7544f5002345fde0e5f15c9d6eb61f",
+  "source_csv_sha256": "b1a7c26b354632c80817e10af154c4e5007f9480fb43a8ac2730491500fa2780",
+  "metadata_sha256": "99a3807fc7b5c1ce929e2ffd4953b39a07122dfc6a80477aa589f985e5ccf167",
+  "prepared_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+  "tldextract_version": "5.4.0",
+  "psl_sha256": "b69315c085d53972724b8f2df111ffc329b0c84fe0a47d62c8c91655cc774a38",
+  "include_private_suffixes": true,
+  "split_seed": 42,
+  "fold_seed": 43,
+  "development_folds": 10,
+  "partition_labels": {
+    "train": {
+      "0": 282538,
+      "1": 77528
+    },
+    "test": {
+      "1": 21533,
+      "0": 78480
+    },
+    "validation": {
+      "1": 8614,
+      "0": 31392
+    }
+  },
+  "partition_domains": {
+    "train": 113034,
+    "test": 31392,
+    "validation": 12545
+  },
+  "scheme_inferred_rows": 499978,
+  "license": "Database: Open Database, Contents: Database Contents",
+  "domain_overlap": 0,
+  "source_lineage": "Uploader description does not identify original collection sources",
+  "temporal_generalization": "unmeasured: no per-row observation dates",
+  "campaign_grouping": "unmeasured: registrable domain grouping only",
+  "normalization": "preserve path/query/fragment encoding and case; normalize host/scheme for dedup; assume HTTP only for parsing source rows lacking scheme",
+  "development_fold_labels": {
+    "0": {
+      "1": 8614,
+      "0": 31392
+    },
+    "1": {
+      "1": 8614,
+      "0": 31392
+    },
+    "2": {
+      "0": 31393,
+      "1": 8613
+    },
+    "3": {
+      "0": 31393,
+      "1": 8613
+    },
+    "4": {
+      "0": 31392,
+      "1": 8614
+    },
+    "5": {
+      "1": 8613,
+      "0": 31393
+    },
+    "6": {
+      "1": 8620,
+      "0": 31400
+    },
+    "7": {
+      "1": 8614,
+      "0": 31392
+    },
+    "8": {
+      "0": 31391,
+      "1": 8613
+    },
+    "9": {
+      "0": 31392,
+      "1": 8614
+    }
+  },
+  "fold_overlap": 0
+}

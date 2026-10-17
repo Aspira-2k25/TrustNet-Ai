@@ -1,0 +1,66 @@
+{
+  "scan_id": "phishing-smoke-3100fdf7-b0ca-41f3-bd70-5b65e3d7a167",
+  "real_kafka": true,
+  "real_mongodb": true,
+  "duplicate_completion_identical": true,
+  "result": {
+    "scan_id": "phishing-smoke-3100fdf7-b0ca-41f3-bd70-5b65e3d7a167",
+    "module": "phishing",
+    "detector_id": "phishing.rf.lexical.v1",
+    "model_version": "baseline-v1",
+    "preprocessing_version": "url-lexical-v1",
+    "native_score": 0.9724798487010964,
+    "native_score_semantics": "probability_of_positive_class",
+    "risk_score": 97.0,
+    "confidence": 0.0,
+    "label": "phishing",
+    "status": "PARTIAL_SUCCESS",
+    "evidence": [
+      {
+        "feature_or_region": "sensitive_tokens",
+        "contribution": 0.0,
+        "human_readable_note": "Observed sensitive_tokens: 1; observation only, not a model attribution"
+      }
+    ],
+    "analyzers": [],
+    "has_face": null,
+    "verdict": null,
+    "explanation": null,
+    "vision_analysis": null,
+    "metadata": {
+      "configuration": "lexical_baseline",
+      "calibrated": false,
+      "confidence_available": false,
+      "missing_signals": [
+        "whois",
+        "tls",
+        "dns",
+        "html",
+        "bert"
+      ],
+      "features": {
+        "url_length": 27.0,
+        "host_length": 11.0,
+        "path_length": 8.0,
+        "query_length": 0.0,
+        "host_labels": 2.0,
+        "digits": 0.0,
+        "hyphens": 0.0,
+        "percent_signs": 0.0,
+        "has_userinfo": 0.0,
+        "is_ip": 0.0,
+        "is_idn": 0.0,
+        "https": 1.0,
+        "explicit_port": 0.0,
+        "sensitive_tokens": 1.0
+      }
+    },
+    "processing_time_ms": 0,
+    "timestamp": "2026-10-12T01:50:36.414964+00:00",
+    "error_code": null,
+    "error_message": null,
+    "schema_version": 1
+  },
+  "model": "trained RF lexical baseline",
+  "external_collection": false
+}

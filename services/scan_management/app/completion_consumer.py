@@ -1,5 +1,5 @@
 """Persist validated completion events with first-completion-wins idempotency."""
-import asyncio,json,logging
+import asyncio,json,logging,os
 from aiokafka import AIOKafkaConsumer,AIOKafkaProducer
 from aiokafka.structs import OffsetAndMetadata
 from sqlalchemy import select
@@ -14,7 +14,7 @@ async def persist_completion(event,session):
     result=event.payload
     scan=(await session.execute(select(Scan).where(Scan.id==result.scan_id).with_for_update())).scalar_one_or_none()
     if not scan:raise ValueError('Unknown scan')
-    expected={'image':'image_deepfake','text':'scam_message'}.get(scan.content_type)
+    expected={'image':'image_deepfake','text':'scam_message','url':'phishing'}.get(scan.content_type)
     if result.module.value!=expected:raise ValueError('Wrong module for scan')
     saved=await session.get(ScanAssessment,scan.id)
     if saved and saved.assessment.get("result"):return False
@@ -22,6 +22,8 @@ async def persist_completion(event,session):
     from services.trust_engine.app.services.fusion_engine import fusion_engine
     trust=fusion_engine.fuse([result],scan.id).model_dump(mode='json')
     trust['module_scores']={result.module.value:result.risk_score if result.status.value == 'SUCCESS' else None};trust['contradiction_detected']=trust['contradiction_flag']
+    if result.module.value == 'phishing' and result.status.value == 'PARTIAL_SUCCESS':
+        trust['module_scores']['phishing'] = result.risk_score
     assessment = {'result':result.model_dump(mode='json'),'trust_score':trust}
     if saved:
         saved.assessment = {**saved.assessment, **assessment}
@@ -30,12 +32,12 @@ async def persist_completion(event,session):
     scan.status=result.status.value
     await session.commit();return True
 async def consume_completions():
-    topics=[Topics.DETECTOR_IMAGE_COMPLETED,Topics.DETECTOR_SCAM_COMPLETED]
+    topics=[Topics.DETECTOR_IMAGE_COMPLETED,Topics.DETECTOR_SCAM_COMPLETED,Topics.DETECTOR_PHISHING_COMPLETED]
     while True:
         consumer=None;producer=None
         try:
             producer=AIOKafkaProducer(bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,value_serializer=lambda v:json.dumps(v).encode(),key_serializer=lambda k:k.encode() if k else None)
-            consumer=AIOKafkaConsumer(*topics,bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,group_id='trustnet_scan_completion',enable_auto_commit=False,auto_offset_reset='earliest',request_timeout_ms=5000)
+            consumer=AIOKafkaConsumer(*topics,bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,group_id=os.getenv('SCAN_COMPLETION_GROUP','trustnet_scan_completion'),enable_auto_commit=False,auto_offset_reset='earliest',request_timeout_ms=5000)
             await producer.start();await consumer.start()
             async for msg in consumer:
                 from aiokafka.structs import TopicPartition

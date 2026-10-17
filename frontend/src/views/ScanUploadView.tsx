@@ -3,6 +3,7 @@ import { ShieldCheck, Image, Film, Mic, Globe, MessageSquare, Star } from 'lucid
 import type { ScanRecord } from '../types';
 import { ImageScanView } from './image/ImageScanView';
 import { ScamMessageScanView } from './scam_message/ScamMessageScanView';
+import { PhishingScanView } from './phishing_url/PhishingScanView';
 
 interface ScanUploadViewProps {
   onScanCompleted: (scan: ScanRecord) => void;
@@ -60,7 +61,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
           What Would You Like to Check?
         </h1>
         <p className="text-xs sm:text-sm text-[#94a3b8]">
-          Image and limited-coverage English SMS/email assessments use the connected services. Other modules are awaiting implementation.
+          Image, phishing URL and limited-coverage English SMS/email assessments use connected services. Other modules are awaiting implementation.
         </p>
       </div>
 
@@ -84,7 +85,7 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
 
       {/* Dynamic Active Modality View */}
       <div>
-        {!['image', 'scam_message'].includes(selectedModality) && (
+        {!['image', 'scam_message', 'phishing'].includes(selectedModality) && (
           <div role="status" className="rounded-2xl border border-[#1e3a5f] bg-[#111d38] p-8 text-center">
             <h2 className="text-lg font-semibold text-[#f8fafc]">Analysis unavailable</h2>
             <p className="mt-3 text-sm text-[#94a3b8]">This module has no validated inference integration yet. No assessment or history entry is created.</p>
@@ -95,6 +96,9 @@ export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted,
         )}
         {selectedModality === 'scam_message' && (
           <ScamMessageScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport} />
+        )}
+        {selectedModality === 'phishing' && (
+          <PhishingScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport} />
         )}
       </div>
     </div>

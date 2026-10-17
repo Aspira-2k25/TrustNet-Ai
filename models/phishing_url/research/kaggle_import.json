@@ -1,0 +1,8 @@
+{
+  "archive": "results.zip",
+  "verified_bundle_files": 8,
+  "manifest_sha256": "b660517666aa659ca93feae1c7181daf3a532f8fbc1f88828891f63b95e8e4ed",
+  "dataset_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+  "full_training_partition": true,
+  "epochs": 3
+}

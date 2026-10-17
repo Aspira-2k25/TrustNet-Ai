@@ -1,0 +1,12 @@
+# URL-text + structure model; no BERT/GPU dependency. Activate after evaluation.
+services:
+  phishing:
+    build:
+      args:
+        PHISHING_HYBRID: "false"
+    environment:
+      PHISHING_MODEL_MANIFEST: /modern/manifest.json
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    volumes:
+      - ./models/phishing_url/checkpoints/modern_v5:/modern:ro

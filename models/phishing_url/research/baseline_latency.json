@@ -1,0 +1,10 @@
+{
+  "model": "phishing.rf.lexical.v1",
+  "samples": 50,
+  "cold_load_ms": 6375.0,
+  "warm_inference_ms": {
+    "p50": 62.5,
+    "p95": 78.99999999790452
+  },
+  "collection": false
+}

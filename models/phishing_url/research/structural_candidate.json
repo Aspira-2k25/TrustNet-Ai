@@ -1,0 +1,277 @@
+{
+  "rows": {
+    "train": 516945,
+    "calibration": 53041,
+    "validation": 42146,
+    "test": 120664
+  },
+  "domain_overlap": 0,
+  "https_rows_by_label": {
+    "train": {
+      "0": 94316,
+      "1": 34185
+    },
+    "calibration": {
+      "0": 10838,
+      "1": 3049
+    },
+    "validation": {
+      "0": 9599,
+      "1": 2853
+    },
+    "test": {
+      "0": 20052,
+      "1": 7412
+    }
+  },
+  "conflicts_removed": 45,
+  "threshold": 0.72,
+  "validation": {
+    "accuracy": 0.8489299103117733,
+    "precision": 0.9329453441295547,
+    "recall": 0.5581712209522368,
+    "f1": 0.6984608098508169,
+    "roc_auc": 0.9097990339226582,
+    "pr_auc": 0.8567906586976154,
+    "brier": 0.10160045577280115,
+    "ece": 0.008262312646278393,
+    "fpr": 0.018316917228270262,
+    "fnr": 0.44182877904776324,
+    "specificity": 0.9816830827717298,
+    "confusion_matrix": [
+      [
+        28405,
+        530
+      ],
+      [
+        5837,
+        7374
+      ]
+    ]
+  },
+  "test": {
+    "accuracy": 0.8712209109593582,
+    "precision": 0.933707264957265,
+    "recall": 0.5500519243477987,
+    "f1": 0.6922787492326277,
+    "roc_auc": 0.9131436579492367,
+    "pr_auc": 0.8425682175450953,
+    "brier": 0.08954778212537112,
+    "ece": 0.008893064240627815,
+    "fpr": 0.013961546682867011,
+    "fnr": 0.4499480756522013,
+    "specificity": 0.986038453317133,
+    "confusion_matrix": [
+      [
+        87646,
+        1241
+      ],
+      [
+        14298,
+        17479
+      ]
+    ]
+  },
+  "challenge_excluded_from_train_calibration_validation": [
+    "amazon.in",
+    "bbc.com",
+    "cloudflare.com",
+    "example.com",
+    "github.com",
+    "gnu.org",
+    "google.com",
+    "kernel.org",
+    "khanacademy.org",
+    "microsoft.com",
+    "mozilla.org",
+    "nasa.gov",
+    "paypal.com",
+    "python.org",
+    "stackoverflow.com",
+    "ubuntu.com",
+    "w3.org",
+    "who.int",
+    "wikipedia.org"
+  ],
+  "challenge": [
+    {
+      "url": "https://amazon.in/",
+      "probability": 0.3628571428571429,
+      "alert": false
+    },
+    {
+      "url": "https://bbc.com/",
+      "probability": 0.01098901098901099,
+      "alert": false
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "probability": 0.09836065573770492,
+      "alert": false
+    },
+    {
+      "url": "https://example.com/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://github.com/",
+      "probability": 0.14258188824662812,
+      "alert": false
+    },
+    {
+      "url": "https://gnu.org/",
+      "probability": 0.01098901098901099,
+      "alert": false
+    },
+    {
+      "url": "https://google.com/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://kernel.org/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "probability": 0.0762747576906869,
+      "alert": false
+    },
+    {
+      "url": "https://microsoft.com/",
+      "probability": 0.12317834836918802,
+      "alert": false
+    },
+    {
+      "url": "https://mozilla.org/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://nasa.gov/",
+      "probability": 0.023668639053254437,
+      "alert": false
+    },
+    {
+      "url": "https://paypal.com/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://python.org/",
+      "probability": 0.17142274765593152,
+      "alert": false
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "probability": 0.0762747576906869,
+      "alert": false
+    },
+    {
+      "url": "https://ubuntu.com/",
+      "probability": 0.19258589511754068,
+      "alert": false
+    },
+    {
+      "url": "https://w3.org/",
+      "probability": 0.0762747576906869,
+      "alert": false
+    },
+    {
+      "url": "https://who.int/",
+      "probability": 0.01098901098901099,
+      "alert": false
+    },
+    {
+      "url": "https://wikipedia.org/",
+      "probability": 0.12317834836918802,
+      "alert": false
+    }
+  ],
+  "test_by_source": {
+    "primary": {
+      "accuracy": 0.9143040710238888,
+      "precision": 0.9043373907080404,
+      "recall": 0.6290995825879547,
+      "f1": 0.7420171613447742,
+      "roc_auc": 0.944845972837226,
+      "pr_auc": 0.8581000728075105,
+      "brier": 0.06462642476535344,
+      "ece": 0.033955066714207505,
+      "fpr": 0.016212682501634344,
+      "fnr": 0.3709004174120453,
+      "specificity": 0.9837873174983657,
+      "confusion_matrix": [
+        [
+          67719,
+          1116
+        ],
+        [
+          6220,
+          10550
+        ]
+      ]
+    },
+    "phiusiil": {
+      "accuracy": 0.7660229898171653,
+      "precision": 0.9822795576977601,
+      "recall": 0.46171786499633505,
+      "f1": 0.6281673541543901,
+      "roc_auc": 0.8251915945442629,
+      "pr_auc": 0.8409445945551237,
+      "brier": 0.15039928378840528,
+      "ece": 0.07143979374748478,
+      "fpr": 0.00623379214043487,
+      "fnr": 0.538282135003665,
+      "specificity": 0.9937662078595652,
+      "confusion_matrix": [
+        [
+          19927,
+          125
+        ],
+        [
+          8078,
+          6929
+        ]
+      ]
+    }
+  },
+  "elapsed_seconds": 634.3086622760002,
+  "live_accuracy_measured": false,
+  "scheme_is_not_a_feature": true,
+  "features": [
+    "length",
+    "host_length",
+    "path_length",
+    "query_length",
+    "host_labels",
+    "host_digits",
+    "host_digit_ratio",
+    "host_hyphens",
+    "host_entropy",
+    "max_label_length",
+    "mean_label_length",
+    "path_segments",
+    "path_digits",
+    "path_entropy",
+    "query_parameters",
+    "percent_count",
+    "encoded_fraction",
+    "userinfo",
+    "ip_destination",
+    "internationalised",
+    "unusual_port",
+    "dots_in_path",
+    "slashes",
+    "equals",
+    "at_signs",
+    "double_slash_path",
+    "fragment_length",
+    "credential_terms",
+    "longest_digit_run",
+    "suffix_length"
+  ],
+  "source_note": "Primary approved corpus plus official UCI PhiUSIIL URL/label; PhiUSIIL 1=legitimate, 0=phishing. CC BY 4.0 Prasad and Chandra 2024."
+}

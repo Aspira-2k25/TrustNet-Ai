@@ -1,0 +1,427 @@
+{
+  "observed_at": "2026-10-16T13:14:14.710373+00:00",
+  "cases": [
+    {
+      "case": "valid_certificate",
+      "url": "https://www.google.com/",
+      "verified": true,
+      "observations": {
+        "observed_at": "2026-10-16T13:13:40.671564+00:00",
+        "domain_age_days": 10623,
+        "signals": {
+          "dns": {
+            "status": "observed",
+            "addresses": [
+              "142.251.150.119",
+              "142.251.151.119",
+              "142.251.152.119",
+              "142.251.153.119",
+              "142.251.154.119",
+              "142.251.155.119",
+              "142.251.156.119",
+              "142.251.157.119"
+            ]
+          },
+          "tls": {
+            "status": "observed",
+            "certificate": {
+              "subject": [
+                [
+                  [
+                    "commonName",
+                    "www.google.com"
+                  ]
+                ]
+              ],
+              "issuer": [
+                [
+                  [
+                    "countryName",
+                    "US"
+                  ]
+                ],
+                [
+                  [
+                    "organizationName",
+                    "Google Trust Services"
+                  ]
+                ],
+                [
+                  [
+                    "commonName",
+                    "WR2"
+                  ]
+                ]
+              ],
+              "version": 3,
+              "serialNumber": "F40BFAC62B652CE00AC7A87F2EB208B3",
+              "notBefore": "Sep 18 20:02:27 2026 GMT",
+              "notAfter": "Dec 11 20:02:26 2026 GMT",
+              "subjectAltName": [
+                [
+                  "DNS",
+                  "www.google.com"
+                ]
+              ],
+              "caIssuers": [
+                "http://i.pki.goog/wr2.crt"
+              ],
+              "crlDistributionPoints": [
+                "http://c.pki.goog/wr2/oQ6nyr8F0m0.crl"
+              ]
+            },
+            "analysis": {
+              "status": "observed",
+              "chain_validated": true,
+              "hostname_validated": true,
+              "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+              "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+              "subject": "CN=www.google.com",
+              "issuer": "CN=WR2,O=Google Trust Services,C=US",
+              "not_before": "2026-09-18T20:02:27+00:00",
+              "not_after": "2026-12-11T20:02:26+00:00",
+              "expires_in_days": 56,
+              "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+              "signature_hash": "sha256",
+              "public_key_type": "EC",
+              "public_key_bits": 256,
+              "dns_names": [
+                "www.google.com"
+              ],
+              "weak_signature_hash": false,
+              "weak_public_key": false,
+              "tls_version": "TLSv1.3",
+              "cipher": "TLS_AES_256_GCM_SHA384",
+              "revocation_status": "NOT_CHECKED",
+              "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+            }
+          },
+          "navigation": {
+            "status": "observed",
+            "hops": [
+              {
+                "url": "https://www.google.com/",
+                "hostname": "www.google.com",
+                "status_code": 200,
+                "scheme": "https",
+                "path": "/",
+                "certificate_details": {
+                  "status": "observed",
+                  "chain_validated": true,
+                  "hostname_validated": true,
+                  "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                  "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+                  "subject": "CN=www.google.com",
+                  "issuer": "CN=WR2,O=Google Trust Services,C=US",
+                  "not_before": "2026-09-18T20:02:27+00:00",
+                  "not_after": "2026-12-11T20:02:26+00:00",
+                  "expires_in_days": 56,
+                  "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                  "signature_hash": "sha256",
+                  "public_key_type": "EC",
+                  "public_key_bits": 256,
+                  "dns_names": [
+                    "www.google.com"
+                  ],
+                  "weak_signature_hash": false,
+                  "weak_public_key": false,
+                  "tls_version": "TLSv1.3",
+                  "cipher": "TLS_AES_256_GCM_SHA384",
+                  "revocation_status": "NOT_CHECKED",
+                  "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+                }
+              }
+            ]
+          },
+          "http": {
+            "status": "observed",
+            "status_code": 200,
+            "redirects": 0,
+            "final_url": "https://www.google.com/"
+          },
+          "html": {
+            "status": "observed",
+            "bytes": 87374,
+            "content_type": "text/html; charset=ISO-8859-1",
+            "truncated": false,
+            "password_forms": []
+          },
+          "registration": {
+            "status": "observed",
+            "registration_date": "1997-09-15T04:00:00Z",
+            "protocol": "RDAP"
+          },
+          "reputation": {
+            "provider": "PhishStats",
+            "status": "OBSERVED",
+            "matched": false,
+            "checked_at": "2026-10-16T13:13:42.354477+00:00",
+            "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+            "fresh_match": false,
+            "reports": [],
+            "cached": true,
+            "cache_ttl_seconds": 5400,
+            "search_may_be_truncated": false
+          }
+        }
+      }
+    },
+    {
+      "case": "redirect_navigation",
+      "url": "http://github.com/",
+      "verified": true,
+      "observations": {
+        "observed_at": "2026-10-16T13:13:48.542858+00:00",
+        "domain_age_days": 6946,
+        "signals": {
+          "dns": {
+            "status": "observed",
+            "addresses": [
+              "20.207.73.82"
+            ]
+          },
+          "tls": {
+            "status": "observed",
+            "certificate": {
+              "subject": [
+                [
+                  [
+                    "commonName",
+                    "github.com"
+                  ]
+                ]
+              ],
+              "issuer": [
+                [
+                  [
+                    "countryName",
+                    "GB"
+                  ]
+                ],
+                [
+                  [
+                    "organizationName",
+                    "Sectigo Limited"
+                  ]
+                ],
+                [
+                  [
+                    "commonName",
+                    "Sectigo Public Server Authentication CA DV E36"
+                  ]
+                ]
+              ],
+              "version": 3,
+              "serialNumber": "A59EBDB596751DB7F5C095079613953C",
+              "notBefore": "Sep  1 00:00:00 2026 GMT",
+              "notAfter": "Nov 29 23:59:59 2026 GMT",
+              "subjectAltName": [
+                [
+                  "DNS",
+                  "github.com"
+                ],
+                [
+                  "DNS",
+                  "www.github.com"
+                ]
+              ],
+              "OCSP": [
+                "http://ocsp.sectigo.com"
+              ],
+              "caIssuers": [
+                "http://crt.sectigo.com/SectigoPublicServerAuthenticationCADVE36.crt"
+              ]
+            },
+            "analysis": {
+              "status": "observed",
+              "chain_validated": true,
+              "hostname_validated": true,
+              "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+              "sha256_fingerprint": "46b601ee08b418cf8a3a1ebfe670ba5ce43bb05a917fa8b2dd087a30471cfc63",
+              "subject": "CN=github.com",
+              "issuer": "CN=Sectigo Public Server Authentication CA DV E36,O=Sectigo Limited,C=GB",
+              "not_before": "2026-09-01T00:00:00+00:00",
+              "not_after": "2026-11-29T23:59:59+00:00",
+              "expires_in_days": 44,
+              "signature_algorithm_oid": "1.2.840.10045.4.3.2",
+              "signature_hash": "sha256",
+              "public_key_type": "EC",
+              "public_key_bits": 256,
+              "dns_names": [
+                "github.com",
+                "www.github.com"
+              ],
+              "weak_signature_hash": false,
+              "weak_public_key": false,
+              "tls_version": "TLSv1.3",
+              "cipher": "TLS_AES_128_GCM_SHA256",
+              "revocation_status": "NOT_CHECKED",
+              "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+            }
+          },
+          "navigation": {
+            "status": "observed",
+            "hops": [
+              {
+                "url": "http://github.com/",
+                "hostname": "github.com",
+                "status_code": 301,
+                "scheme": "http",
+                "path": "/",
+                "certificate_details": null,
+                "redirect_to": "https://github.com/"
+              },
+              {
+                "url": "https://github.com/",
+                "hostname": "github.com",
+                "status_code": 200,
+                "scheme": "https",
+                "path": "/",
+                "certificate_details": {
+                  "status": "observed",
+                  "chain_validated": true,
+                  "hostname_validated": true,
+                  "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                  "sha256_fingerprint": "46b601ee08b418cf8a3a1ebfe670ba5ce43bb05a917fa8b2dd087a30471cfc63",
+                  "subject": "CN=github.com",
+                  "issuer": "CN=Sectigo Public Server Authentication CA DV E36,O=Sectigo Limited,C=GB",
+                  "not_before": "2026-09-01T00:00:00+00:00",
+                  "not_after": "2026-11-29T23:59:59+00:00",
+                  "expires_in_days": 44,
+                  "signature_algorithm_oid": "1.2.840.10045.4.3.2",
+                  "signature_hash": "sha256",
+                  "public_key_type": "EC",
+                  "public_key_bits": 256,
+                  "dns_names": [
+                    "github.com",
+                    "www.github.com"
+                  ],
+                  "weak_signature_hash": false,
+                  "weak_public_key": false,
+                  "tls_version": "TLSv1.3",
+                  "cipher": "TLS_AES_128_GCM_SHA256",
+                  "revocation_status": "NOT_CHECKED",
+                  "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+                }
+              }
+            ]
+          },
+          "http": {
+            "status": "observed",
+            "status_code": 200,
+            "redirects": 1,
+            "final_url": "https://github.com/"
+          },
+          "html": {
+            "status": "observed",
+            "bytes": 262144,
+            "content_type": "text/html; charset=utf-8",
+            "truncated": true,
+            "password_forms": []
+          },
+          "registration": {
+            "status": "observed",
+            "registration_date": "2007-10-09T18:20:50Z",
+            "protocol": "RDAP"
+          },
+          "reputation": {
+            "provider": "PhishStats",
+            "status": "RATE_LIMITED",
+            "matched": false,
+            "checked_at": "2026-10-16T13:13:51.149825+00:00",
+            "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+            "reason": "Local daily reputation budget reached."
+          }
+        }
+      }
+    },
+    {
+      "case": "expired_certificate",
+      "url": "https://expired.badssl.com/",
+      "verified": true,
+      "observations": {
+        "observed_at": "2026-10-16T13:14:01.746118+00:00",
+        "domain_age_days": 4209,
+        "signals": {
+          "dns": {
+            "status": "observed",
+            "addresses": [
+              "104.154.89.105"
+            ]
+          },
+          "tls": {
+            "status": "observed",
+            "validated": false,
+            "verification_code": 10,
+            "reason": "certificate has expired"
+          },
+          "navigation": {
+            "status": "unavailable",
+            "hops": []
+          },
+          "http": {
+            "status": "unavailable",
+            "reason": "Certificate verification failed; insecure retry is disabled."
+          },
+          "registration": {
+            "status": "observed",
+            "registration_date": "2015-04-07T22:09:30Z",
+            "protocol": "RDAP"
+          },
+          "reputation": {
+            "provider": "PhishStats",
+            "status": "RATE_LIMITED",
+            "matched": false,
+            "checked_at": "2026-10-16T13:14:03.286493+00:00",
+            "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+            "reason": "Local daily reputation budget reached."
+          }
+        }
+      }
+    },
+    {
+      "case": "hostname_mismatch",
+      "url": "https://wrong.host.badssl.com/",
+      "verified": true,
+      "observations": {
+        "observed_at": "2026-10-16T13:14:09.392950+00:00",
+        "domain_age_days": 4209,
+        "signals": {
+          "dns": {
+            "status": "observed",
+            "addresses": [
+              "104.154.89.105"
+            ]
+          },
+          "tls": {
+            "status": "observed",
+            "validated": false,
+            "verification_code": 62,
+            "reason": "Hostname mismatch, certificate is not valid for 'wrong.host.badssl.com'."
+          },
+          "navigation": {
+            "status": "unavailable",
+            "hops": []
+          },
+          "http": {
+            "status": "unavailable",
+            "reason": "Certificate verification failed; insecure retry is disabled."
+          },
+          "registration": {
+            "status": "observed",
+            "registration_date": "2015-04-07T22:09:30Z",
+            "protocol": "RDAP"
+          },
+          "reputation": {
+            "provider": "PhishStats",
+            "status": "RATE_LIMITED",
+            "matched": false,
+            "checked_at": "2026-10-16T13:14:10.521670+00:00",
+            "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+            "reason": "Local daily reputation budget reached."
+          }
+        }
+      }
+    }
+  ]
+}

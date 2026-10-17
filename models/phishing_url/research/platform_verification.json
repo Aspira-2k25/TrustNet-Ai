@@ -1,0 +1,884 @@
+{
+  "real_authenticated_gateway": true,
+  "mock_auth": false,
+  "real_kafka": true,
+  "real_mongodb_worker": true,
+  "deployed_container_worker": true,
+  "relational_store": "isolated SQLite test database",
+  "owner_isolation": true,
+  "invalid_scheme_rejected": true,
+  "scan": {
+    "id": "741032e2-2308-48db-b045-383818977032",
+    "user_id": "b09c0333-0595-40bc-9894-0088c83e02c4",
+    "status": "PARTIAL_SUCCESS",
+    "content_type": "url",
+    "media_storage_key": null,
+    "raw_input": "https://paypal.com@account.example/login",
+    "filename": null,
+    "file_size_bytes": 40,
+    "created_at": "2026-10-16T13:15:11.195535",
+    "updated_at": "2026-10-16T13:15:25.970252",
+    "result": {
+      "scan_id": "741032e2-2308-48db-b045-383818977032",
+      "module": "phishing",
+      "detector_id": "phishing.modern.v5",
+      "model_version": "modern-v5",
+      "preprocessing_version": "url-structural-v3",
+      "native_score": 1.0,
+      "native_score_semantics": "anomaly_score",
+      "risk_score": 100.0,
+      "confidence": 0.0,
+      "label": "phishing",
+      "status": "PARTIAL_SUCCESS",
+      "evidence": [
+        {
+          "feature_or_region": "has_userinfo",
+          "contribution": 0.0,
+          "human_readable_note": "Observed has_userinfo: 1; observation only, not a model attribution"
+        },
+        {
+          "feature_or_region": "sensitive_tokens",
+          "contribution": 0.0,
+          "human_readable_note": "Observed sensitive_tokens: 2; observation only, not a model attribution"
+        },
+        {
+          "feature_or_region": "forensic:USERINFO",
+          "contribution": 0.0,
+          "human_readable_note": "Text before @ is login information, not the destination. The actual hostname is account.example."
+        },
+        {
+          "feature_or_region": "forensic:MISLEADING_AUTHORITY",
+          "contribution": 0.0,
+          "human_readable_note": "The domain paypal.com is placed before @, but the request goes to account.example. The apparent domain is not the destination."
+        }
+      ],
+      "analyzers": [
+        {
+          "name": "URL text + structure ensemble",
+          "status": "APPLIED",
+          "category": "primary_ml"
+        },
+        {
+          "name": "URL forensics",
+          "status": "APPLIED",
+          "category": "forensics",
+          "finding": "SUSPICIOUS"
+        },
+        {
+          "name": "Live website checks",
+          "status": "UNAVAILABLE",
+          "category": "live_collection",
+          "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+        },
+        {
+          "name": "PhishStats reputation",
+          "status": "UNAVAILABLE",
+          "category": "live_collection",
+          "finding": "No exact match or provider unavailable; neither establishes safety."
+        }
+      ],
+      "has_face": null,
+      "verdict": "SUSPICIOUS",
+      "explanation": "The domain paypal.com is placed before @, but the request goes to account.example. The apparent domain is not the destination. Text before @ is login information, not the destination. The actual hostname is account.example.",
+      "vision_analysis": null,
+      "metadata": {
+        "configuration": "modern_v5",
+        "calibrated": false,
+        "confidence_available": false,
+        "missing_signals": [
+          "dns",
+          "tls",
+          "http",
+          "html",
+          "registration",
+          "reputation"
+        ],
+        "features": {
+          "url_length": 40.0,
+          "host_length": 15.0,
+          "path_length": 6.0,
+          "query_length": 0.0,
+          "host_labels": 2.0,
+          "digits": 0.0,
+          "hyphens": 0.0,
+          "percent_signs": 0.0,
+          "has_userinfo": 1.0,
+          "is_ip": 0.0,
+          "is_idn": 0.0,
+          "https": 1.0,
+          "explicit_port": 0.0,
+          "sensitive_tokens": 2.0
+        },
+        "assessment_policy": "dynamic-v2",
+        "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+        "structural_features": {
+          "length": 32.0,
+          "host_length": 15.0,
+          "path_length": 6.0,
+          "query_length": 0.0,
+          "host_labels": 2.0,
+          "host_digits": 0.0,
+          "host_digit_ratio": 0.0,
+          "host_hyphens": 0.0,
+          "host_entropy": 3.5068905956085183,
+          "max_label_length": 7.0,
+          "mean_label_length": 7.0,
+          "path_segments": 1.0,
+          "path_digits": 0.0,
+          "path_entropy": 2.584962500721156,
+          "query_parameters": 0.0,
+          "percent_count": 0.0,
+          "encoded_fraction": 0.0,
+          "userinfo": 1.0,
+          "ip_destination": 0.0,
+          "internationalised": 0.0,
+          "unusual_port": 0.0,
+          "dots_in_path": 0.0,
+          "slashes": 1.0,
+          "equals": 0.0,
+          "at_signs": 1.0,
+          "double_slash_path": 0.0,
+          "fragment_length": 0.0,
+          "credential_terms": 1.0,
+          "longest_digit_run": 0.0,
+          "suffix_length": 7.0
+        },
+        "branch_probabilities": {
+          "structural": 0.9979912616821502,
+          "url_text": 0.9999456405639648
+        },
+        "inference_ms": 40,
+        "inference_url": "https://paypal.com@account.example/login",
+        "diagnostic_model": {
+          "probability": 1.0,
+          "risk_score": 100.0,
+          "label": "phishing",
+          "status": "PARTIAL_SUCCESS",
+          "error_code": null
+        },
+        "assessed_url": "https://paypal.com@account.example/login",
+        "forensics": {
+          "version": "dynamic-v2",
+          "hostname": "account.example",
+          "registered_domain": null,
+          "registration_boundary_known": false,
+          "outcome": "SUSPICIOUS",
+          "findings": [
+            {
+              "code": "USERINFO",
+              "severity": "medium",
+              "reason": "Text before @ is login information, not the destination. The actual hostname is account.example."
+            },
+            {
+              "code": "MISLEADING_AUTHORITY",
+              "severity": "high",
+              "reason": "The domain paypal.com is placed before @, but the request goes to account.example. The apparent domain is not the destination."
+            }
+          ],
+          "network": {
+            "status": "UNAVAILABLE",
+            "signals": {
+              "dns": {
+                "status": "unavailable",
+                "reason": "LifetimeTimeout"
+              },
+              "http": {
+                "status": "unavailable",
+                "reason": "FetchBlocked"
+              },
+              "navigation": {
+                "status": "unavailable",
+                "hops": []
+              },
+              "registration": {
+                "status": "unavailable",
+                "reason": "ValueError"
+              },
+              "reputation": {
+                "status": "UNAVAILABLE",
+                "matched": false,
+                "reason": "Private or unrecognised destination; reputation lookup skipped."
+              }
+            },
+            "observed_at": "2026-10-16T13:15:13.766566+00:00",
+            "domain_age_days": null
+          },
+          "path_analysis": {
+            "path": "/login",
+            "segments": 1,
+            "encoded_separators": false,
+            "double_encoding": false,
+            "dot_segments": false,
+            "navigation_parameters": [],
+            "definition": "Path/query syntax is inspected locally. Parameter targets are not fetched and do not prove an open redirect."
+          },
+          "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+        },
+        "model_calibrated": true,
+        "score_basis": "model_and_live_evidence",
+        "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+        "score_components": {
+          "model_probability": 1.0,
+          "evidence_updates": [
+            {
+              "code": "MISLEADING_AUTHORITY",
+              "policy_weight": 0.85
+            }
+          ],
+          "policy_version": "dynamic-evidence-v2",
+          "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+          "combined_calibration_validated": false
+        },
+        "threshold": 0.7,
+        "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+        "coverage": {
+          "status": "URL_ANALYSIS_ONLY",
+          "website_fetched": false,
+          "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+        },
+        "reasons": [
+          "The domain paypal.com is placed before @, but the request goes to account.example. The apparent domain is not the destination.",
+          "Text before @ is login information, not the destination. The actual hostname is account.example.",
+          "The address pattern resembles phishing URLs learned by the model."
+        ],
+        "display_verdict": "Phishing risk detected",
+        "assessment_dimensions": {
+          "phishing_risk": {
+            "status": "ASSESSED",
+            "score": 100.0
+          },
+          "website_verification": {
+            "status": "NOT_VERIFIED"
+          },
+          "ai_authorship": {
+            "status": "NOT_ASSESSED"
+          }
+        },
+        "limitations": [
+          "A low score does not guarantee safety or verify ownership.",
+          "The combined evidence index is not empirically calibrated as a probability.",
+          "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+          "Threat provider coverage, availability and rate limits affect reputation checks."
+        ],
+        "next_steps": [
+          "Check the actual hostname and verify unexpected credential/payment requests independently."
+        ],
+        "collected_observations": {
+          "observed_at": "2026-10-16T13:15:13.766566+00:00",
+          "domain_age_days": null,
+          "signals": {
+            "dns": {
+              "status": "unavailable",
+              "reason": "LifetimeTimeout"
+            },
+            "http": {
+              "status": "unavailable",
+              "reason": "FetchBlocked"
+            },
+            "navigation": {
+              "status": "unavailable",
+              "hops": []
+            },
+            "registration": {
+              "status": "unavailable",
+              "reason": "ValueError"
+            },
+            "reputation": {
+              "status": "UNAVAILABLE",
+              "matched": false,
+              "reason": "Private or unrecognised destination; reputation lookup skipped."
+            }
+          }
+        },
+        "metadata_used_by_model": false,
+        "model_inference_ms": 40,
+        "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+      },
+      "processing_time_ms": 12074,
+      "timestamp": "2026-10-16T13:15:08.744778+00:00",
+      "error_code": null,
+      "error_message": null,
+      "schema_version": 1
+    },
+    "trust_score": {
+      "scan_id": "741032e2-2308-48db-b045-383818977032",
+      "trust_risk_score": 100.0,
+      "confidence": 0.0,
+      "risk_level": "CRITICAL",
+      "contradiction_flag": false,
+      "contradiction_details": null,
+      "reporting_modules": [
+        "phishing"
+      ],
+      "evidence": [
+        {
+          "feature_or_region": "has_userinfo",
+          "contribution": 0.0,
+          "human_readable_note": "Observed has_userinfo: 1; observation only, not a model attribution"
+        },
+        {
+          "feature_or_region": "sensitive_tokens",
+          "contribution": 0.0,
+          "human_readable_note": "Observed sensitive_tokens: 2; observation only, not a model attribution"
+        },
+        {
+          "feature_or_region": "forensic:USERINFO",
+          "contribution": 0.0,
+          "human_readable_note": "Text before @ is login information, not the destination. The actual hostname is account.example."
+        },
+        {
+          "feature_or_region": "forensic:MISLEADING_AUTHORITY",
+          "contribution": 0.0,
+          "human_readable_note": "The domain paypal.com is placed before @, but the request goes to account.example. The apparent domain is not the destination."
+        }
+      ],
+      "explanation": "Trust Score: 100.0/100 (CRITICAL RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+      "timestamp": "2026-10-16T13:15:25.933163+00:00",
+      "status": "SUCCESS",
+      "metadata": {
+        "effective_weights": {
+          "phishing": 1.0
+        },
+        "effective_cap": 1.0,
+        "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+        "confidence_definition": "weighted detector confidence; not empirical calibration"
+      },
+      "module_scores": {
+        "phishing": 100.0
+      },
+      "contradiction_detected": false
+    },
+    "dimensions": null,
+    "mime_type": null
+  },
+  "live_certificate_navigation_scan": {
+    "id": "3e3df37e-bd18-4c15-a407-bc07d3cdb72c",
+    "user_id": "b09c0333-0595-40bc-9894-0088c83e02c4",
+    "status": "PARTIAL_SUCCESS",
+    "content_type": "url",
+    "media_storage_key": null,
+    "raw_input": "https://www.google.com/",
+    "filename": null,
+    "file_size_bytes": 23,
+    "created_at": "2026-10-16T13:15:27.589080",
+    "updated_at": "2026-10-16T13:15:38.415325",
+    "result": {
+      "scan_id": "3e3df37e-bd18-4c15-a407-bc07d3cdb72c",
+      "module": "phishing",
+      "detector_id": "phishing.modern.v5",
+      "model_version": "modern-v5",
+      "preprocessing_version": "url-structural-v3",
+      "native_score": 0.162,
+      "native_score_semantics": "anomaly_score",
+      "risk_score": 16.2,
+      "confidence": 0.0,
+      "label": "legitimate",
+      "status": "PARTIAL_SUCCESS",
+      "evidence": [],
+      "analyzers": [
+        {
+          "name": "URL text + structure ensemble",
+          "status": "APPLIED",
+          "category": "primary_ml"
+        },
+        {
+          "name": "URL forensics",
+          "status": "APPLIED",
+          "category": "forensics",
+          "finding": "NO_STRONG_INDICATORS"
+        },
+        {
+          "name": "Live website checks",
+          "status": "APPLIED",
+          "category": "live_collection",
+          "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+        },
+        {
+          "name": "PhishStats reputation",
+          "status": "APPLIED",
+          "category": "live_collection",
+          "finding": "No exact match or provider unavailable; neither establishes safety."
+        }
+      ],
+      "has_face": null,
+      "verdict": "NO_STRONG_INDICATORS",
+      "explanation": "The address pattern did not trigger the URL model\u2019s phishing checks. The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+      "vision_analysis": null,
+      "metadata": {
+        "configuration": "modern_v5",
+        "calibrated": false,
+        "confidence_available": false,
+        "missing_signals": [
+          "dns"
+        ],
+        "features": {
+          "url_length": 23.0,
+          "host_length": 14.0,
+          "path_length": 1.0,
+          "query_length": 0.0,
+          "host_labels": 3.0,
+          "digits": 0.0,
+          "hyphens": 0.0,
+          "percent_signs": 0.0,
+          "has_userinfo": 0.0,
+          "is_ip": 0.0,
+          "is_idn": 0.0,
+          "https": 1.0,
+          "explicit_port": 0.0,
+          "sensitive_tokens": 0.0
+        },
+        "assessment_policy": "dynamic-v2",
+        "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+        "structural_features": {
+          "length": 15.0,
+          "host_length": 14.0,
+          "path_length": 1.0,
+          "query_length": 0.0,
+          "host_labels": 3.0,
+          "host_digits": 0.0,
+          "host_digit_ratio": 0.0,
+          "host_hyphens": 0.0,
+          "host_entropy": 2.8423709931771093,
+          "max_label_length": 6.0,
+          "mean_label_length": 4.0,
+          "path_segments": 0.0,
+          "path_digits": 0.0,
+          "path_entropy": -0.0,
+          "query_parameters": 0.0,
+          "percent_count": 0.0,
+          "encoded_fraction": 0.0,
+          "userinfo": 0.0,
+          "ip_destination": 0.0,
+          "internationalised": 0.0,
+          "unusual_port": 0.0,
+          "dots_in_path": 0.0,
+          "slashes": 1.0,
+          "equals": 0.0,
+          "at_signs": 0.0,
+          "double_slash_path": 0.0,
+          "fragment_length": 0.0,
+          "credential_terms": 0.0,
+          "longest_digit_run": 0.0,
+          "suffix_length": 3.0
+        },
+        "branch_probabilities": {
+          "structural": 0.1691832928335296,
+          "url_text": 0.17083345353603363
+        },
+        "inference_ms": 25,
+        "inference_url": "https://www.google.com/",
+        "diagnostic_model": {
+          "probability": 0.1623529411764706,
+          "risk_score": 16.0,
+          "label": "legitimate",
+          "status": "PARTIAL_SUCCESS",
+          "error_code": null
+        },
+        "assessed_url": "https://www.google.com/",
+        "forensics": {
+          "version": "dynamic-v2",
+          "hostname": "www.google.com",
+          "registered_domain": "google.com",
+          "registration_boundary_known": true,
+          "outcome": "NO_STRONG_INDICATORS",
+          "findings": [],
+          "network": {
+            "status": "OBSERVED",
+            "signals": {
+              "dns": {
+                "status": "unavailable",
+                "reason": "LifetimeTimeout"
+              },
+              "tls": {
+                "status": "observed",
+                "certificate": {
+                  "subject": [
+                    [
+                      [
+                        "commonName",
+                        "www.google.com"
+                      ]
+                    ]
+                  ],
+                  "issuer": [
+                    [
+                      [
+                        "countryName",
+                        "US"
+                      ]
+                    ],
+                    [
+                      [
+                        "organizationName",
+                        "Google Trust Services"
+                      ]
+                    ],
+                    [
+                      [
+                        "commonName",
+                        "WR2"
+                      ]
+                    ]
+                  ],
+                  "version": 3,
+                  "serialNumber": "F40BFAC62B652CE00AC7A87F2EB208B3",
+                  "notBefore": "Sep 18 20:02:27 2026 GMT",
+                  "notAfter": "Dec 11 20:02:26 2026 GMT",
+                  "subjectAltName": [
+                    [
+                      "DNS",
+                      "www.google.com"
+                    ]
+                  ],
+                  "caIssuers": [
+                    "http://i.pki.goog/wr2.crt"
+                  ],
+                  "crlDistributionPoints": [
+                    "http://c.pki.goog/wr2/oQ6nyr8F0m0.crl"
+                  ]
+                },
+                "analysis": {
+                  "status": "observed",
+                  "chain_validated": true,
+                  "hostname_validated": true,
+                  "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                  "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+                  "subject": "CN=www.google.com",
+                  "issuer": "CN=WR2,O=Google Trust Services,C=US",
+                  "not_before": "2026-09-18T20:02:27+00:00",
+                  "not_after": "2026-12-11T20:02:26+00:00",
+                  "expires_in_days": 56,
+                  "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                  "signature_hash": "sha256",
+                  "public_key_type": "EC",
+                  "public_key_bits": 256,
+                  "dns_names": [
+                    "www.google.com"
+                  ],
+                  "weak_signature_hash": false,
+                  "weak_public_key": false,
+                  "tls_version": "TLSv1.3",
+                  "cipher": "TLS_AES_256_GCM_SHA384",
+                  "revocation_status": "NOT_CHECKED",
+                  "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+                }
+              },
+              "navigation": {
+                "status": "observed",
+                "hops": [
+                  {
+                    "url": "https://www.google.com/",
+                    "hostname": "www.google.com",
+                    "status_code": 200,
+                    "scheme": "https",
+                    "path": "/",
+                    "certificate_details": {
+                      "status": "observed",
+                      "chain_validated": true,
+                      "hostname_validated": true,
+                      "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                      "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+                      "subject": "CN=www.google.com",
+                      "issuer": "CN=WR2,O=Google Trust Services,C=US",
+                      "not_before": "2026-09-18T20:02:27+00:00",
+                      "not_after": "2026-12-11T20:02:26+00:00",
+                      "expires_in_days": 56,
+                      "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                      "signature_hash": "sha256",
+                      "public_key_type": "EC",
+                      "public_key_bits": 256,
+                      "dns_names": [
+                        "www.google.com"
+                      ],
+                      "weak_signature_hash": false,
+                      "weak_public_key": false,
+                      "tls_version": "TLSv1.3",
+                      "cipher": "TLS_AES_256_GCM_SHA384",
+                      "revocation_status": "NOT_CHECKED",
+                      "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+                    }
+                  }
+                ]
+              },
+              "http": {
+                "status": "observed",
+                "status_code": 200,
+                "redirects": 0,
+                "final_url": "https://www.google.com/"
+              },
+              "html": {
+                "status": "observed",
+                "bytes": 87391,
+                "content_type": "text/html; charset=ISO-8859-1",
+                "truncated": false,
+                "password_forms": []
+              },
+              "registration": {
+                "status": "observed",
+                "registration_date": "1997-09-15T04:00:00Z",
+                "protocol": "RDAP"
+              },
+              "reputation": {
+                "provider": "PhishStats",
+                "status": "OBSERVED",
+                "matched": false,
+                "checked_at": "2026-10-16T13:15:33.205288+00:00",
+                "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                "fresh_match": false,
+                "reports": [],
+                "cached": true,
+                "cache_ttl_seconds": 5400,
+                "search_may_be_truncated": false
+              }
+            },
+            "observed_at": "2026-10-16T13:15:28.509128+00:00",
+            "domain_age_days": 10623
+          },
+          "path_analysis": {
+            "path": "/",
+            "segments": 0,
+            "encoded_separators": false,
+            "double_encoding": false,
+            "dot_segments": false,
+            "navigation_parameters": [],
+            "definition": "Path/query syntax is inspected locally. Parameter targets are not fetched and do not prove an open redirect."
+          },
+          "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+        },
+        "model_calibrated": true,
+        "score_basis": "calibrated_url_model",
+        "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+        "score_components": {
+          "model_probability": 0.1623529411764706,
+          "evidence_updates": [],
+          "policy_version": "dynamic-evidence-v2",
+          "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+          "combined_calibration_validated": false
+        },
+        "threshold": 0.7,
+        "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+        "coverage": {
+          "status": "LIVE_CHECKS_APPLIED",
+          "website_fetched": true,
+          "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+        },
+        "reasons": [
+          "The address pattern did not trigger the URL model\u2019s phishing checks.",
+          "The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+          "The live request returned HTTP 200 after 0 redirects."
+        ],
+        "display_verdict": "Low phishing risk",
+        "assessment_dimensions": {
+          "phishing_risk": {
+            "status": "ASSESSED",
+            "score": 16.2
+          },
+          "website_verification": {
+            "status": "NOT_VERIFIED"
+          },
+          "ai_authorship": {
+            "status": "NOT_ASSESSED"
+          }
+        },
+        "limitations": [
+          "A low score does not guarantee safety or verify ownership.",
+          "The combined evidence index is not empirically calibrated as a probability.",
+          "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+          "Threat provider coverage, availability and rate limits affect reputation checks."
+        ],
+        "next_steps": [
+          "Check the actual hostname and verify unexpected credential/payment requests independently."
+        ],
+        "collected_observations": {
+          "observed_at": "2026-10-16T13:15:28.509128+00:00",
+          "domain_age_days": 10623,
+          "signals": {
+            "dns": {
+              "status": "unavailable",
+              "reason": "LifetimeTimeout"
+            },
+            "tls": {
+              "status": "observed",
+              "certificate": {
+                "subject": [
+                  [
+                    [
+                      "commonName",
+                      "www.google.com"
+                    ]
+                  ]
+                ],
+                "issuer": [
+                  [
+                    [
+                      "countryName",
+                      "US"
+                    ]
+                  ],
+                  [
+                    [
+                      "organizationName",
+                      "Google Trust Services"
+                    ]
+                  ],
+                  [
+                    [
+                      "commonName",
+                      "WR2"
+                    ]
+                  ]
+                ],
+                "version": 3,
+                "serialNumber": "F40BFAC62B652CE00AC7A87F2EB208B3",
+                "notBefore": "Sep 18 20:02:27 2026 GMT",
+                "notAfter": "Dec 11 20:02:26 2026 GMT",
+                "subjectAltName": [
+                  [
+                    "DNS",
+                    "www.google.com"
+                  ]
+                ],
+                "caIssuers": [
+                  "http://i.pki.goog/wr2.crt"
+                ],
+                "crlDistributionPoints": [
+                  "http://c.pki.goog/wr2/oQ6nyr8F0m0.crl"
+                ]
+              },
+              "analysis": {
+                "status": "observed",
+                "chain_validated": true,
+                "hostname_validated": true,
+                "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+                "subject": "CN=www.google.com",
+                "issuer": "CN=WR2,O=Google Trust Services,C=US",
+                "not_before": "2026-09-18T20:02:27+00:00",
+                "not_after": "2026-12-11T20:02:26+00:00",
+                "expires_in_days": 56,
+                "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                "signature_hash": "sha256",
+                "public_key_type": "EC",
+                "public_key_bits": 256,
+                "dns_names": [
+                  "www.google.com"
+                ],
+                "weak_signature_hash": false,
+                "weak_public_key": false,
+                "tls_version": "TLSv1.3",
+                "cipher": "TLS_AES_256_GCM_SHA384",
+                "revocation_status": "NOT_CHECKED",
+                "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+              }
+            },
+            "navigation": {
+              "status": "observed",
+              "hops": [
+                {
+                  "url": "https://www.google.com/",
+                  "hostname": "www.google.com",
+                  "status_code": 200,
+                  "scheme": "https",
+                  "path": "/",
+                  "certificate_details": {
+                    "status": "observed",
+                    "chain_validated": true,
+                    "hostname_validated": true,
+                    "signature_validation": "TLS handshake validated certificate chain using the configured CA trust store.",
+                    "sha256_fingerprint": "b440fda0a311e16b033bc009755b59e972f96d16c52069ef3189755919ac1f10",
+                    "subject": "CN=www.google.com",
+                    "issuer": "CN=WR2,O=Google Trust Services,C=US",
+                    "not_before": "2026-09-18T20:02:27+00:00",
+                    "not_after": "2026-12-11T20:02:26+00:00",
+                    "expires_in_days": 56,
+                    "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                    "signature_hash": "sha256",
+                    "public_key_type": "EC",
+                    "public_key_bits": 256,
+                    "dns_names": [
+                      "www.google.com"
+                    ],
+                    "weak_signature_hash": false,
+                    "weak_public_key": false,
+                    "tls_version": "TLSv1.3",
+                    "cipher": "TLS_AES_256_GCM_SHA384",
+                    "revocation_status": "NOT_CHECKED",
+                    "definition": "TLS identity and cryptography only. Issuer, fingerprint and a valid signature do not establish website safety."
+                  }
+                }
+              ]
+            },
+            "http": {
+              "status": "observed",
+              "status_code": 200,
+              "redirects": 0,
+              "final_url": "https://www.google.com/"
+            },
+            "html": {
+              "status": "observed",
+              "bytes": 87391,
+              "content_type": "text/html; charset=ISO-8859-1",
+              "truncated": false,
+              "password_forms": []
+            },
+            "registration": {
+              "status": "observed",
+              "registration_date": "1997-09-15T04:00:00Z",
+              "protocol": "RDAP"
+            },
+            "reputation": {
+              "provider": "PhishStats",
+              "status": "OBSERVED",
+              "matched": false,
+              "checked_at": "2026-10-16T13:15:33.205288+00:00",
+              "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+              "fresh_match": false,
+              "reports": [],
+              "cached": true,
+              "cache_ttl_seconds": 5400,
+              "search_may_be_truncated": false
+            }
+          }
+        },
+        "metadata_used_by_model": false,
+        "model_inference_ms": 25,
+        "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+      },
+      "processing_time_ms": 11229,
+      "timestamp": "2026-10-16T13:15:26.712454+00:00",
+      "error_code": null,
+      "error_message": null,
+      "schema_version": 1
+    },
+    "trust_score": {
+      "scan_id": "3e3df37e-bd18-4c15-a407-bc07d3cdb72c",
+      "trust_risk_score": 16.2,
+      "confidence": 0.0,
+      "risk_level": "LOW",
+      "contradiction_flag": false,
+      "contradiction_details": null,
+      "reporting_modules": [
+        "phishing"
+      ],
+      "evidence": [],
+      "explanation": "Trust Score: 16.2/100 (LOW RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+      "timestamp": "2026-10-16T13:15:38.412719+00:00",
+      "status": "SUCCESS",
+      "metadata": {
+        "effective_weights": {
+          "phishing": 1.0
+        },
+        "effective_cap": 1.0,
+        "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+        "confidence_definition": "weighted detector confidence; not empirical calibration"
+      },
+      "module_scores": {
+        "phishing": 16.2
+      },
+      "contradiction_detected": false
+    },
+    "dimensions": null,
+    "mime_type": null
+  },
+  "model_configuration": "modern_v5"
+}

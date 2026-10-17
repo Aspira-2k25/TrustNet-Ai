@@ -1,0 +1,18 @@
+{
+  "version": "dynamic-evidence-v2",
+  "definition": "Policy weights for an evidence-weighted risk index; these are not calibrated likelihood ratios or a probability of fraud.",
+  "weights": {
+    "VISUAL_DOMAIN_IMPERSONATION": 0.80,
+    "MISLEADING_AUTHORITY": 0.85,
+    "PASSWORD_HTTP": 0.75,
+    "REPUTATION_MATCH": 0.98,
+    "PASSWORD_EXTERNAL": 0.15,
+    "MIXED_SCRIPT": 0.10,
+    "INVALID_IDN": 0.05,
+    "UNUSUAL_PORT": 0.03,
+    "RECENT_REGISTRATION": 0.08,
+    "HTTPS_DOWNGRADE": 0.12,
+    "CROSS_DOMAIN_REDIRECT": 0.02,
+    "EMBEDDED_DOMAIN": 0.10
+  }
+}

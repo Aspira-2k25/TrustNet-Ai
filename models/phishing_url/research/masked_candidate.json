@@ -1,0 +1,251 @@
+{
+  "rows": {
+    "train": 516945,
+    "calibration": 53041,
+    "validation": 42146,
+    "test": 120664
+  },
+  "domain_overlap": 0,
+  "calibration_meta_partition_sizes": {
+    "0": 28422,
+    "1": 24619
+  },
+  "text_training_rows": 200000,
+  "registered_domain_identity_masked": true,
+  "threshold": 0.7,
+  "validation": {
+    "accuracy": 0.8994685142124994,
+    "precision": 0.955625507717303,
+    "recall": 0.712360911361744,
+    "f1": 0.8162539572401232,
+    "roc_auc": 0.9515471048738426,
+    "pr_auc": 0.9193390499810816,
+    "brier": 0.07180984878984085,
+    "ece": 0.006939119566427741,
+    "fpr": 0.015102816658026612,
+    "fnr": 0.287639088638256,
+    "specificity": 0.9848971833419734,
+    "confusion_matrix": [
+      [
+        28498,
+        437
+      ],
+      [
+        3800,
+        9411
+      ]
+    ]
+  },
+  "test": {
+    "accuracy": 0.9161307432208446,
+    "precision": 0.9633306234221899,
+    "recall": 0.7084998583881423,
+    "f1": 0.8164937985058388,
+    "roc_auc": 0.9605864860970619,
+    "pr_auc": 0.9202219123259334,
+    "brier": 0.05944000956188712,
+    "ece": 0.005929338928150521,
+    "fpr": 0.00964145488091622,
+    "fnr": 0.2915001416118576,
+    "specificity": 0.9903585451190838,
+    "confusion_matrix": [
+      [
+        88030,
+        857
+      ],
+      [
+        9263,
+        22514
+      ]
+    ]
+  },
+  "test_by_source": {
+    "primary": {
+      "accuracy": 0.9586355937153204,
+      "precision": 0.9476818950930626,
+      "recall": 0.834943351222421,
+      "f1": 0.8877476620700586,
+      "roc_auc": 0.9860883975009765,
+      "pr_auc": 0.9561773616804871,
+      "brier": 0.03169383793661462,
+      "ece": 0.01519938231223358,
+      "fpr": 0.011229752306239559,
+      "fnr": 0.165056648777579,
+      "specificity": 0.9887702476937604,
+      "confusion_matrix": [
+        [
+          68062,
+          773
+        ],
+        [
+          2768,
+          14002
+        ]
+      ]
+    },
+    "phiusiil": {
+      "accuracy": 0.8123449043041729,
+      "precision": 0.990228013029316,
+      "recall": 0.567201972412874,
+      "f1": 0.7212642460704147,
+      "roc_auc": 0.8590586328680634,
+      "pr_auc": 0.8750309804531505,
+      "brier": 0.12718897621756617,
+      "ece": 0.045122022883198665,
+      "fpr": 0.004189108318372232,
+      "fnr": 0.432798027587126,
+      "specificity": 0.9958108916816277,
+      "confusion_matrix": [
+        [
+          19968,
+          84
+        ],
+        [
+          6495,
+          8512
+        ]
+      ]
+    }
+  },
+  "challenge": [
+    {
+      "url": "https://amazon.in/",
+      "probability": 0.39351851851851855,
+      "alert": false
+    },
+    {
+      "url": "https://bbc.com/",
+      "probability": 0.029556650246305414,
+      "alert": false
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "probability": 0.1035923141186299,
+      "alert": false
+    },
+    {
+      "url": "https://example.com/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://github.com/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://gnu.org/",
+      "probability": 0.009554140127388535,
+      "alert": false
+    },
+    {
+      "url": "https://google.com/",
+      "probability": 0.23972602739726032,
+      "alert": false
+    },
+    {
+      "url": "https://kernel.org/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "probability": 0.09382151029748284,
+      "alert": false
+    },
+    {
+      "url": "https://microsoft.com/",
+      "probability": 0.1774193548387097,
+      "alert": false
+    },
+    {
+      "url": "https://mozilla.org/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://nasa.gov/",
+      "probability": 0.03832752613240418,
+      "alert": false
+    },
+    {
+      "url": "https://paypal.com/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://python.org/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "probability": 0.1035923141186299,
+      "alert": false
+    },
+    {
+      "url": "https://ubuntu.com/",
+      "probability": 0.20618556701030927,
+      "alert": false
+    },
+    {
+      "url": "https://w3.org/",
+      "probability": 0.09382151029748284,
+      "alert": false
+    },
+    {
+      "url": "https://who.int/",
+      "probability": 0.029556650246305414,
+      "alert": false
+    },
+    {
+      "url": "https://wikipedia.org/",
+      "probability": 0.1774193548387097,
+      "alert": false
+    }
+  ],
+  "challenge_domains_excluded_from_fit": [
+    "amazon.in",
+    "bbc.com",
+    "cloudflare.com",
+    "example.com",
+    "github.com",
+    "gnu.org",
+    "google.com",
+    "kernel.org",
+    "khanacademy.org",
+    "microsoft.com",
+    "mozilla.org",
+    "nasa.gov",
+    "paypal.com",
+    "python.org",
+    "stackoverflow.com",
+    "ubuntu.com",
+    "w3.org",
+    "who.int",
+    "wikipedia.org"
+  ],
+  "elapsed_seconds": 494.5936138570014,
+  "limitations": [
+    "Source/domain-held-out benchmark, not a temporal deployment guarantee.",
+    "Structural-only and unmasked-text candidates were rejected; this development reused their evaluation partition. Fresh web comparisons are separate."
+  ],
+  "https_rows_by_label": {
+    "train": {
+      "0": 94316,
+      "1": 34185
+    },
+    "calibration": {
+      "0": 10838,
+      "1": 3049
+    },
+    "validation": {
+      "0": 9599,
+      "1": 2853
+    },
+    "test": {
+      "0": 20052,
+      "1": 7412
+    }
+  }
+}

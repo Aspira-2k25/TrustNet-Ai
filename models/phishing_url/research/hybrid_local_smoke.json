@@ -1,0 +1,92 @@
+{
+  "scan_id": "hybrid-import-smoke",
+  "module": "phishing",
+  "detector_id": "phishing.lgbm_bert.v1",
+  "model_version": "hybrid-v1",
+  "preprocessing_version": "url-lexical-v1",
+  "native_score": 0.011260053619302948,
+  "native_score_semantics": "probability_of_positive_class",
+  "risk_score": 1.0,
+  "confidence": 0.9887399463806971,
+  "label": "legitimate",
+  "status": "PARTIAL_SUCCESS",
+  "evidence": [
+    {
+      "feature_or_region": "path_length",
+      "contribution": -0.8270324734579789,
+      "human_readable_note": "TreeSHAP log-odds contribution -0.827 from path_length=1; before calibration/voting"
+    },
+    {
+      "feature_or_region": "url_length",
+      "contribution": 0.564299561551823,
+      "human_readable_note": "TreeSHAP log-odds contribution +0.564 from url_length=20; before calibration/voting"
+    },
+    {
+      "feature_or_region": "digits",
+      "contribution": -0.26300696154982495,
+      "human_readable_note": "TreeSHAP log-odds contribution -0.263 from digits=0; before calibration/voting"
+    },
+    {
+      "feature_or_region": "hyphens",
+      "contribution": 0.25285105981525985,
+      "human_readable_note": "TreeSHAP log-odds contribution +0.253 from hyphens=0; before calibration/voting"
+    },
+    {
+      "feature_or_region": "sensitive_tokens",
+      "contribution": -0.25139968864087153,
+      "human_readable_note": "TreeSHAP log-odds contribution -0.251 from sensitive_tokens=0; before calibration/voting"
+    }
+  ],
+  "analyzers": [
+    {
+      "name": "LightGBM lexical branch",
+      "status": "APPLIED"
+    },
+    {
+      "name": "BERT URL branch",
+      "status": "APPLIED"
+    }
+  ],
+  "has_face": null,
+  "verdict": null,
+  "explanation": null,
+  "vision_analysis": null,
+  "metadata": {
+    "configuration": "lightgbm_bert",
+    "calibrated": true,
+    "confidence_available": true,
+    "missing_signals": [
+      "whois",
+      "tls",
+      "dns",
+      "html"
+    ],
+    "features": {
+      "url_length": 20.0,
+      "host_length": 11.0,
+      "path_length": 1.0,
+      "query_length": 0.0,
+      "host_labels": 2.0,
+      "digits": 0.0,
+      "hyphens": 0.0,
+      "percent_signs": 0.0,
+      "has_userinfo": 0.0,
+      "is_ip": 0.0,
+      "is_idn": 0.0,
+      "https": 1.0,
+      "explicit_port": 0.0,
+      "sensitive_tokens": 0.0
+    },
+    "branch_probabilities": {
+      "lightgbm": 0.07113703602792096,
+      "bert": 0.0010752747766673565
+    },
+    "confidence_definition": "calibrated probability of predicted label; calibration measured on held-out development domains",
+    "inference_ms": 5030
+  },
+  "processing_time_ms": 5030,
+  "timestamp": "2026-10-15T16:14:38.873384+00:00",
+  "error_code": null,
+  "error_message": null,
+  "schema_version": 1
+}

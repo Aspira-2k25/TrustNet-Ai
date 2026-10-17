@@ -1,0 +1,2018 @@
+{
+  "seed": 20261016,
+  "sampled_at": "2026-10-16T10:29:04.319158+00:00",
+  "reference_labels_are_not_definitive_ground_truth": true,
+  "websites_fetched_with_protected_collector": true,
+  "model_only_counts": {
+    "legitimate_false_alerts": 1,
+    "reported_phishing_alerts": 0,
+    "legitimate_total": 4,
+    "reported_phishing_total": 0
+  },
+  "combined_counts": {
+    "legitimate_false_alerts": 1,
+    "reported_phishing_alerts": 0,
+    "legitimate_total": 4,
+    "reported_phishing_total": 0
+  },
+  "warning": "Combined counts use the same provider as the positive reference labels; not an independent accuracy benchmark.",
+  "external_access": {
+    "urlscan": "See per-case observed/no-exact-report/HTTP error status.",
+    "virustotal": {
+      "status": "NOT_QUERIED",
+      "reason": "Requires API credentials or user sign-in; no results fabricated."
+    }
+  },
+  "valid_cases": 4,
+  "invalid_rejected": 0,
+  "results": [
+    {
+      "category": "legitimate_official_url",
+      "scan": {
+        "id": "1da5206c-280a-4d42-8a04-cbd1e1642149",
+        "user_id": "a0e3941d-3feb-4c46-8e43-6aa8f180d74e",
+        "status": "PARTIAL_SUCCESS",
+        "content_type": "url",
+        "media_storage_key": null,
+        "raw_input": "https://www.google.com/search?q=security",
+        "filename": null,
+        "file_size_bytes": 40,
+        "created_at": "2026-10-16T12:32:33.884347",
+        "updated_at": "2026-10-16T12:32:55.971626",
+        "result": {
+          "scan_id": "1da5206c-280a-4d42-8a04-cbd1e1642149",
+          "module": "phishing",
+          "detector_id": "phishing.modern.v5",
+          "model_version": "modern-v5",
+          "preprocessing_version": "url-structural-v3",
+          "native_score": 0.038,
+          "native_score_semantics": "anomaly_score",
+          "risk_score": 3.8,
+          "confidence": 0.0,
+          "label": "legitimate",
+          "status": "PARTIAL_SUCCESS",
+          "evidence": [],
+          "analyzers": [
+            {
+              "name": "URL text + structure ensemble",
+              "status": "APPLIED",
+              "category": "primary_ml"
+            },
+            {
+              "name": "URL forensics",
+              "status": "APPLIED",
+              "category": "forensics",
+              "finding": "NO_STRONG_INDICATORS"
+            },
+            {
+              "name": "Live website checks",
+              "status": "APPLIED",
+              "category": "live_collection",
+              "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+            },
+            {
+              "name": "PhishStats reputation",
+              "status": "APPLIED",
+              "category": "live_collection",
+              "finding": "No exact match or provider unavailable; neither establishes safety."
+            }
+          ],
+          "has_face": null,
+          "verdict": "NO_STRONG_INDICATORS",
+          "explanation": "The address pattern did not trigger the URL model\u2019s phishing checks. The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+          "vision_analysis": null,
+          "metadata": {
+            "configuration": "modern_v5",
+            "calibrated": false,
+            "confidence_available": false,
+            "missing_signals": [],
+            "features": {
+              "url_length": 40.0,
+              "host_length": 14.0,
+              "path_length": 7.0,
+              "query_length": 10.0,
+              "host_labels": 3.0,
+              "digits": 0.0,
+              "hyphens": 0.0,
+              "percent_signs": 0.0,
+              "has_userinfo": 0.0,
+              "is_ip": 0.0,
+              "is_idn": 0.0,
+              "https": 1.0,
+              "explicit_port": 0.0,
+              "sensitive_tokens": 0.0
+            },
+            "assessment_policy": "dynamic-v2",
+            "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+            "structural_features": {
+              "length": 32.0,
+              "host_length": 14.0,
+              "path_length": 7.0,
+              "query_length": 10.0,
+              "host_labels": 3.0,
+              "host_digits": 0.0,
+              "host_digit_ratio": 0.0,
+              "host_hyphens": 0.0,
+              "host_entropy": 2.8423709931771093,
+              "max_label_length": 6.0,
+              "mean_label_length": 4.0,
+              "path_segments": 1.0,
+              "path_digits": 0.0,
+              "path_entropy": 2.807354922057604,
+              "query_parameters": 1.0,
+              "percent_count": 0.0,
+              "encoded_fraction": 0.0,
+              "userinfo": 0.0,
+              "ip_destination": 0.0,
+              "internationalised": 0.0,
+              "unusual_port": 0.0,
+              "dots_in_path": 0.0,
+              "slashes": 1.0,
+              "equals": 1.0,
+              "at_signs": 0.0,
+              "double_slash_path": 0.0,
+              "fragment_length": 0.0,
+              "credential_terms": 0.0,
+              "longest_digit_run": 0.0,
+              "suffix_length": 3.0
+            },
+            "branch_probabilities": {
+              "structural": 0.054776726786147804,
+              "url_text": 0.16541647911071777
+            },
+            "inference_ms": 9123,
+            "inference_url": "https://www.google.com/search?q=security",
+            "diagnostic_model": {
+              "probability": 0.03832752613240418,
+              "risk_score": 4.0,
+              "label": "legitimate",
+              "status": "PARTIAL_SUCCESS",
+              "error_code": null
+            },
+            "assessed_url": "https://www.google.com/search?q=security",
+            "forensics": {
+              "version": "dynamic-v2",
+              "hostname": "www.google.com",
+              "registered_domain": "google.com",
+              "registration_boundary_known": true,
+              "outcome": "NO_STRONG_INDICATORS",
+              "findings": [],
+              "network": {
+                "status": "OBSERVED",
+                "signals": {
+                  "dns": {
+                    "status": "observed",
+                    "addresses": [
+                      "142.251.150.119",
+                      "142.251.151.119",
+                      "142.251.152.119",
+                      "142.251.153.119",
+                      "142.251.154.119",
+                      "142.251.155.119",
+                      "142.251.156.119",
+                      "142.251.157.119"
+                    ]
+                  },
+                  "tls": {
+                    "status": "observed",
+                    "certificate": {
+                      "subject": [
+                        [
+                          [
+                            "commonName",
+                            "www.google.com"
+                          ]
+                        ]
+                      ],
+                      "issuer": [
+                        [
+                          [
+                            "countryName",
+                            "US"
+                          ]
+                        ],
+                        [
+                          [
+                            "organizationName",
+                            "Google Trust Services"
+                          ]
+                        ],
+                        [
+                          [
+                            "commonName",
+                            "WR2"
+                          ]
+                        ]
+                      ],
+                      "version": 3,
+                      "serialNumber": "F40BFAC62B652CE00AC7A87F2EB208B3",
+                      "notBefore": "Sep 18 20:02:27 2026 GMT",
+                      "notAfter": "Dec 11 20:02:26 2026 GMT",
+                      "subjectAltName": [
+                        [
+                          "DNS",
+                          "www.google.com"
+                        ]
+                      ],
+                      "caIssuers": [
+                        "http://i.pki.goog/wr2.crt"
+                      ],
+                      "crlDistributionPoints": [
+                        "http://c.pki.goog/wr2/oQ6nyr8F0m0.crl"
+                      ]
+                    }
+                  },
+                  "http": {
+                    "status": "observed",
+                    "status_code": 200,
+                    "redirects": 0,
+                    "final_url": "https://www.google.com/search?q=security"
+                  },
+                  "html": {
+                    "status": "observed",
+                    "bytes": 91702,
+                    "content_type": "text/html; charset=ISO-8859-1",
+                    "truncated": false,
+                    "password_forms": []
+                  },
+                  "registration": {
+                    "status": "observed",
+                    "registration_date": "1997-09-15T04:00:00Z",
+                    "protocol": "RDAP"
+                  },
+                  "reputation": {
+                    "provider": "PhishStats",
+                    "status": "OBSERVED",
+                    "matched": false,
+                    "checked_at": "2026-10-16T12:32:50.815728+00:00",
+                    "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                    "fresh_match": false,
+                    "reports": [],
+                    "cached": false,
+                    "cache_ttl_seconds": 5400,
+                    "search_may_be_truncated": false
+                  }
+                },
+                "observed_at": "2026-10-16T12:32:45.955696+00:00",
+                "domain_age_days": 10623
+              },
+              "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+            },
+            "model_calibrated": true,
+            "score_basis": "calibrated_url_model",
+            "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+            "score_components": {
+              "model_probability": 0.03832752613240418,
+              "evidence_updates": [],
+              "policy_version": "dynamic-evidence-v2",
+              "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+              "combined_calibration_validated": false
+            },
+            "threshold": 0.7,
+            "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+            "coverage": {
+              "status": "LIVE_CHECKS_APPLIED",
+              "website_fetched": true,
+              "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+            },
+            "reasons": [
+              "The address pattern did not trigger the URL model\u2019s phishing checks.",
+              "The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+              "The live request returned HTTP 200 after 0 redirects."
+            ],
+            "display_verdict": "Low phishing risk",
+            "assessment_dimensions": {
+              "phishing_risk": {
+                "status": "ASSESSED",
+                "score": 3.8
+              },
+              "website_verification": {
+                "status": "NOT_VERIFIED"
+              },
+              "ai_authorship": {
+                "status": "NOT_ASSESSED"
+              }
+            },
+            "limitations": [
+              "A low score does not guarantee safety or verify ownership.",
+              "The combined evidence index is not empirically calibrated as a probability.",
+              "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+              "Threat provider coverage, availability and rate limits affect reputation checks."
+            ],
+            "next_steps": [
+              "Check the actual hostname and verify unexpected credential/payment requests independently."
+            ],
+            "collected_observations": {
+              "observed_at": "2026-10-16T12:32:45.955696+00:00",
+              "domain_age_days": 10623,
+              "signals": {
+                "dns": {
+                  "status": "observed",
+                  "addresses": [
+                    "142.251.150.119",
+                    "142.251.151.119",
+                    "142.251.152.119",
+                    "142.251.153.119",
+                    "142.251.154.119",
+                    "142.251.155.119",
+                    "142.251.156.119",
+                    "142.251.157.119"
+                  ]
+                },
+                "tls": {
+                  "status": "observed",
+                  "certificate": {
+                    "subject": [
+                      [
+                        [
+                          "commonName",
+                          "www.google.com"
+                        ]
+                      ]
+                    ],
+                    "issuer": [
+                      [
+                        [
+                          "countryName",
+                          "US"
+                        ]
+                      ],
+                      [
+                        [
+                          "organizationName",
+                          "Google Trust Services"
+                        ]
+                      ],
+                      [
+                        [
+                          "commonName",
+                          "WR2"
+                        ]
+                      ]
+                    ],
+                    "version": 3,
+                    "serialNumber": "F40BFAC62B652CE00AC7A87F2EB208B3",
+                    "notBefore": "Sep 18 20:02:27 2026 GMT",
+                    "notAfter": "Dec 11 20:02:26 2026 GMT",
+                    "subjectAltName": [
+                      [
+                        "DNS",
+                        "www.google.com"
+                      ]
+                    ],
+                    "caIssuers": [
+                      "http://i.pki.goog/wr2.crt"
+                    ],
+                    "crlDistributionPoints": [
+                      "http://c.pki.goog/wr2/oQ6nyr8F0m0.crl"
+                    ]
+                  }
+                },
+                "http": {
+                  "status": "observed",
+                  "status_code": 200,
+                  "redirects": 0,
+                  "final_url": "https://www.google.com/search?q=security"
+                },
+                "html": {
+                  "status": "observed",
+                  "bytes": 91702,
+                  "content_type": "text/html; charset=ISO-8859-1",
+                  "truncated": false,
+                  "password_forms": []
+                },
+                "registration": {
+                  "status": "observed",
+                  "registration_date": "1997-09-15T04:00:00Z",
+                  "protocol": "RDAP"
+                },
+                "reputation": {
+                  "provider": "PhishStats",
+                  "status": "OBSERVED",
+                  "matched": false,
+                  "checked_at": "2026-10-16T12:32:50.815728+00:00",
+                  "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                  "fresh_match": false,
+                  "reports": [],
+                  "cached": false,
+                  "cache_ttl_seconds": 5400,
+                  "search_may_be_truncated": false
+                }
+              }
+            },
+            "metadata_used_by_model": false,
+            "model_inference_ms": 9123,
+            "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+          },
+          "processing_time_ms": 21873,
+          "timestamp": "2026-10-16T12:32:31.480048+00:00",
+          "error_code": null,
+          "error_message": null,
+          "schema_version": 1
+        },
+        "trust_score": {
+          "scan_id": "1da5206c-280a-4d42-8a04-cbd1e1642149",
+          "trust_risk_score": 3.8,
+          "confidence": 0.0,
+          "risk_level": "LOW",
+          "contradiction_flag": false,
+          "contradiction_details": null,
+          "reporting_modules": [
+            "phishing"
+          ],
+          "evidence": [],
+          "explanation": "Trust Score: 3.8/100 (LOW RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+          "timestamp": "2026-10-16T12:32:55.940552+00:00",
+          "status": "SUCCESS",
+          "metadata": {
+            "effective_weights": {
+              "phishing": 1.0
+            },
+            "effective_cap": 1.0,
+            "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+            "confidence_definition": "weighted detector confidence; not empirical calibration"
+          },
+          "module_scores": {
+            "phishing": 3.8
+          },
+          "contradiction_detected": false
+        },
+        "dimensions": null,
+        "mime_type": null
+      },
+      "reference": {
+        "url": "https://www.google.com/search?q=security",
+        "reference_label": "legitimate_official_url",
+        "reference": "official organisation page; not an absolute safety guarantee",
+        "urlscan": {
+          "status": "NOT_QUERIED"
+        }
+      }
+    },
+    {
+      "category": "legitimate_official_url",
+      "scan": {
+        "id": "1af6035c-78a1-4eb2-824e-5f13c9e7689d",
+        "user_id": "a0e3941d-3feb-4c46-8e43-6aa8f180d74e",
+        "status": "PARTIAL_SUCCESS",
+        "content_type": "url",
+        "media_storage_key": null,
+        "raw_input": "https://github.com/openai",
+        "filename": null,
+        "file_size_bytes": 25,
+        "created_at": "2026-10-16T12:32:56.853381",
+        "updated_at": "2026-10-16T12:33:06.101910",
+        "result": {
+          "scan_id": "1af6035c-78a1-4eb2-824e-5f13c9e7689d",
+          "module": "phishing",
+          "detector_id": "phishing.modern.v5",
+          "model_version": "modern-v5",
+          "preprocessing_version": "url-structural-v3",
+          "native_score": 0.306,
+          "native_score_semantics": "anomaly_score",
+          "risk_score": 30.6,
+          "confidence": 0.0,
+          "label": "unknown",
+          "status": "PARTIAL_SUCCESS",
+          "evidence": [],
+          "analyzers": [
+            {
+              "name": "URL text + structure ensemble",
+              "status": "APPLIED",
+              "category": "primary_ml"
+            },
+            {
+              "name": "URL forensics",
+              "status": "APPLIED",
+              "category": "forensics",
+              "finding": "NO_STRONG_INDICATORS"
+            },
+            {
+              "name": "Live website checks",
+              "status": "APPLIED",
+              "category": "live_collection",
+              "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+            },
+            {
+              "name": "PhishStats reputation",
+              "status": "UNAVAILABLE",
+              "category": "live_collection",
+              "finding": "No exact match or provider unavailable; neither establishes safety."
+            }
+          ],
+          "has_face": null,
+          "verdict": "REVIEW_RECOMMENDED",
+          "explanation": "The address pattern did not trigger the URL model\u2019s phishing checks. The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+          "vision_analysis": null,
+          "metadata": {
+            "configuration": "modern_v5",
+            "calibrated": false,
+            "confidence_available": false,
+            "missing_signals": [
+              "reputation"
+            ],
+            "features": {
+              "url_length": 25.0,
+              "host_length": 10.0,
+              "path_length": 7.0,
+              "query_length": 0.0,
+              "host_labels": 2.0,
+              "digits": 0.0,
+              "hyphens": 0.0,
+              "percent_signs": 0.0,
+              "has_userinfo": 0.0,
+              "is_ip": 0.0,
+              "is_idn": 0.0,
+              "https": 1.0,
+              "explicit_port": 0.0,
+              "sensitive_tokens": 0.0
+            },
+            "assessment_policy": "dynamic-v2",
+            "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+            "structural_features": {
+              "length": 17.0,
+              "host_length": 10.0,
+              "path_length": 7.0,
+              "query_length": 0.0,
+              "host_labels": 2.0,
+              "host_digits": 0.0,
+              "host_digit_ratio": 0.0,
+              "host_hyphens": 0.0,
+              "host_entropy": 3.321928094887362,
+              "max_label_length": 6.0,
+              "mean_label_length": 4.5,
+              "path_segments": 1.0,
+              "path_digits": 0.0,
+              "path_entropy": 2.807354922057604,
+              "query_parameters": 0.0,
+              "percent_count": 0.0,
+              "encoded_fraction": 0.0,
+              "userinfo": 0.0,
+              "ip_destination": 0.0,
+              "internationalised": 0.0,
+              "unusual_port": 0.0,
+              "dots_in_path": 0.0,
+              "slashes": 1.0,
+              "equals": 0.0,
+              "at_signs": 0.0,
+              "double_slash_path": 0.0,
+              "fragment_length": 0.0,
+              "credential_terms": 0.0,
+              "longest_digit_run": 0.0,
+              "suffix_length": 3.0
+            },
+            "branch_probabilities": {
+              "structural": 0.3403812183228283,
+              "url_text": 0.6138840913772583
+            },
+            "inference_ms": 1110,
+            "inference_url": "https://github.com/openai",
+            "diagnostic_model": {
+              "probability": 0.3059548254620123,
+              "risk_score": 31.0,
+              "label": "legitimate",
+              "status": "PARTIAL_SUCCESS",
+              "error_code": null
+            },
+            "assessed_url": "https://github.com/openai",
+            "forensics": {
+              "version": "dynamic-v2",
+              "hostname": "github.com",
+              "registered_domain": "github.com",
+              "registration_boundary_known": true,
+              "outcome": "NO_STRONG_INDICATORS",
+              "findings": [],
+              "network": {
+                "status": "OBSERVED",
+                "signals": {
+                  "dns": {
+                    "status": "observed",
+                    "addresses": [
+                      "20.207.73.82"
+                    ]
+                  },
+                  "tls": {
+                    "status": "observed",
+                    "certificate": {
+                      "subject": [
+                        [
+                          [
+                            "commonName",
+                            "github.com"
+                          ]
+                        ]
+                      ],
+                      "issuer": [
+                        [
+                          [
+                            "countryName",
+                            "GB"
+                          ]
+                        ],
+                        [
+                          [
+                            "organizationName",
+                            "Sectigo Limited"
+                          ]
+                        ],
+                        [
+                          [
+                            "commonName",
+                            "Sectigo Public Server Authentication CA DV E36"
+                          ]
+                        ]
+                      ],
+                      "version": 3,
+                      "serialNumber": "A59EBDB596751DB7F5C095079613953C",
+                      "notBefore": "Sep  1 00:00:00 2026 GMT",
+                      "notAfter": "Nov 29 23:59:59 2026 GMT",
+                      "subjectAltName": [
+                        [
+                          "DNS",
+                          "github.com"
+                        ],
+                        [
+                          "DNS",
+                          "www.github.com"
+                        ]
+                      ],
+                      "OCSP": [
+                        "http://ocsp.sectigo.com"
+                      ],
+                      "caIssuers": [
+                        "http://crt.sectigo.com/SectigoPublicServerAuthenticationCADVE36.crt"
+                      ]
+                    }
+                  },
+                  "http": {
+                    "status": "observed",
+                    "status_code": 200,
+                    "redirects": 0,
+                    "final_url": "https://github.com/openai"
+                  },
+                  "html": {
+                    "status": "observed",
+                    "bytes": 262144,
+                    "content_type": "text/html; charset=utf-8",
+                    "truncated": true,
+                    "password_forms": []
+                  },
+                  "registration": {
+                    "status": "observed",
+                    "registration_date": "2007-10-09T18:20:50Z",
+                    "protocol": "RDAP"
+                  },
+                  "reputation": {
+                    "provider": "PhishStats",
+                    "status": "RATE_LIMITED",
+                    "matched": false,
+                    "checked_at": "2026-10-16T12:33:01.845781+00:00",
+                    "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                    "reason": "Local daily reputation budget reached."
+                  }
+                },
+                "observed_at": "2026-10-16T12:33:00.078140+00:00",
+                "domain_age_days": 6946
+              },
+              "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+            },
+            "model_calibrated": true,
+            "score_basis": "calibrated_url_model",
+            "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+            "score_components": {
+              "model_probability": 0.3059548254620123,
+              "evidence_updates": [],
+              "policy_version": "dynamic-evidence-v2",
+              "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+              "combined_calibration_validated": false
+            },
+            "threshold": 0.7,
+            "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+            "coverage": {
+              "status": "LIVE_CHECKS_APPLIED",
+              "website_fetched": true,
+              "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+            },
+            "reasons": [
+              "The address pattern did not trigger the URL model\u2019s phishing checks.",
+              "The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+              "The live request returned HTTP 200 after 0 redirects."
+            ],
+            "display_verdict": "Some URL details need review",
+            "assessment_dimensions": {
+              "phishing_risk": {
+                "status": "ASSESSED",
+                "score": 30.6
+              },
+              "website_verification": {
+                "status": "NOT_VERIFIED"
+              },
+              "ai_authorship": {
+                "status": "NOT_ASSESSED"
+              }
+            },
+            "limitations": [
+              "A low score does not guarantee safety or verify ownership.",
+              "The combined evidence index is not empirically calibrated as a probability.",
+              "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+              "Threat provider coverage, availability and rate limits affect reputation checks."
+            ],
+            "next_steps": [
+              "Check the actual hostname and verify unexpected credential/payment requests independently."
+            ],
+            "collected_observations": {
+              "observed_at": "2026-10-16T12:33:00.078140+00:00",
+              "domain_age_days": 6946,
+              "signals": {
+                "dns": {
+                  "status": "observed",
+                  "addresses": [
+                    "20.207.73.82"
+                  ]
+                },
+                "tls": {
+                  "status": "observed",
+                  "certificate": {
+                    "subject": [
+                      [
+                        [
+                          "commonName",
+                          "github.com"
+                        ]
+                      ]
+                    ],
+                    "issuer": [
+                      [
+                        [
+                          "countryName",
+                          "GB"
+                        ]
+                      ],
+                      [
+                        [
+                          "organizationName",
+                          "Sectigo Limited"
+                        ]
+                      ],
+                      [
+                        [
+                          "commonName",
+                          "Sectigo Public Server Authentication CA DV E36"
+                        ]
+                      ]
+                    ],
+                    "version": 3,
+                    "serialNumber": "A59EBDB596751DB7F5C095079613953C",
+                    "notBefore": "Sep  1 00:00:00 2026 GMT",
+                    "notAfter": "Nov 29 23:59:59 2026 GMT",
+                    "subjectAltName": [
+                      [
+                        "DNS",
+                        "github.com"
+                      ],
+                      [
+                        "DNS",
+                        "www.github.com"
+                      ]
+                    ],
+                    "OCSP": [
+                      "http://ocsp.sectigo.com"
+                    ],
+                    "caIssuers": [
+                      "http://crt.sectigo.com/SectigoPublicServerAuthenticationCADVE36.crt"
+                    ]
+                  }
+                },
+                "http": {
+                  "status": "observed",
+                  "status_code": 200,
+                  "redirects": 0,
+                  "final_url": "https://github.com/openai"
+                },
+                "html": {
+                  "status": "observed",
+                  "bytes": 262144,
+                  "content_type": "text/html; charset=utf-8",
+                  "truncated": true,
+                  "password_forms": []
+                },
+                "registration": {
+                  "status": "observed",
+                  "registration_date": "2007-10-09T18:20:50Z",
+                  "protocol": "RDAP"
+                },
+                "reputation": {
+                  "provider": "PhishStats",
+                  "status": "RATE_LIMITED",
+                  "matched": false,
+                  "checked_at": "2026-10-16T12:33:01.845781+00:00",
+                  "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                  "reason": "Local daily reputation budget reached."
+                }
+              }
+            },
+            "metadata_used_by_model": false,
+            "model_inference_ms": 1110,
+            "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+          },
+          "processing_time_ms": 9934,
+          "timestamp": "2026-10-16T12:32:55.819205+00:00",
+          "error_code": null,
+          "error_message": null,
+          "schema_version": 1
+        },
+        "trust_score": {
+          "scan_id": "1af6035c-78a1-4eb2-824e-5f13c9e7689d",
+          "trust_risk_score": 30.6,
+          "confidence": 0.0,
+          "risk_level": "MEDIUM",
+          "contradiction_flag": false,
+          "contradiction_details": null,
+          "reporting_modules": [
+            "phishing"
+          ],
+          "evidence": [],
+          "explanation": "Trust Score: 30.6/100 (MEDIUM RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+          "timestamp": "2026-10-16T12:33:06.098646+00:00",
+          "status": "SUCCESS",
+          "metadata": {
+            "effective_weights": {
+              "phishing": 1.0
+            },
+            "effective_cap": 1.0,
+            "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+            "confidence_definition": "weighted detector confidence; not empirical calibration"
+          },
+          "module_scores": {
+            "phishing": 30.6
+          },
+          "contradiction_detected": false
+        },
+        "dimensions": null,
+        "mime_type": null
+      },
+      "reference": {
+        "url": "https://github.com/openai",
+        "reference_label": "legitimate_official_url",
+        "reference": "official organisation page; not an absolute safety guarantee",
+        "urlscan": {
+          "status": "NOT_QUERIED"
+        }
+      }
+    },
+    {
+      "category": "legitimate_official_url",
+      "scan": {
+        "id": "28cf2117-8206-4f11-b94d-d8492267ad06",
+        "user_id": "a0e3941d-3feb-4c46-8e43-6aa8f180d74e",
+        "status": "PARTIAL_SUCCESS",
+        "content_type": "url",
+        "media_storage_key": null,
+        "raw_input": "https://docs.python.org/3/",
+        "filename": null,
+        "file_size_bytes": 26,
+        "created_at": "2026-10-16T12:33:06.586574",
+        "updated_at": "2026-10-16T12:33:18.857914",
+        "result": {
+          "scan_id": "28cf2117-8206-4f11-b94d-d8492267ad06",
+          "module": "phishing",
+          "detector_id": "phishing.modern.v5",
+          "model_version": "modern-v5",
+          "preprocessing_version": "url-structural-v3",
+          "native_score": 0.937,
+          "native_score_semantics": "anomaly_score",
+          "risk_score": 93.7,
+          "confidence": 0.0,
+          "label": "phishing",
+          "status": "PARTIAL_SUCCESS",
+          "evidence": [],
+          "analyzers": [
+            {
+              "name": "URL text + structure ensemble",
+              "status": "APPLIED",
+              "category": "primary_ml"
+            },
+            {
+              "name": "URL forensics",
+              "status": "APPLIED",
+              "category": "forensics",
+              "finding": "NO_STRONG_INDICATORS"
+            },
+            {
+              "name": "Live website checks",
+              "status": "APPLIED",
+              "category": "live_collection",
+              "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+            },
+            {
+              "name": "PhishStats reputation",
+              "status": "UNAVAILABLE",
+              "category": "live_collection",
+              "finding": "No exact match or provider unavailable; neither establishes safety."
+            }
+          ],
+          "has_face": null,
+          "verdict": "SUSPICIOUS",
+          "explanation": "The address pattern resembles phishing URLs learned by the model. The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+          "vision_analysis": null,
+          "metadata": {
+            "configuration": "modern_v5",
+            "calibrated": false,
+            "confidence_available": false,
+            "missing_signals": [
+              "reputation"
+            ],
+            "features": {
+              "url_length": 26.0,
+              "host_length": 15.0,
+              "path_length": 3.0,
+              "query_length": 0.0,
+              "host_labels": 3.0,
+              "digits": 1.0,
+              "hyphens": 0.0,
+              "percent_signs": 0.0,
+              "has_userinfo": 0.0,
+              "is_ip": 0.0,
+              "is_idn": 0.0,
+              "https": 1.0,
+              "explicit_port": 0.0,
+              "sensitive_tokens": 0.0
+            },
+            "assessment_policy": "dynamic-v2",
+            "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+            "structural_features": {
+              "length": 18.0,
+              "host_length": 15.0,
+              "path_length": 3.0,
+              "query_length": 0.0,
+              "host_labels": 3.0,
+              "host_digits": 0.0,
+              "host_digit_ratio": 0.0,
+              "host_hyphens": 0.0,
+              "host_entropy": 3.4565647621309536,
+              "max_label_length": 6.0,
+              "mean_label_length": 4.333333333333333,
+              "path_segments": 1.0,
+              "path_digits": 1.0,
+              "path_entropy": 0.9182958340544896,
+              "query_parameters": 0.0,
+              "percent_count": 0.0,
+              "encoded_fraction": 0.0,
+              "userinfo": 0.0,
+              "ip_destination": 0.0,
+              "internationalised": 0.0,
+              "unusual_port": 0.0,
+              "dots_in_path": 0.0,
+              "slashes": 2.0,
+              "equals": 0.0,
+              "at_signs": 0.0,
+              "double_slash_path": 0.0,
+              "fragment_length": 0.0,
+              "credential_terms": 0.0,
+              "longest_digit_run": 1.0,
+              "suffix_length": 3.0
+            },
+            "branch_probabilities": {
+              "structural": 0.68964548548531,
+              "url_text": 0.9390637874603271
+            },
+            "inference_ms": 83,
+            "inference_url": "https://docs.python.org/3/",
+            "diagnostic_model": {
+              "probability": 0.9373297002724795,
+              "risk_score": 94.0,
+              "label": "phishing",
+              "status": "PARTIAL_SUCCESS",
+              "error_code": null
+            },
+            "assessed_url": "https://docs.python.org/3/",
+            "forensics": {
+              "version": "dynamic-v2",
+              "hostname": "docs.python.org",
+              "registered_domain": "python.org",
+              "registration_boundary_known": true,
+              "outcome": "NO_STRONG_INDICATORS",
+              "findings": [],
+              "network": {
+                "status": "OBSERVED",
+                "signals": {
+                  "dns": {
+                    "status": "observed",
+                    "addresses": [
+                      "151.101.0.223",
+                      "151.101.128.223",
+                      "151.101.192.223",
+                      "151.101.64.223"
+                    ]
+                  },
+                  "tls": {
+                    "status": "observed",
+                    "certificate": {
+                      "subject": [
+                        [
+                          [
+                            "commonName",
+                            "www.python.org"
+                          ]
+                        ]
+                      ],
+                      "issuer": [
+                        [
+                          [
+                            "countryName",
+                            "BE"
+                          ]
+                        ],
+                        [
+                          [
+                            "organizationName",
+                            "GlobalSign nv-sa"
+                          ]
+                        ],
+                        [
+                          [
+                            "commonName",
+                            "GlobalSign Atlas R3 DV TLS CA 2025 Q4"
+                          ]
+                        ]
+                      ],
+                      "version": 3,
+                      "serialNumber": "01FC68FD084537B393B8D6C708974969",
+                      "notBefore": "Jan 13 13:03:46 2026 GMT",
+                      "notAfter": "Feb 14 13:03:45 2027 GMT",
+                      "subjectAltName": [
+                        [
+                          "DNS",
+                          "www.python.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.python.org"
+                        ],
+                        [
+                          "DNS",
+                          "python.org"
+                        ]
+                      ],
+                      "OCSP": [
+                        "http://ocsp.globalsign.com/ca/gsatlasr3dvtlsca2025q4"
+                      ],
+                      "caIssuers": [
+                        "http://secure.globalsign.com/cacert/gsatlasr3dvtlsca2025q4.crt"
+                      ],
+                      "crlDistributionPoints": [
+                        "http://crl.globalsign.com/ca/gsatlasr3dvtlsca2025q4.crl"
+                      ]
+                    }
+                  },
+                  "http": {
+                    "status": "observed",
+                    "status_code": 200,
+                    "redirects": 0,
+                    "final_url": "https://docs.python.org/3/"
+                  },
+                  "html": {
+                    "status": "observed",
+                    "bytes": 19625,
+                    "content_type": "text/html",
+                    "truncated": false,
+                    "password_forms": []
+                  },
+                  "registration": {
+                    "status": "observed",
+                    "registration_date": "1995-03-27T05:00:00.545Z",
+                    "protocol": "RDAP"
+                  },
+                  "reputation": {
+                    "provider": "PhishStats",
+                    "status": "RATE_LIMITED",
+                    "matched": false,
+                    "checked_at": "2026-10-16T12:33:13.376088+00:00",
+                    "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                    "reason": "Local daily reputation budget reached."
+                  }
+                },
+                "observed_at": "2026-10-16T12:33:10.536969+00:00",
+                "domain_age_days": 11526
+              },
+              "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+            },
+            "model_calibrated": true,
+            "score_basis": "calibrated_url_model",
+            "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+            "score_components": {
+              "model_probability": 0.9373297002724795,
+              "evidence_updates": [],
+              "policy_version": "dynamic-evidence-v2",
+              "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+              "combined_calibration_validated": false
+            },
+            "threshold": 0.7,
+            "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+            "coverage": {
+              "status": "LIVE_CHECKS_APPLIED",
+              "website_fetched": true,
+              "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+            },
+            "reasons": [
+              "The address pattern resembles phishing URLs learned by the model.",
+              "The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+              "The live request returned HTTP 200 after 0 redirects."
+            ],
+            "display_verdict": "Phishing risk detected",
+            "assessment_dimensions": {
+              "phishing_risk": {
+                "status": "ASSESSED",
+                "score": 93.7
+              },
+              "website_verification": {
+                "status": "NOT_VERIFIED"
+              },
+              "ai_authorship": {
+                "status": "NOT_ASSESSED"
+              }
+            },
+            "limitations": [
+              "A low score does not guarantee safety or verify ownership.",
+              "The combined evidence index is not empirically calibrated as a probability.",
+              "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+              "Threat provider coverage, availability and rate limits affect reputation checks."
+            ],
+            "next_steps": [
+              "Check the actual hostname and verify unexpected credential/payment requests independently."
+            ],
+            "collected_observations": {
+              "observed_at": "2026-10-16T12:33:10.536969+00:00",
+              "domain_age_days": 11526,
+              "signals": {
+                "dns": {
+                  "status": "observed",
+                  "addresses": [
+                    "151.101.0.223",
+                    "151.101.128.223",
+                    "151.101.192.223",
+                    "151.101.64.223"
+                  ]
+                },
+                "tls": {
+                  "status": "observed",
+                  "certificate": {
+                    "subject": [
+                      [
+                        [
+                          "commonName",
+                          "www.python.org"
+                        ]
+                      ]
+                    ],
+                    "issuer": [
+                      [
+                        [
+                          "countryName",
+                          "BE"
+                        ]
+                      ],
+                      [
+                        [
+                          "organizationName",
+                          "GlobalSign nv-sa"
+                        ]
+                      ],
+                      [
+                        [
+                          "commonName",
+                          "GlobalSign Atlas R3 DV TLS CA 2025 Q4"
+                        ]
+                      ]
+                    ],
+                    "version": 3,
+                    "serialNumber": "01FC68FD084537B393B8D6C708974969",
+                    "notBefore": "Jan 13 13:03:46 2026 GMT",
+                    "notAfter": "Feb 14 13:03:45 2027 GMT",
+                    "subjectAltName": [
+                      [
+                        "DNS",
+                        "www.python.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.python.org"
+                      ],
+                      [
+                        "DNS",
+                        "python.org"
+                      ]
+                    ],
+                    "OCSP": [
+                      "http://ocsp.globalsign.com/ca/gsatlasr3dvtlsca2025q4"
+                    ],
+                    "caIssuers": [
+                      "http://secure.globalsign.com/cacert/gsatlasr3dvtlsca2025q4.crt"
+                    ],
+                    "crlDistributionPoints": [
+                      "http://crl.globalsign.com/ca/gsatlasr3dvtlsca2025q4.crl"
+                    ]
+                  }
+                },
+                "http": {
+                  "status": "observed",
+                  "status_code": 200,
+                  "redirects": 0,
+                  "final_url": "https://docs.python.org/3/"
+                },
+                "html": {
+                  "status": "observed",
+                  "bytes": 19625,
+                  "content_type": "text/html",
+                  "truncated": false,
+                  "password_forms": []
+                },
+                "registration": {
+                  "status": "observed",
+                  "registration_date": "1995-03-27T05:00:00.545Z",
+                  "protocol": "RDAP"
+                },
+                "reputation": {
+                  "provider": "PhishStats",
+                  "status": "RATE_LIMITED",
+                  "matched": false,
+                  "checked_at": "2026-10-16T12:33:13.376088+00:00",
+                  "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                  "reason": "Local daily reputation budget reached."
+                }
+              }
+            },
+            "metadata_used_by_model": false,
+            "model_inference_ms": 83,
+            "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+          },
+          "processing_time_ms": 13298,
+          "timestamp": "2026-10-16T12:33:03.640345+00:00",
+          "error_code": null,
+          "error_message": null,
+          "schema_version": 1
+        },
+        "trust_score": {
+          "scan_id": "28cf2117-8206-4f11-b94d-d8492267ad06",
+          "trust_risk_score": 93.7,
+          "confidence": 0.0,
+          "risk_level": "CRITICAL",
+          "contradiction_flag": false,
+          "contradiction_details": null,
+          "reporting_modules": [
+            "phishing"
+          ],
+          "evidence": [],
+          "explanation": "Trust Score: 93.7/100 (CRITICAL RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+          "timestamp": "2026-10-16T12:33:18.855348+00:00",
+          "status": "SUCCESS",
+          "metadata": {
+            "effective_weights": {
+              "phishing": 1.0
+            },
+            "effective_cap": 1.0,
+            "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+            "confidence_definition": "weighted detector confidence; not empirical calibration"
+          },
+          "module_scores": {
+            "phishing": 93.7
+          },
+          "contradiction_detected": false
+        },
+        "dimensions": null,
+        "mime_type": null
+      },
+      "reference": {
+        "url": "https://docs.python.org/3/",
+        "reference_label": "legitimate_official_url",
+        "reference": "official organisation page; not an absolute safety guarantee",
+        "urlscan": {
+          "status": "NOT_QUERIED"
+        }
+      }
+    },
+    {
+      "category": "legitimate_official_url",
+      "scan": {
+        "id": "e208d8be-543a-4524-a989-387abbc67302",
+        "user_id": "a0e3941d-3feb-4c46-8e43-6aa8f180d74e",
+        "status": "PARTIAL_SUCCESS",
+        "content_type": "url",
+        "media_storage_key": null,
+        "raw_input": "https://en.wikipedia.org/wiki/Phishing",
+        "filename": null,
+        "file_size_bytes": 38,
+        "created_at": "2026-10-16T12:33:19.163395",
+        "updated_at": "2026-10-16T12:33:30.951829",
+        "result": {
+          "scan_id": "e208d8be-543a-4524-a989-387abbc67302",
+          "module": "phishing",
+          "detector_id": "phishing.modern.v5",
+          "model_version": "modern-v5",
+          "preprocessing_version": "url-structural-v3",
+          "native_score": 0.004,
+          "native_score_semantics": "anomaly_score",
+          "risk_score": 0.4,
+          "confidence": 0.0,
+          "label": "legitimate",
+          "status": "PARTIAL_SUCCESS",
+          "evidence": [],
+          "analyzers": [
+            {
+              "name": "URL text + structure ensemble",
+              "status": "APPLIED",
+              "category": "primary_ml"
+            },
+            {
+              "name": "URL forensics",
+              "status": "APPLIED",
+              "category": "forensics",
+              "finding": "NO_STRONG_INDICATORS"
+            },
+            {
+              "name": "Live website checks",
+              "status": "APPLIED",
+              "category": "live_collection",
+              "finding": "Public DNS, TLS, redirects and static page evidence are recorded individually."
+            },
+            {
+              "name": "PhishStats reputation",
+              "status": "UNAVAILABLE",
+              "category": "live_collection",
+              "finding": "No exact match or provider unavailable; neither establishes safety."
+            }
+          ],
+          "has_face": null,
+          "verdict": "NO_STRONG_INDICATORS",
+          "explanation": "The address pattern did not trigger the URL model\u2019s phishing checks. The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+          "vision_analysis": null,
+          "metadata": {
+            "configuration": "modern_v5",
+            "calibrated": false,
+            "confidence_available": false,
+            "missing_signals": [
+              "registration",
+              "reputation"
+            ],
+            "features": {
+              "url_length": 38.0,
+              "host_length": 16.0,
+              "path_length": 14.0,
+              "query_length": 0.0,
+              "host_labels": 3.0,
+              "digits": 0.0,
+              "hyphens": 0.0,
+              "percent_signs": 0.0,
+              "has_userinfo": 0.0,
+              "is_ip": 0.0,
+              "is_idn": 0.0,
+              "https": 1.0,
+              "explicit_port": 0.0,
+              "sensitive_tokens": 0.0
+            },
+            "assessment_policy": "dynamic-v2",
+            "confidence_definition": "Domain-disjoint development calibration of the model, not a guarantee of live safety.",
+            "structural_features": {
+              "length": 30.0,
+              "host_length": 16.0,
+              "path_length": 14.0,
+              "query_length": 0.0,
+              "host_labels": 3.0,
+              "host_digits": 0.0,
+              "host_digit_ratio": 0.0,
+              "host_hyphens": 0.0,
+              "host_entropy": 3.452819531114783,
+              "max_label_length": 9.0,
+              "mean_label_length": 4.666666666666667,
+              "path_segments": 2.0,
+              "path_digits": 0.0,
+              "path_entropy": 2.950212064914747,
+              "query_parameters": 0.0,
+              "percent_count": 0.0,
+              "encoded_fraction": 0.0,
+              "userinfo": 0.0,
+              "ip_destination": 0.0,
+              "internationalised": 0.0,
+              "unusual_port": 0.0,
+              "dots_in_path": 0.0,
+              "slashes": 2.0,
+              "equals": 0.0,
+              "at_signs": 0.0,
+              "double_slash_path": 0.0,
+              "fragment_length": 0.0,
+              "credential_terms": 0.0,
+              "longest_digit_run": 0.0,
+              "suffix_length": 3.0
+            },
+            "branch_probabilities": {
+              "structural": 0.09926585138875797,
+              "url_text": 0.009298782795667648
+            },
+            "inference_ms": 1271,
+            "inference_url": "https://en.wikipedia.org/wiki/Phishing",
+            "diagnostic_model": {
+              "probability": 0.003848127244740893,
+              "risk_score": 0.0,
+              "label": "legitimate",
+              "status": "PARTIAL_SUCCESS",
+              "error_code": null
+            },
+            "assessed_url": "https://en.wikipedia.org/wiki/Phishing",
+            "forensics": {
+              "version": "dynamic-v2",
+              "hostname": "en.wikipedia.org",
+              "registered_domain": "wikipedia.org",
+              "registration_boundary_known": true,
+              "outcome": "NO_STRONG_INDICATORS",
+              "findings": [],
+              "network": {
+                "status": "OBSERVED",
+                "signals": {
+                  "dns": {
+                    "status": "observed",
+                    "addresses": [
+                      "103.102.166.224"
+                    ]
+                  },
+                  "tls": {
+                    "status": "observed",
+                    "certificate": {
+                      "subject": [
+                        [
+                          [
+                            "commonName",
+                            "*.wikipedia.org"
+                          ]
+                        ]
+                      ],
+                      "issuer": [
+                        [
+                          [
+                            "countryName",
+                            "US"
+                          ]
+                        ],
+                        [
+                          [
+                            "organizationName",
+                            "Let's Encrypt"
+                          ]
+                        ],
+                        [
+                          [
+                            "commonName",
+                            "YE2"
+                          ]
+                        ]
+                      ],
+                      "version": 3,
+                      "serialNumber": "06DB158652F329309A86E7D0E9DDFED9A4B2",
+                      "notBefore": "Oct  4 18:34:51 2026 GMT",
+                      "notAfter": "Jan  2 18:34:50 2027 GMT",
+                      "subjectAltName": [
+                        [
+                          "DNS",
+                          "*.m.mediawiki.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikibooks.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikidata.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikimedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikinews.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikipedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikiquote.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikisource.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikiversity.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wikivoyage.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.m.wiktionary.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.mediawiki.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.planet.wikimedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikibooks.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikidata.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikifunctions.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikimedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikimediafoundation.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikinews.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikipedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikiquote.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikisource.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikiversity.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wikivoyage.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wiktionary.org"
+                        ],
+                        [
+                          "DNS",
+                          "*.wmfusercontent.org"
+                        ],
+                        [
+                          "DNS",
+                          "mediawiki.org"
+                        ],
+                        [
+                          "DNS",
+                          "w.wiki"
+                        ],
+                        [
+                          "DNS",
+                          "wikibooks.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikidata.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikifunctions.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikimedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikimediafoundation.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikinews.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikipedia.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikiquote.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikisource.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikiversity.org"
+                        ],
+                        [
+                          "DNS",
+                          "wikivoyage.org"
+                        ],
+                        [
+                          "DNS",
+                          "wiktionary.org"
+                        ],
+                        [
+                          "DNS",
+                          "wmfusercontent.org"
+                        ]
+                      ],
+                      "caIssuers": [
+                        "http://ye2.i.lencr.org/"
+                      ],
+                      "crlDistributionPoints": [
+                        "http://ye2.c.lencr.org/51.crl"
+                      ]
+                    }
+                  },
+                  "http": {
+                    "status": "observed",
+                    "status_code": 200,
+                    "redirects": 0,
+                    "final_url": "https://en.wikipedia.org/wiki/Phishing"
+                  },
+                  "html": {
+                    "status": "observed",
+                    "bytes": 262144,
+                    "content_type": "text/html; charset=UTF-8",
+                    "truncated": true,
+                    "password_forms": []
+                  },
+                  "registration": {
+                    "status": "unavailable",
+                    "reason": "LifetimeTimeout"
+                  },
+                  "reputation": {
+                    "provider": "PhishStats",
+                    "status": "RATE_LIMITED",
+                    "matched": false,
+                    "checked_at": "2026-10-16T12:33:25.640463+00:00",
+                    "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                    "reason": "Local daily reputation budget reached."
+                  }
+                },
+                "observed_at": "2026-10-16T12:33:24.157416+00:00",
+                "domain_age_days": null
+              },
+              "definition": "Observable indicators; absence of findings does not establish safety. Rules are not a calibrated probability."
+            },
+            "model_calibrated": true,
+            "score_basis": "calibrated_url_model",
+            "score_definition": "Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.",
+            "score_components": {
+              "model_probability": 0.003848127244740893,
+              "evidence_updates": [],
+              "policy_version": "dynamic-evidence-v2",
+              "formula": "100 * (1 - (1 - model_probability) * product(1 - evidence_weight))",
+              "combined_calibration_validated": false
+            },
+            "threshold": 0.7,
+            "threshold_definition": "Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.",
+            "coverage": {
+              "status": "LIVE_CHECKS_APPLIED",
+              "website_fetched": true,
+              "reason": "Live checks supplement the URL model. Unavailable checks are listed in the report."
+            },
+            "reasons": [
+              "The address pattern did not trigger the URL model\u2019s phishing checks.",
+              "The HTTPS certificate was validated for the destination hostname. This protects transport; it does not establish website safety.",
+              "The live request returned HTTP 200 after 0 redirects."
+            ],
+            "display_verdict": "Low phishing risk",
+            "assessment_dimensions": {
+              "phishing_risk": {
+                "status": "ASSESSED",
+                "score": 0.4
+              },
+              "website_verification": {
+                "status": "NOT_VERIFIED"
+              },
+              "ai_authorship": {
+                "status": "NOT_ASSESSED"
+              }
+            },
+            "limitations": [
+              "A low score does not guarantee safety or verify ownership.",
+              "The combined evidence index is not empirically calibrated as a probability.",
+              "Static page checks do not execute JavaScript; cloaking and new campaigns may be missed.",
+              "Threat provider coverage, availability and rate limits affect reputation checks."
+            ],
+            "next_steps": [
+              "Check the actual hostname and verify unexpected credential/payment requests independently."
+            ],
+            "collected_observations": {
+              "observed_at": "2026-10-16T12:33:24.157416+00:00",
+              "domain_age_days": null,
+              "signals": {
+                "dns": {
+                  "status": "observed",
+                  "addresses": [
+                    "103.102.166.224"
+                  ]
+                },
+                "tls": {
+                  "status": "observed",
+                  "certificate": {
+                    "subject": [
+                      [
+                        [
+                          "commonName",
+                          "*.wikipedia.org"
+                        ]
+                      ]
+                    ],
+                    "issuer": [
+                      [
+                        [
+                          "countryName",
+                          "US"
+                        ]
+                      ],
+                      [
+                        [
+                          "organizationName",
+                          "Let's Encrypt"
+                        ]
+                      ],
+                      [
+                        [
+                          "commonName",
+                          "YE2"
+                        ]
+                      ]
+                    ],
+                    "version": 3,
+                    "serialNumber": "06DB158652F329309A86E7D0E9DDFED9A4B2",
+                    "notBefore": "Oct  4 18:34:51 2026 GMT",
+                    "notAfter": "Jan  2 18:34:50 2027 GMT",
+                    "subjectAltName": [
+                      [
+                        "DNS",
+                        "*.m.mediawiki.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikibooks.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikidata.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikimedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikinews.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikipedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikiquote.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikisource.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikiversity.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wikivoyage.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.m.wiktionary.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.mediawiki.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.planet.wikimedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikibooks.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikidata.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikifunctions.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikimedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikimediafoundation.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikinews.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikipedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikiquote.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikisource.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikiversity.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wikivoyage.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wiktionary.org"
+                      ],
+                      [
+                        "DNS",
+                        "*.wmfusercontent.org"
+                      ],
+                      [
+                        "DNS",
+                        "mediawiki.org"
+                      ],
+                      [
+                        "DNS",
+                        "w.wiki"
+                      ],
+                      [
+                        "DNS",
+                        "wikibooks.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikidata.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikifunctions.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikimedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikimediafoundation.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikinews.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikipedia.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikiquote.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikisource.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikiversity.org"
+                      ],
+                      [
+                        "DNS",
+                        "wikivoyage.org"
+                      ],
+                      [
+                        "DNS",
+                        "wiktionary.org"
+                      ],
+                      [
+                        "DNS",
+                        "wmfusercontent.org"
+                      ]
+                    ],
+                    "caIssuers": [
+                      "http://ye2.i.lencr.org/"
+                    ],
+                    "crlDistributionPoints": [
+                      "http://ye2.c.lencr.org/51.crl"
+                    ]
+                  }
+                },
+                "http": {
+                  "status": "observed",
+                  "status_code": 200,
+                  "redirects": 0,
+                  "final_url": "https://en.wikipedia.org/wiki/Phishing"
+                },
+                "html": {
+                  "status": "observed",
+                  "bytes": 262144,
+                  "content_type": "text/html; charset=UTF-8",
+                  "truncated": true,
+                  "password_forms": []
+                },
+                "registration": {
+                  "status": "unavailable",
+                  "reason": "LifetimeTimeout"
+                },
+                "reputation": {
+                  "provider": "PhishStats",
+                  "status": "RATE_LIMITED",
+                  "matched": false,
+                  "checked_at": "2026-10-16T12:33:25.640463+00:00",
+                  "definition": "Exact URL match against provider reports. No match is not evidence of safety.",
+                  "reason": "Local daily reputation budget reached."
+                }
+              }
+            },
+            "metadata_used_by_model": false,
+            "model_inference_ms": 1271,
+            "processing_time_definition": "Total phishing pipeline including collection; excludes Kafka queue delay."
+          },
+          "processing_time_ms": 12685,
+          "timestamp": "2026-10-16T12:33:17.536044+00:00",
+          "error_code": null,
+          "error_message": null,
+          "schema_version": 1
+        },
+        "trust_score": {
+          "scan_id": "e208d8be-543a-4524-a989-387abbc67302",
+          "trust_risk_score": 0.4,
+          "confidence": 0.0,
+          "risk_level": "LOW",
+          "contradiction_flag": false,
+          "contradiction_details": null,
+          "reporting_modules": [
+            "phishing"
+          ],
+          "evidence": [],
+          "explanation": "Trust Score: 0.4/100 (LOW RISK, confidence: 0%). Synthesized across 1 module(s): [phishing].",
+          "timestamp": "2026-10-16T12:33:30.949814+00:00",
+          "status": "SUCCESS",
+          "metadata": {
+            "effective_weights": {
+              "phishing": 1.0
+            },
+            "effective_cap": 1.0,
+            "weight_policy": "cap relaxed to 1/n when mathematically infeasible",
+            "confidence_definition": "weighted detector confidence; not empirical calibration"
+          },
+          "module_scores": {
+            "phishing": 0.4
+          },
+          "contradiction_detected": false
+        },
+        "dimensions": null,
+        "mime_type": null
+      },
+      "reference": {
+        "url": "https://en.wikipedia.org/wiki/Phishing",
+        "reference_label": "legitimate_official_url",
+        "reference": "official organisation page; not an absolute safety guarantee",
+        "urlscan": {
+          "status": "NOT_QUERIED"
+        }
+      }
+    }
+  ],
+  "rejections": []
+}

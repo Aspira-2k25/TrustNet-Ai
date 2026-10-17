@@ -1,0 +1,187 @@
+{
+  "lr": {
+    "detector_id": "phishing.lr.lexical.v1",
+    "model_version": "baseline-v1",
+    "preprocessing_version": "url-lexical-v1",
+    "feature_names": [
+      "url_length",
+      "host_length",
+      "path_length",
+      "query_length",
+      "host_labels",
+      "digits",
+      "hyphens",
+      "percent_signs",
+      "has_userinfo",
+      "is_ip",
+      "is_idn",
+      "https",
+      "explicit_port",
+      "sensitive_tokens"
+    ],
+    "threshold": 0.31999999999999995,
+    "artifact": "lr.joblib",
+    "sha256": "442399f3c8c3c209fec92979813dc2b732d43ef09f2d82f3e2454a6deeacb111",
+    "dataset_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+    "calibrated": false,
+    "metrics": {
+      "validation": {
+        "accuracy": 0.8608458731190322,
+        "precision": 0.8722208648912778,
+        "recall": 0.4144416066867889,
+        "f1": 0.5618950184937436,
+        "roc_auc": 0.7654973275316691,
+        "pr_auc": 0.6353980075427021,
+        "brier": 0.1161260838812973,
+        "confusion_matrix": [
+          [
+            30869,
+            523
+          ],
+          [
+            5044,
+            3570
+          ]
+        ]
+      },
+      "test": {
+        "accuracy": 0.849779528661274,
+        "precision": 0.8077541371158392,
+        "recall": 0.3966934472669856,
+        "f1": 0.5320792325900087,
+        "roc_auc": 0.7386783995529607,
+        "pr_auc": 0.6078967116647263,
+        "brier": 0.12158338411789688,
+        "confusion_matrix": [
+          [
+            76447,
+            2033
+          ],
+          [
+            12991,
+            8542
+          ]
+        ]
+      }
+    }
+  },
+  "rf": {
+    "detector_id": "phishing.rf.lexical.v1",
+    "model_version": "baseline-v1",
+    "preprocessing_version": "url-lexical-v1",
+    "feature_names": [
+      "url_length",
+      "host_length",
+      "path_length",
+      "query_length",
+      "host_labels",
+      "digits",
+      "hyphens",
+      "percent_signs",
+      "has_userinfo",
+      "is_ip",
+      "is_idn",
+      "https",
+      "explicit_port",
+      "sensitive_tokens"
+    ],
+    "threshold": 0.4699999999999999,
+    "artifact": "rf.joblib",
+    "sha256": "8e7a7ffbf008feb95adcc47fa19c8e1df537d755932562c4a31670daa96ec2ac",
+    "dataset_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+    "calibrated": false,
+    "metrics": {
+      "validation": {
+        "accuracy": 0.8756436534519823,
+        "precision": 0.7828384890408829,
+        "recall": 0.5846296726259578,
+        "f1": 0.6693693094969096,
+        "roc_auc": 0.8677349339830829,
+        "pr_auc": 0.7584240142082445,
+        "brier": 0.09742938689769513,
+        "confusion_matrix": [
+          [
+            29995,
+            1397
+          ],
+          [
+            3578,
+            5036
+          ]
+        ]
+      },
+      "test": {
+        "accuracy": 0.8765260516132902,
+        "precision": 0.795343452534088,
+        "recall": 0.5742813356243904,
+        "f1": 0.6669723038753,
+        "roc_auc": 0.876625366593522,
+        "pr_auc": 0.7692838180311353,
+        "brier": 0.09420780191761144,
+        "confusion_matrix": [
+          [
+            75298,
+            3182
+          ],
+          [
+            9167,
+            12366
+          ]
+        ]
+      }
+    }
+  },
+  "lightgbm": {
+    "detector_id": "phishing.lightgbm.lexical.v1",
+    "model_version": "lightgbm-v1",
+    "preprocessing_version": "url-lexical-v1",
+    "feature_names": [
+      "url_length",
+      "host_length",
+      "path_length",
+      "query_length",
+      "host_labels",
+      "digits",
+      "hyphens",
+      "percent_signs",
+      "has_userinfo",
+      "is_ip",
+      "is_idn",
+      "https",
+      "explicit_port",
+      "sensitive_tokens"
+    ],
+    "threshold": 0.5,
+    "artifact": "lightgbm.joblib",
+    "sha256": "725b4948966a7b62f00317c3afe6f5100dd2972ef3ba0aba2537a3fbb5093161",
+    "dataset_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+    "calibrated": false,
+    "metadata_features_used": false,
+    "best_iteration": 215,
+    "metrics": {
+      "validation": {
+        "accuracy": 0.8836674498825177,
+        "precision": 0.8787299158377965,
+        "recall": 0.5333178546552124,
+        "f1": 0.6637769108510331,
+        "roc_auc": 0.8882391605024134,
+        "pr_auc": 0.7827243711121149,
+        "brier": 0.09006310320863056,
+        "ece": 0.020923600422853142,
+        "fpr": 0.020196228338430173,
+        "fnr": 0.4666821453447876,
+        "specificity": 0.9798037716615698,
+        "confusion_matrix": [
+          [
+            30758,
+            634
+          ],
+          [
+            4020,
+            4594
+          ]
+        ]
+      }
+    }
+  }
+}

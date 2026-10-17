@@ -1,0 +1,136 @@
+{
+  "rows": {
+    "train": 495227,
+    "validation": 104429,
+    "test": 133140
+  },
+  "label_counts": {
+    "train": {
+      "0": 353206,
+      "1": 142021
+    },
+    "validation": {
+      "1": 32269,
+      "0": 72160
+    },
+    "test": {
+      "1": 31304,
+      "0": 101836
+    }
+  },
+  "canonical_conflicts_removed": 45,
+  "invalid_urls": 0,
+  "domain_overlap": 0,
+  "challenge_domains_excluded_from_training_and_calibration": [
+    "amazon.in",
+    "bbc.com",
+    "example.com",
+    "github.com",
+    "google.com",
+    "microsoft.com",
+    "paypal.com",
+    "python.org",
+    "wikipedia.org"
+  ],
+  "validation": {
+    "accuracy": 0.9068708761841572,
+    "precision": 0.9767567986363989,
+    "recall": 0.7262096774193548,
+    "f1": 0.8330524994218126,
+    "roc_auc": 0.9587070225104304,
+    "pr_auc": 0.9364384167874723,
+    "brier": 0.0686711516347968,
+    "ece": 0.033994891734016715,
+    "fpr": 0.008130521979511085,
+    "fnr": 0.2737903225806452,
+    "specificity": 0.991869478020489,
+    "confusion_matrix": [
+      [
+        36598,
+        300
+      ],
+      [
+        4753,
+        12607
+      ]
+    ]
+  },
+  "test": {
+    "accuracy": 0.9268289019077662,
+    "precision": 0.9863316492241068,
+    "recall": 0.6984730385893176,
+    "f1": 0.8178111909036505,
+    "roc_auc": 0.971494383750678,
+    "pr_auc": 0.939094053235772,
+    "brier": 0.04540597967183662,
+    "ece": 0.011404555886265613,
+    "fpr": 0.00297537216701363,
+    "fnr": 0.30152696141068236,
+    "specificity": 0.9970246278329864,
+    "confusion_matrix": [
+      [
+        101533,
+        303
+      ],
+      [
+        9439,
+        21865
+      ]
+    ]
+  },
+  "test_by_source": {
+    "primary": {
+      "accuracy": 0.9567183528475036,
+      "precision": 0.9808116273373071,
+      "recall": 0.7499531747518262,
+      "f1": 0.8499858477214831,
+      "roc_auc": 0.9864272672169256,
+      "pr_auc": 0.9547329589748594,
+      "brier": 0.028073081791498505,
+      "ece": 0.027530952673156316,
+      "fpr": 0.002867742171674029,
+      "fnr": 0.25004682524817384,
+      "specificity": 0.9971322578283259,
+      "confusion_matrix": [
+        [
+          81711,
+          235
+        ],
+        [
+          4005,
+          12012
+        ]
+      ]
+    },
+    "phiusiil": {
+      "accuracy": 0.8435909827444068,
+      "precision": 0.9931458522326378,
+      "recall": 0.6445345718584418,
+      "f1": 0.7817359568390987,
+      "roc_auc": 0.9306591598200386,
+      "pr_auc": 0.9326927352213007,
+      "brier": 0.093675663699797,
+      "ece": 0.034664423471803436,
+      "fpr": 0.003418803418803419,
+      "fnr": 0.3554654281415582,
+      "specificity": 0.9965811965811966,
+      "confusion_matrix": [
+        [
+          19822,
+          68
+        ],
+        [
+          5434,
+          9853
+        ]
+      ]
+    }
+  },
+  "threshold": 0.88,
+  "elapsed_seconds": 273.4850000000006,
+  "primary_reused": true,
+  "temporal_generalization_measured": false,
+  "source": "https://archive.ics.uci.edu/dataset/967/phiusil-phishing-url-dataset",
+  "license": "CC BY 4.0; Prasad & Chandra (2024), PhiUSIIL, UCI",
+  "phiusiil_zip_sha256": "0a639fd03aea6308c5b1c10c92aa23c2ce1505447a9137271865cd0badc9a59a"
+}

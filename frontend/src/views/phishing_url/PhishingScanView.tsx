@@ -1,161 +1,65 @@
-import React, { useState } from 'react';
-import { Globe, Activity, ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ScanRecord } from '../../types';
+import { submitPhishing, retrievePhishing } from '../../services/api/phishing.api';
 
-interface PhishingScanViewProps {
-  onScanCompleted: (scan: ScanRecord) => void;
-  onViewReport: (scan: ScanRecord) => void;
-}
-
-export const PhishingScanView: React.FC<PhishingScanViewProps> = ({ onScanCompleted, onViewReport }) => {
-  const [targetUrl, setTargetUrl] = useState<string>('https://secure-bank-login-update-auth.com/account/verify');
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
-  const handleAnalyze = () => {
-    if (!targetUrl.trim()) return;
-    setIsProcessing(true);
-
-    setTimeout(() => {
-      setIsProcessing(false);
-
-      const mockPhishingScan: ScanRecord = {
-        id: 'scan-url-' + Math.random().toString(36).substring(2, 9),
-        user_id: 'usr-analyst-1',
-        status: 'SUCCESS',
-        content_type: 'url',
-        filename: targetUrl,
-        file_size_bytes: 0,
-        mime_type: 'text/uri-list',
-        created_at: new Date().toISOString(),
-        result: {
-          scan_id: 'scan-url-' + Math.random().toString(36).substring(2, 9),
-          module: 'phishing_url',
-          detector_id: 'phishing_url.homoglyph_dns.v1',
-          model_version: 'v1.1.0',
-          preprocessing_version: 'v1.0.0',
-          native_score: 0.04,
-          native_score_semantics: 'probability_of_negative_class',
-          risk_score: 96,
-          confidence: 0.98,
-          label: 'fake',
-          verdict: 'AI_GENERATED',
-          has_face: false,
-          status: 'SUCCESS',
-          evidence: [
-            {
-              feature_or_region: 'homoglyph_brand_spoofing',
-              contribution: 0.96,
-              human_readable_note: 'Cyrillic homoglyph character detected substituting Latin character in domain string.',
-            },
-            {
-              feature_or_region: 'domain_age_risk',
-              contribution: 0.88,
-              human_readable_note: 'Domain registered < 48 hours ago via anonymized offshore registrar.',
-            },
-            {
-              feature_or_region: 'credential_harvesting_heuristic',
-              contribution: 0.92,
-              human_readable_note: 'DOM structure matches high-confidence online banking portal clone.',
-            },
-          ],
-          analyzers: [
-            { name: 'Homoglyph & Punycode Threat Resolver', category: 'dns', status: 'APPLIED', finding: 'Deceptive script substitution identified in domain authority.' },
-            { name: 'Domain Age & Threat Intelligence Feed', category: 'reputation', status: 'APPLIED', finding: 'Domain registered recently with known phishing ASN.' },
-            { name: 'DOM Structural Page Clone Matcher', category: 'heuristic', status: 'APPLIED', finding: '98% visual similarity to commercial banking credential form.' },
-          ],
-          processing_time_ms: 92,
-          timestamp: new Date().toISOString(),
-        },
-        trust_score: {
-          scan_id: 'scan-url-mock',
-          trust_risk_score: 96,
-          risk_level: 'CRITICAL',
-          reporting_modules: ['phishing_url'],
-          module_scores: { phishing_url: 96 },
-          confidence: 0.98,
-          contradiction_detected: false,
-          evidence: [
-            {
-              feature_or_region: 'homoglyph_brand_spoofing',
-              contribution: 0.96,
-              human_readable_note: 'Deceptive fake link detected attempting to impersonate a trusted banking service.',
-            },
-          ],
-          explanation: 'Warning: This link is a dangerous phishing scam. It was recently created to deceive visitors and steal passwords or payment credentials.',
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      onScanCompleted(mockPhishingScan);
-      onViewReport(mockPhishingScan);
-    }, 1400);
+interface Props { onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void; }
+export const PhishingScanView: React.FC<Props> = ({onScanCompleted, onViewReport}) => {
+  const [url, setUrl] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [scan, setScan] = useState<ScanRecord | null>(null);
+  const active = useRef<AbortController | null>(null);
+  useEffect(() => () => active.current?.abort(), []);
+  const analyze = async () => {
+    if (processing) return;
+    const target = url.trim();
+    if (!target || target.length>2048 || /[\s\\\x00-\x1f\x7f]/.test(target)) { setError('Enter a domain or link without spaces (up to 2048 characters).'); return; }
+    const controller = new AbortController(); active.current?.abort(); active.current = controller;
+    setProcessing(true); setError(''); setScan(null);
+    try {
+      const accepted = await submitPhishing(target, controller.signal); setScan(accepted);
+      for (let attempt = 0; attempt < 120; attempt++) {
+        const current = await retrievePhishing(accepted.id, controller.signal); setScan(current);
+        if (!['QUEUED', 'PROCESSING', 'PENDING'].includes(current.status)) {
+          if (current.result?.module !== 'phishing' || current.result.scan_id !== current.id) throw new Error('Phishing result missing or mismatched.');
+          onScanCompleted(current);
+          if (['FAILED','TIMEOUT'].includes(current.status)) setError(current.result.error_message || 'Phishing assessment unavailable.');
+          return;
+        }
+        await new Promise<void>((resolve, reject) => {
+          const cancel = () => { window.clearTimeout(timer); reject(new DOMException('Aborted','AbortError')); };
+          const timer = window.setTimeout(() => { controller.signal.removeEventListener('abort',cancel); resolve(); },1500);
+          controller.signal.addEventListener('abort',cancel,{once:true});
+        });
+      }
+      setError('Scan still processing. Check scan history later.');
+    } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Unable to scan URL.'); }
+    finally { if (!controller.signal.aborted) setProcessing(false); }
   };
-
-  return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-[#111d38] border border-[#1e3a5f] rounded-2xl p-6 shadow-3d-card mb-6">
-        <div className="flex items-center justify-between border-b border-[#1e3a5f] pb-4 mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-[#f8fafc] font-serif">
-              Phishing Website &amp; Scam Link Checker
-            </h2>
-            <p className="text-xs text-[#94a3b8] mt-0.5">
-              Paste suspect web addresses to check for fake login pages, brand impersonation, and fraudulent domains.
-            </p>
-          </div>
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-[#0b132b] text-[#00b4d8] border border-[#1e3a5f]">
-            Websites &amp; URLs
-          </span>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-xs font-bold text-[#94a3b8] mb-1.5 font-mono uppercase tracking-wider">
-              Paste Suspicious Website Link
-            </label>
-            <div className="flex items-center gap-2 p-2 rounded-xl bg-[#0b132b] border border-[#1e3a5f] focus-within:border-[#00b4d8] transition-all">
-              <Globe size={18} className="text-[#64748b] ml-2 shrink-0" />
-              <input
-                type="url"
-                value={targetUrl}
-                onChange={(e) => setTargetUrl(e.target.value)}
-                placeholder="https://suspect-website-to-check.com"
-                className="w-full bg-transparent border-none outline-none text-xs font-mono text-[#f8fafc] font-semibold"
-              />
-              <button
-                onClick={handleAnalyze}
-                disabled={!targetUrl.trim() || isProcessing}
-                className="px-5 py-2.5 rounded-lg bg-[#0077b6] hover:bg-[#0096c7] text-white text-xs font-bold shrink-0 transition-all cursor-pointer shadow-3d-sm flex items-center gap-1.5"
-              >
-                <span>{isProcessing ? 'Inspecting...' : 'Scan Website'}</span>
-                <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-lg bg-[#0b132b] border border-[#1e3a5f]">
-              <span className="text-[10px] font-mono font-bold text-[#00b4d8] uppercase block mb-1">HOMOGLYPH CHECK</span>
-              <span className="text-[#cbd5e1] font-medium">Catches lookalike fake letter spellings</span>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0b132b] border border-[#1e3a5f]">
-              <span className="text-[10px] font-mono font-bold text-[#00b4d8] uppercase block mb-1">DOMAIN AGE REPUTATION</span>
-              <span className="text-[#cbd5e1] font-medium">Flags brand-new sites registered days ago</span>
-            </div>
-            <div className="p-3 rounded-lg bg-[#0b132b] border border-[#1e3a5f]">
-              <span className="text-[10px] font-mono font-bold text-[#00b4d8] uppercase block mb-1">PAGE CLONE DETECTION</span>
-              <span className="text-[#cbd5e1] font-medium">Spots copied bank or social media login screens</span>
-            </div>
-          </div>
-        </div>
-
-        {isProcessing && (
-          <div className="p-4 rounded-xl bg-[#0b132b] border border-[#1e3a5f] text-xs font-mono text-[#00b4d8] flex items-center gap-3">
-            <Activity size={18} className="animate-spin text-[#00b4d8]" />
-            <span>Resolving authoritative DNS records, SSL/TLS certificate chain, and homoglyph mapping...</span>
-          </div>
-        )}
+  const result = scan?.result;
+  const legacy = !!result && (result.metadata?.assessment_policy!=='dynamic-v2' || result.metadata?.link_analysis_version!=='links-v1');
+  const assessed = result && !legacy && ['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
+  return <div className="max-w-4xl mx-auto space-y-5">
+    <div className="bg-[#111d38] border border-[#1e3a5f] rounded-2xl p-6">
+      <h2 className="text-xl font-bold text-white">Phishing URL detection</h2>
+      <p className="text-sm text-slate-400 mt-2">Enter a domain or link. Bare domains use HTTPS. Other link types receive offline checks without opening apps, scripts or files.</p>
+      <div className="flex gap-2 mt-5">
+        <input type="text" aria-label="Domain or link" value={url} onChange={e=>setUrl(e.target.value)} placeholder="example.com or paste a link" maxLength={2048} disabled={processing} className="flex-1 min-w-0 bg-[#0b132b] text-white border border-[#1e3a5f] p-3 rounded-lg"/>
+        <button onClick={analyze} disabled={processing || !url.trim()} className="bg-[#0077b6] disabled:opacity-50 text-white px-4 rounded-lg">{processing?'Scanning...':'Scan URL'}</button>
       </div>
+      {processing && <p role="status" className="text-cyan-300 mt-4">Waiting for phishing analysis...</p>}
+      {error && <p role="alert" className="text-amber-300 mt-4">{error}</p>}
     </div>
-  );
+    {scan && <div className="bg-[#111d38] border border-[#1e3a5f] rounded-2xl p-6 text-slate-300 space-y-3">
+      <p className="text-xs break-all">Scan: {scan.id}</p>
+      {assessed && <>
+        <p className="text-xl">{result.metadata?.display_verdict || (result.label==='phishing'?'Phishing risk detected':'Low phishing signal')}</p>
+        <p>Trust score: {(scan.trust_score?.trust_risk_score ?? result.risk_score).toFixed(1)} / 100  /  {scan.trust_score?.risk_level || 'UNKNOWN'} risk (higher means more risk)</p>
+        {(result.metadata?.reasons || []).slice(0,3).map((reason:string)=><p key={reason} className="text-sm text-slate-300">{reason}</p>)}
+        <p className="text-xs text-slate-400">{result.metadata?.coverage?.website_fetched?'Live website checks applied.':'URL analysis completed; some live checks were unavailable.'} A low score does not guarantee safety.</p>
+      </>}
+      {!assessed && result && <div className="space-y-2 text-sm text-amber-200"><p>{legacy?'This saved result uses an earlier detector. Submit a new scan to apply the current model and live checks.':result.explanation || result.error_message || 'No reliable trust score is available.'}</p>{(!legacy && result.metadata?.reasons || []).map((reason:string)=><p key={reason}>{reason}</p>)}</div>}
+      {result && <button className="text-cyan-300 underline" onClick={()=>onViewReport(scan)}>View report</button>}
+    </div>}
+  </div>;
 };

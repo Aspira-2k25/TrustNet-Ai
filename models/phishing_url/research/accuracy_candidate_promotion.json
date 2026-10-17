@@ -1,0 +1,13 @@
+{
+  "promoted": false,
+  "reason": "Candidate failed live challenge generalization and recall gate; do not replace deployed hybrid safeguard.",
+  "test_f1": 0.8178111909036505,
+  "test_recall": 0.6984730385893176,
+  "challenge_probabilities": {
+    "https://www.google.com/": 0.6142241379310343,
+    "https://google.com/": 0.7827715355805244,
+    "https://www.wikipedia.org/": 0.00045485558335228563,
+    "https://github.com/": 0.9919614147909968
+  },
+  "active_policy": "branch-agreement-v1"
+}

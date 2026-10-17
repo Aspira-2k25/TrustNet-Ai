@@ -1,0 +1,7 @@
+{
+  "promoted_for_local_prototype": true,
+  "production_certified": false,
+  "reason": "Passes local model release checks: source F1 >= .80, recall >= .70, FPR <= .02 and no alert on 19 held-out homepages. Live mixed-sample and combined-policy validation are separate.",
+  "model_version": "modern-v5",
+  "threshold": 0.7
+}

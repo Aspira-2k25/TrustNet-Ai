@@ -1,0 +1,113 @@
+{
+  "dataset": "uci-327",
+  "archive_sha256": "514f582cb44cba17251baf1d59f64cddff16efa2b644d091ce8d2a1e8d492940",
+  "label_mapping": {
+    "-1": "phishing",
+    "1": "legitimate"
+  },
+  "label_mapping_evidence": "Explicit caller argument; compare dataset author dictionary or research source before interpretation",
+  "original_rows": 11055,
+  "unique_unambiguous_vectors": 5721,
+  "conflicting_vectors_excluded": 64,
+  "seed": 42,
+  "split_sha256": "3ef535f2f98f80f793c363fbf4e9b309b278c35116a2257ad74dae05a93a2c51",
+  "limitation": "No URL/domain/timestamps; feature-disjoint evaluation cannot establish domain or temporal generalization",
+  "models": {
+    "lr": {
+      "development_10fold": {
+        "test_accuracy": {
+          "mean": 0.9259228115773078,
+          "std": 0.010950874601669528
+        },
+        "test_precision": {
+          "mean": 0.9339788078298434,
+          "std": 0.008906831717632865
+        },
+        "test_recall": {
+          "mean": 0.9217496245440892,
+          "std": 0.014013706873269888
+        },
+        "test_f1": {
+          "mean": 0.927801529033567,
+          "std": 0.010895375684080204
+        },
+        "test_roc_auc": {
+          "mean": 0.9788662344851373,
+          "std": 0.005853347021250206
+        }
+      },
+      "test": {
+        "accuracy": 0.9458515283842794,
+        "precision": 0.955249569707401,
+        "recall": 0.9390862944162437,
+        "f1": 0.947098976109215,
+        "roc_auc": 0.9853640956098395,
+        "pr_auc": 0.9865807431071666,
+        "brier": 0.04394227427525323,
+        "ece": 0.018366110193329017,
+        "fpr": 0.04693140794223827,
+        "fnr": 0.06091370558375635,
+        "specificity": 0.9530685920577617,
+        "confusion_matrix": [
+          [
+            528,
+            26
+          ],
+          [
+            36,
+            555
+          ]
+        ]
+      },
+      "threshold": 0.5
+    },
+    "rf": {
+      "development_10fold": {
+        "test_accuracy": {
+          "mean": 0.9571751407030854,
+          "std": 0.012944737193224845
+        },
+        "test_precision": {
+          "mean": 0.9653242136916826,
+          "std": 0.01272228179263543
+        },
+        "test_recall": {
+          "mean": 0.9513659443610096,
+          "std": 0.01699639738475334
+        },
+        "test_f1": {
+          "mean": 0.9582259532766425,
+          "std": 0.012752325014025087
+        },
+        "test_roc_auc": {
+          "mean": 0.9926393654724486,
+          "std": 0.003232310764150134
+        }
+      },
+      "test": {
+        "accuracy": 0.9685589519650655,
+        "precision": 0.9711375212224108,
+        "recall": 0.9678510998307953,
+        "f1": 0.9694915254237289,
+        "roc_auc": 0.9962829933967392,
+        "pr_auc": 0.9966561426371253,
+        "brier": 0.028692537518725022,
+        "ece": 0.05844294489651367,
+        "fpr": 0.030685920577617327,
+        "fnr": 0.032148900169204735,
+        "specificity": 0.9693140794223827,
+        "confusion_matrix": [
+          [
+            537,
+            17
+          ],
+          [
+            19,
+            572
+          ]
+        ]
+      },
+      "threshold": 0.5
+    }
+  }
+}

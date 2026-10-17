@@ -1,4 +1,4 @@
-param([switch]$Portable)
+param([switch]$Portable, [switch]$PhishingKafka, [ValidateRange(45,900)][int]$StartupTimeoutSeconds = 240)
 $ErrorActionPreference = 'Stop'
 $taskRoot = $PSScriptRoot
 $taskPython = Join-Path $taskRoot '.venv-scam\Scripts\python.exe'
@@ -34,6 +34,7 @@ foreach ($taskService in @(
     @('scan','services.scan_management.app.main:app',8002),
     @('gateway','gateway.app.main:app',8000))) {
     $taskPort = [int]$taskService[2]
+    $env:KAFKA_ENABLED = if ($taskService[0] -eq 'scan' -and $PhishingKafka -and !$Portable) {'true'} else {'false'}
     if (Get-NetTCPConnection -LocalPort $taskPort -State Listen -ErrorAction SilentlyContinue) { throw "Port $taskPort is already in use. Use the existing services or stop their own launcher first." }
     $taskServicePython = $taskPython
     if ($taskService[0] -eq 'scan' -and !$Portable) {
@@ -57,7 +58,9 @@ $taskChecks = @{
     gateway = 'http://127.0.0.1:8000/health'
 }
 if ($Portable) { $taskChecks.frontend = 'http://127.0.0.1:5173/' }
-$taskDeadline = (Get-Date).AddSeconds(45)
+Write-Host "Waiting up to $StartupTimeoutSeconds seconds for model and service readiness..."
+$taskDeadline = (Get-Date).AddSeconds($StartupTimeoutSeconds)
+$taskNextNotice = (Get-Date).AddSeconds(15)
 do {
     $taskPending = @()
     foreach ($taskName in $taskChecks.Keys) {
@@ -65,6 +68,10 @@ do {
         catch { $taskPending += $taskName }
     }
     if ($taskPending.Count -eq 0) { break }
+    if ((Get-Date) -ge $taskNextNotice) {
+        Write-Host ('Still waiting for: ' + ($taskPending -join ', ') + '. See runtime-logs for startup output.')
+        $taskNextNotice = (Get-Date).AddSeconds(15)
+    }
     Start-Sleep -Milliseconds 500
 } while ((Get-Date) -lt $taskDeadline)
 if ($taskPending.Count -gt 0) {

@@ -84,6 +84,7 @@ Thumbs.db
 scratch/
 
 .venv-scam/
+.phishing-test-venv/
 runtime_state/
 
 # Large selected weights are distributed as a checksummed model package.

@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-12",
+  "internal_labels": {
+    "0": "legitimate",
+    "1": "phishing"
+  },
+  "datasets": [
+    {
+      "id": "uci-327",
+      "role": "offline_baseline",
+      "source": "https://archive.ics.uci.edu/dataset/327/phishing",
+      "license": "CC-BY-4.0",
+      "status": "downloaded_and_audited",
+      "audit": "models/phishing_url/research/uci_audit.json",
+      "original_label_mapping": null,
+      "training_allowed": false,
+      "blockers": [
+        "authoritative_target_label_direction",
+        "duplicate_and_conflicting_feature_policy"
+      ]
+    },
+    {
+      "id": "kaggle-primary-v1",
+      "role": "primary_raw_urls",
+      "source": "https://www.kaggle.com/datasets/taruntiwarihp/phishing-site-urls",
+      "status": "approved_acquired_audited_and_partitioned",
+      "license": "Database: Open Database, Contents: Database Contents",
+      "sha256": "d2076cdfb371b9da65b7b8b8fcf71d2b1a7544f5002345fde0e5f15c9d6eb61f",
+      "original_label_mapping": {
+        "good": 0,
+        "bad": 1
+      },
+      "training_allowed": true,
+      "version": 1,
+      "prepared_sha256": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+      "audit": "models/phishing_url/research/primary_preparation.json",
+      "limitations": [
+        "source_lineage_unspecified",
+        "timestamps_unavailable",
+        "scheme_missing_for_nearly_all_rows",
+        "campaign_grouping_unmeasured"
+      ]
+    },
+    {
+      "id": "phishtank-fresh",
+      "role": "freshness_phishing",
+      "source": "https://phishtank.org/developer_info.php",
+      "status": "access_documentation_verified_snapshot_pending",
+      "license": null,
+      "sha256": null,
+      "original_label_mapping": {
+        "verified_online_record": 1
+      },
+      "training_allowed": false
+    },
+    {
+      "id": "mendeley-v3",
+      "role": "alternative_offline_baseline",
+      "source": "https://data.mendeley.com/datasets/c2gw7fy2j4/3",
+      "version": 3,
+      "license": "CC-BY-4.0",
+      "status": "source_verified_not_downloaded",
+      "sha256": null,
+      "original_label_mapping": null,
+      "training_allowed": false
+    },
+    {
+      "id": "tranco-legitimate-supplement",
+      "role": "freshness_legitimate_candidate",
+      "source": "https://tranco-list.eu/",
+      "status": "list_id_labeling_and_terms_pending",
+      "license": null,
+      "sha256": null,
+      "original_label_mapping": null,
+      "training_allowed": false
+    }
+  ]
+}

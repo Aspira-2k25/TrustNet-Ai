@@ -1,0 +1,53 @@
+{
+  "counts": [
+    {
+      "split": "test",
+      "scheme": "http",
+      "label": "0",
+      "rows": 78480
+    },
+    {
+      "split": "test",
+      "scheme": "http",
+      "label": "1",
+      "rows": 21532
+    },
+    {
+      "split": "test",
+      "scheme": "https",
+      "label": "1",
+      "rows": 1
+    },
+    {
+      "split": "train",
+      "scheme": "http",
+      "label": "0",
+      "rows": 282538
+    },
+    {
+      "split": "train",
+      "scheme": "http",
+      "label": "1",
+      "rows": 77522
+    },
+    {
+      "split": "train",
+      "scheme": "https",
+      "label": "1",
+      "rows": 6
+    },
+    {
+      "split": "validation",
+      "scheme": "http",
+      "label": "0",
+      "rows": 31392
+    },
+    {
+      "split": "validation",
+      "scheme": "http",
+      "label": "1",
+      "rows": 8614
+    }
+  ],
+  "finding": "No legitimate HTTPS examples in frozen dataset; HTTPS calibration and generalization not established."
+}

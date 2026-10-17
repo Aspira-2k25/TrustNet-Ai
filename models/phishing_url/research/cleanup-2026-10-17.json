@@ -1,0 +1,39 @@
+{
+  "removed_files": [
+    "scripts\\train-phishing-modern.py",
+    "scripts\\audit-phishing-consensus.py",
+    "scripts\\diagnose-phishing-tokenization.py",
+    "models\\phishing_url\\checkpoints\\modern_v5\\text-progress.joblib",
+    "models\\phishing_url\\research\\colab-running.png",
+    "models\\phishing_url\\research\\colab-training-status.png",
+    "models\\phishing_url\\research\\kaggle-phone-verification.png",
+    "models\\phishing_url\\research\\kaggle-sign-in.png",
+    "models\\phishing_url\\research\\consensus_diagnostic.json",
+    "models\\phishing_url\\research\\dynamic_collection_google.json",
+    "models\\phishing_url\\research\\dynamic_url_audit_before_indexed_reputation.json",
+    "models\\phishing_url\\research\\dynamic_url_audit_before_indexed_reputation.md",
+    "models\\phishing_url\\research\\dynamic_url_audit_before_reputation_fix.json",
+    "models\\phishing_url\\research\\dynamic_url_audit_before_reputation_fix.md",
+    "models\\phishing_url\\checkpoints\\modern_v4\\calibrator.joblib",
+    "models\\phishing_url\\checkpoints\\modern_v4\\fusion.joblib",
+    "models\\phishing_url\\checkpoints\\modern_v4\\manifest.json",
+    "models\\phishing_url\\checkpoints\\modern_v4\\structural.joblib",
+    "models\\phishing_url\\checkpoints\\modern_v4\\text.joblib"
+  ],
+  "bytes_removed": 11994585,
+  "active_bundle": "modern_v5",
+  "active_manifest_unchanged": true,
+  "verification": {
+    "regression_tests_passed": 71,
+    "active_artifact_hashes_verified": true,
+    "worker_healthy": true,
+    "collector_healthy": true,
+    "unchanged_scores": {
+      "google": 16.2,
+      "paypal": 20.6,
+      "paypal_lookalike": 84.1,
+      "ftp_lookalike": 80.0
+    },
+    "scope": "phishing only; image/scam/shared application code unchanged"
+  }
+}

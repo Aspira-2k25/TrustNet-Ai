@@ -19,7 +19,7 @@ class InferenceRunner:
         self.pool=ThreadPoolExecutor(max_workers=settings.SCAM_MAX_CONCURRENCY)
         self.active=0
         try:self.detector=ScamDetector()
-        except Exception as exc:self.error=type(exc).__name__; logger.error('Artifact unavailable: %s',self.error)
+        except Exception as exc:self.error=type(exc).__name__; logger.exception('Artifact unavailable: %s',exc)
     async def predict(self,text,scan_id):
         if self.detector is None: raise HTTPException(503,'Scam model unavailable')
         if self.active>=settings.SCAM_MAX_CONCURRENCY: raise HTTPException(429,'Scam inference busy; retry later')

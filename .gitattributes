@@ -1,0 +1,2 @@
+# Model artifacts are checksummed byte-for-byte; preserve their packaged bytes.
+models/scam_message/artifacts/** -text

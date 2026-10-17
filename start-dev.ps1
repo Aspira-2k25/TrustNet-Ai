@@ -11,9 +11,15 @@ if (-not (Test-Path ".venv")) {
 }
 
 Write-Host "[1/3] Checking Apache Kafka 3.7 (Docker)..." -ForegroundColor Green
+$phishingKafka = 'false'
 docker info > $null 2>&1
 if ($LASTEXITCODE -eq 0) {
-    docker compose up -d kafka
+    try {
+        & "$PSScriptRoot/scripts/start-phishing-infrastructure.ps1"
+        $phishingKafka = 'true'
+    } catch {
+        Write-Host "[NOTE] Phishing startup failed: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
 } else {
     Write-Host "[NOTE] Docker is offline; microservices will run in standalone REST mode." -ForegroundColor Yellow
 }
@@ -21,7 +27,7 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host "[2/3] Starting backend processes..." -ForegroundColor Green
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn gateway.app.main:app --port 8000 --reload"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.auth.app.main:app --port 8001 --reload"
-Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.scan_management.app.main:app --port 8002 --reload"
+Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; `$env:KAFKA_ENABLED='$phishingKafka'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.scan_management.app.main:app --port 8002 --reload"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.image_deepfake.app.main:app --port 8003 --reload"
 Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoExit", "-Command", "cd '$PWD'; & '$PWD\.venv\Scripts\python.exe' -m uvicorn services.trust_engine.app.main:app --port 8004 --reload"
 

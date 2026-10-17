@@ -1,0 +1,179 @@
+{
+  "sampled_at": "2026-10-16T10:29:04.319158+00:00",
+  "seed": 20261016,
+  "ground_truth_note": "Source-labelled sample. Provider reports may contain errors or refer to sites now taken down. Absence from a provider is not a clean verdict.",
+  "virustotal": {
+    "status": "NOT_QUERIED",
+    "reason": "Requires API credentials or user sign-in; no results fabricated."
+  },
+  "cases": [
+    {
+      "url": "http://49.51.43.12/v3/signin/identifier?amp%3Bfollowup=https%3A%2F%2Faccounts.google.com&amp%3Bifkv=AWnogHe_pDujLaO-hl3d_3DQFjS6PW6JGM3LRrD13mxmiaQWTJuHz9b6nwmaSIh76M5SMOelnJex7g&amp%3Bpassive=1209600&continue=https%3A%2F%2Faccounts.google.com%2F&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=AWt06STPGRnQjvMBy4puzmNjx_kcPuw4980KD6XJj7NzQj5HrcVjbfPJsP9lOJimWpilGrMD0Bkisg&dsh=S940504726%3A1791948208502886",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917551,
+      "reference_date": "2026-10-14T03:23:41.000Z",
+      "reference_score": 9.7,
+      "urlscan": {
+        "status": "UNAVAILABLE",
+        "http_status": 403
+      }
+    },
+    {
+      "url": "http://43.156.0.130/v3/signin/identifier?amp%3Bffgf=1&amp%3Bfollowup=https%3A%2F%2Faccounts.google.com&amp%3Bifkv=Af_xneGpinflONH_c3iB5WwVV1C6BSPwAwpudWnjxe8BcKRMcZLFgAnlzpjtHVk0QMFIUm6AcMYv&amp%3Bpassive=1209600&continue=https%3A%2F%2Faccounts.google.com%2F&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=AWt06SSJUah7h0l6anZtagDv90yWqUDATpkhBxcHRBMZBMU0Z1vRBI_RtNfWzhkkhNAXmzCXNvRAtA&dsh=S-1777395905%3A1792056582282454",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917906,
+      "reference_date": "2026-10-15T09:29:50.000Z",
+      "reference_score": 9.1,
+      "urlscan": {
+        "status": "NO_EXACT_REPORT",
+        "verdict": null
+      }
+    },
+    {
+      "url": "http://www.allegrolokalnie.57162055.shop/",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917326,
+      "reference_date": "2026-10-13T14:14:33.000Z",
+      "reference_score": 7.3,
+      "urlscan": {
+        "status": "UNAVAILABLE",
+        "http_status": 403
+      }
+    },
+    {
+      "url": "http://c53dbdbd.lighthousefilms.nl/?e476e&id=octopic.be",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917628,
+      "reference_date": "2026-10-14T11:03:58.000Z",
+      "reference_score": 7.3,
+      "urlscan": {
+        "status": "UNAVAILABLE",
+        "http_status": 403
+      }
+    },
+    {
+      "url": "http://yfdabv8.com/?dn=appgallery.ledgerliveapp.lol&accid=710956738&spfwd=1&spmsg=nscif",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917292,
+      "reference_date": "2026-10-13T09:29:17.000Z",
+      "reference_score": 7.9,
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "http://docusignappinstallers.help/",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917986,
+      "reference_date": "2026-10-15T18:02:37.000Z",
+      "reference_score": 7.2,
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "http://pub-78a272af52b14a33975228017d07268d.r2.dev/index.html",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11917907,
+      "reference_date": "2026-10-15T09:33:23.000Z",
+      "reference_score": 8,
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "http://bluesoftsdocrks.com/Docusign/page/",
+      "reference_label": "provider_reported_phishing",
+      "reference": "PhishStats",
+      "reference_id": 11918011,
+      "reference_date": "2026-10-15T19:47:51.000Z",
+      "reference_score": 8.2,
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "https://www.google.com/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "UNAVAILABLE",
+        "http_status": 403
+      }
+    },
+    {
+      "url": "https://github.com/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "UNAVAILABLE",
+        "http_status": 403
+      }
+    },
+    {
+      "url": "https://mozilla.org/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NO_EXACT_REPORT",
+        "verdict": null
+      }
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NO_EXACT_REPORT",
+        "verdict": null
+      }
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "https://w3.org/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "https://google.com/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    },
+    {
+      "url": "https://gnu.org/",
+      "reference_label": "legitimate_official_homepage",
+      "reference": "official organisation homepage; not a guarantee of current safety",
+      "urlscan": {
+        "status": "NOT_QUERIED",
+        "reason": "Small public quota; no bulk mirroring."
+      }
+    }
+  ]
+}
