@@ -14,6 +14,12 @@ if not exist "frontend\node_modules\.bin\vite.cmd" (
     echo [ERROR] Run npm ci in frontend first.
     exit /b 1
 )
+if "%1"=="--restart" (
+    call "%~dp0stop-dev.bat"
+)
+if "%1"=="-r" (
+    call "%~dp0stop-dev.bat"
+)
 REM Check all ports before launching; never kill unrelated processes.
 powershell -NoProfile -Command "$ports = @(8000,8001,8002,8003,8004,8005,5173); $busy = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports }; if ($busy) { Write-Host ('[ERROR] Ports already in use: ' + (($busy.LocalPort | Sort-Object -Unique) -join ', ')); Write-Host '[TIP] Run .\stop-dev.bat to stop existing background services, then re-run start-dev.bat.'; exit 1 }"
 if errorlevel 1 exit /b 1
