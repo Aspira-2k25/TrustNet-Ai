@@ -9,13 +9,13 @@ Internet is required once to install Python dependencies (CPU PyTorch from its o
 ```powershell
 Expand-Archive .\TrustNet-Scam-Portable.zip -DestinationPath .\TrustNet-share
 Set-Location .\TrustNet-share\TrustNet-Scam-Portable
-powershell -ExecutionPolicy Bypass -File .\install-scam.ps1
-.\.venv-scam\Scripts\python.exe .\verify-scam.py
-powershell -ExecutionPolicy Bypass -File .\start-scam.ps1 -Portable
+powershell -ExecutionPolicy Bypass -File .\scripts/setup/install-scam.ps1
+.\.venv-scam\Scripts\python.exe .\scripts/checks/verify-scam.py
+powershell -ExecutionPolicy Bypass -File .\scripts/ops/start-scam.ps1 -Portable
 Start-Process http://localhost:5173
 ```
 
-Wait for `http://localhost:8005/ready`. Register/sign in on the website; this fresh package starts with a new SQLite database and randomly generated local JWT secret in `.env`. Existing checkout users and databases are not copied. Keep `.env` and `portable-state.sqlite` private. Stop only this launcher's services with `powershell -ExecutionPolicy Bypass -File .\stop-scam.ps1`. Restart with the same `.env` and database to retain accounts/history. Ports 8000,8001,8002,8005,5173 must be available. Kafka is disabled in this standalone synchronous edition; local scans work without Docker.
+Wait for `http://localhost:8005/ready`. Register/sign in on the website; this fresh package starts with a new SQLite database and randomly generated local JWT secret in `.env`. Existing checkout users and databases are not copied. Keep `.env` and `portable-state.sqlite` private. Stop only this launcher's services with `powershell -ExecutionPolicy Bypass -File .\scripts/ops/stop-scam.ps1`. Restart with the same `.env` and database to retain accounts/history. Ports 8000,8001,8002,8005,5173 must be available. Kafka is disabled in this standalone synchronous edition; local scans work without Docker.
 
 ## API example
 
@@ -47,4 +47,4 @@ GROQ_MODEL=openai/gpt-oss-20b
 
 Website users must additionally tick opt-in per scan. Only bounded existing attribution fragments/notes/values leave the machine, not the full email or headers. The provider can only reorder allowed evidence IDs; no free claims, sender verification, AI percentage or probability changes. Extension keeps this off. Failures/timeouts/429/schema errors retain local results. Provider behavior was tested with mocks; no paid/live provider call was made.
 
-`PACKAGE-MANIFEST.json` lists SHA256 for every payload file. A separate ZIP checksum accompanies the archive. `verify-scam.py` verifies selected model hashes and actual signed masking sensitivity. See the technical handoff and `evaluation.json` for all measured metrics, provenance and limitations. The example JSON files demonstrate usage, not accuracy benchmarks.
+`PACKAGE-MANIFEST.json` lists SHA256 for every payload file. A separate ZIP checksum accompanies the archive. `scripts/checks/verify-scam.py` verifies selected model hashes and actual signed masking sensitivity. See the technical handoff and `evaluation.json` for all measured metrics, provenance and limitations. The example JSON files demonstrate usage, not accuracy benchmarks.

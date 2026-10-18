@@ -8,6 +8,6 @@
   "background": {"service_worker": "worker.js"},
   "options_page": "options.html",
   "action": {"default_title": "Connect TrustNet", "default_popup": "options.html"},
-  "content_scripts": [{"matches": ["https://mail.google.com/mail/*"], "js": ["extract.js", "content.js"], "run_at": "document_idle"}],
+  "content_scripts": [{"matches": ["https://mail.google.com/*"], "js": ["extract.js", "content.js"], "run_at": "document_idle"}],
   "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
 }

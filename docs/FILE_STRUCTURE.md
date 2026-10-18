@@ -7,8 +7,8 @@ TrustNet/
 ├── README.md                  # Primary developer onboarding & panel defense guide
 ├── docker-compose.yml         # Kafka 3.7 KRaft and core service containers
 ├── start-dev.bat              # 1-click Windows local development launcher
-├── install-deps.bat           # 1-click Windows Python dependency installer
-├── install-deps.ps1           # PowerShell dependency installer
+├── scripts/setup/install-deps.bat           # 1-click Windows Python dependency installer
+├── scripts/setup/install-deps.ps1           # PowerShell dependency installer
 ├── Makefile                   # Monorepo task automation
 ├── pytest.ini                 # Global pytest configuration
 ├── conftest.py                # Global test fixtures & default test environment
@@ -22,7 +22,7 @@ TrustNet/
 │
 ├── docs/                      # Centralized documentation
 │   ├── ARCHITECTURE.md        # Global system & Gateway proxy architecture
-│   ├── DEVELOPMENT.md         # Developer setup & coding standards
+│   ├── docs/DEVELOPMENT.md         # Developer setup & coding standards
 │   ├── FILE_STRUCTURE.md      # This file
 │   ├── IMPLEMENTATION_STATUS.md # Active implementation status & module audit
 │   ├── DATASET_AND_RESEARCH.md# ML datasets, metrics & research notes

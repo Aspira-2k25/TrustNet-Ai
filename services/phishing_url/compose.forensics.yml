@@ -1,0 +1,46 @@
+# Live evidence collector, isolated from Kafka/Mongo/internal service network.
+services:
+  phishing:
+    environment:
+      PHISHING_COLLECTOR_URL: http://phishing-collector:8008
+      PHISHING_COLLECTOR_TOKEN: ${PHISHING_COLLECTOR_TOKEN:?Set collector authentication token}
+    depends_on:
+      phishing-collector:
+        condition: service_healthy
+    networks:
+      - trustnet_net
+      - phishing_collection_link
+  phishing-collector:
+    build:
+      context: .
+      dockerfile: services/phishing_url/Dockerfile
+    command: ["uvicorn", "services.phishing_url.app.collector_main:app", "--host", "0.0.0.0", "--port", "8008"]
+    environment:
+      PHISHING_COLLECTOR_TOKEN: ${PHISHING_COLLECTOR_TOKEN:?Set collector authentication token}
+      PHISHSTATS_API_KEY: ${PHISHSTATS_API_KEY:-}
+      PHISHING_CACHE_DIR: /var/cache/trustnet
+    volumes:
+      - phishing_reputation_cache:/var/cache/trustnet
+    ports:
+      - "127.0.0.1:8008:8008"
+    networks:
+      - phishing_egress
+      - phishing_collection_link
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8008/health',timeout=3)"]
+      interval: 10s
+      timeout: 4s
+      retries: 5
+networks:
+  phishing_collection_link:
+    driver: bridge
+    internal: true
+  phishing_egress:
+    driver: bridge
+volumes:
+  phishing_reputation_cache:

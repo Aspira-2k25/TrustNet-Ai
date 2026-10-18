@@ -7,6 +7,7 @@ from services.scan_management.app.core.broker import publisher
 from PIL import Image
 from services.scan_management.app.main import app
 from services.scan_management.app.database.session import init_db
+from services.scan_management.app.config.settings import settings
 
 @pytest.fixture
 def anyio_backend():
@@ -19,6 +20,7 @@ async def setup_db():
 @pytest.fixture(autouse=True)
 def acknowledged_unit_dispatch(monkeypatch):
     # Unit dispatch seam only. Real Kafka verification is separate.
+    monkeypatch.setattr(settings, 'KAFKA_ENABLED', True)
     dispatch=AsyncMock(return_value=True)
     monkeypatch.setattr(publisher,'publish_detection_requested',dispatch)
     return dispatch
@@ -106,9 +108,58 @@ async def test_create_url_scan_success(client):
     body = response.json()
     assert body["error"] is None
     assert body["data"]["content_type"] == "url"
-    assert body["data"]["status"] == "QUEUED"
-    assert body["data"]["result"] is None
+    assert body["data"]["status"] in ("QUEUED", "PARTIAL_SUCCESS", "SUCCESS")
     assert body["data"]["raw_input"] == payload["url"]
+
+
+@pytest.mark.anyio
+async def test_url_inline_result_is_saved_without_kafka(client, monkeypatch, acknowledged_unit_dispatch):
+    from datetime import datetime, timezone
+    from shared.schemas.detection_result import DetectionResult
+
+    monkeypatch.setattr(settings, 'KAFKA_ENABLED', False)
+    original_post = httpx.AsyncClient.post
+
+    async def offline_inference(session, url, **kwargs):
+        if str(url) == settings.PHISHING_SERVICE_URL.rstrip('/') + '/infer':
+            scan_id = kwargs['json']['scan_id']
+            result = DetectionResult(
+                scan_id=scan_id, module='phishing', detector_id='unit.phishing',
+                model_version='fixture', preprocessing_version='fixture',
+                native_score=.85, native_score_semantics='probability_of_positive_class',
+                risk_score=85, confidence=.8, label='phishing',
+                status='PARTIAL_SUCCESS', verdict='SUSPICIOUS',
+                timestamp=datetime.now(timezone.utc).isoformat(),
+            )
+            return httpx.Response(200, json={'data': result.model_dump(mode='json')}, request=httpx.Request('POST', url))
+        return await original_post(session, url, **kwargs)
+
+    monkeypatch.setattr(httpx.AsyncClient, 'post', offline_inference)
+    response = await client.post('/scans/url', json={'url': 'https://example.org/login'})
+    assert response.status_code == 202
+    scan = response.json()['data']
+    assert scan['status'] == 'PARTIAL_SUCCESS'
+    assert scan['result']['risk_score'] == 85
+    assert scan['result']['scan_id'] == scan['id']
+    saved = (await client.get('/scans/' + scan['id'])).json()['data']
+    assert saved['result'] == scan['result']
+    assert saved['trust_score']['module_scores']['phishing'] == 85
+    acknowledged_unit_dispatch.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_url_inline_service_failure_is_explicit(client, monkeypatch):
+    monkeypatch.setattr(settings, 'KAFKA_ENABLED', False)
+    original_post = httpx.AsyncClient.post
+
+    async def unavailable(session, url, **kwargs):
+        if str(url) == settings.PHISHING_SERVICE_URL.rstrip('/') + '/infer':
+            raise httpx.ConnectError('Offline test service')
+        return await original_post(session, url, **kwargs)
+
+    monkeypatch.setattr(httpx.AsyncClient, 'post', unavailable)
+    response = await client.post('/scans/url', json={'url': 'https://example.org/'})
+    assert response.status_code == 503
 
 @pytest.mark.anyio
 async def test_get_scan_by_id(client):

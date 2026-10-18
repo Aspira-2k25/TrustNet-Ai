@@ -1,0 +1,92 @@
+{
+  "protocol": {
+    "candidate_manifest_sha256": "30407968c6d02ab076db933a74201d7ac29853637e2d98d2a0faed897a8c6a9c",
+    "active_manifest_sha256": "93e59ed0b126a902d00e109e998d4d0c61d6f0bca8ee37af89b3144d29a831e3",
+    "test_manifest_sha256": "a727f4c50b12df21865cd759a8a0dcb66c6c86778bf13ee915558ce3d175fe3a",
+    "acceptance": {
+      "accuracy_strictly_improves": true,
+      "recall_strictly_improves": true,
+      "maximum_fpr_increase": 0.01,
+      "no_additional_query_false_positives": true,
+      "brier_must_not_increase": true
+    },
+    "no_test_based_tuning": true,
+    "automatic_promotion": false,
+    "label_caveat": "Provider reports and verified operator reference pages; not independent content adjudication.",
+    "query_negative_coverage_limited": true
+  },
+  "rows": 313,
+  "class_counts": {
+    "0": 163,
+    "1": 150
+  },
+  "baseline": {
+    "accuracy": 0.9009584664536742,
+    "precision": 0.9280575539568345,
+    "recall": 0.86,
+    "f1": 0.8927335640138409,
+    "roc_auc": 0.9633128834355829,
+    "pr_auc": 0.9671000825388938,
+    "brier": 0.07661464388751861,
+    "ece": 0.05044100905131333,
+    "fpr": 0.06134969325153374,
+    "fnr": 0.14,
+    "specificity": 0.9386503067484663,
+    "confusion_matrix": [
+      [
+        153,
+        10
+      ],
+      [
+        21,
+        129
+      ]
+    ]
+  },
+  "candidate": {
+    "accuracy": 0.9073482428115016,
+    "precision": 0.9290780141843972,
+    "recall": 0.8733333333333333,
+    "f1": 0.9003436426116839,
+    "roc_auc": 0.9652351738241308,
+    "pr_auc": 0.9692371299792731,
+    "brier": 0.07396743046122338,
+    "ece": 0.051165386305136146,
+    "fpr": 0.06134969325153374,
+    "fnr": 0.12666666666666668,
+    "specificity": 0.9386503067484663,
+    "confusion_matrix": [
+      [
+        153,
+        10
+      ],
+      [
+        19,
+        131
+      ]
+    ]
+  },
+  "gates": {
+    "accuracy_improved": true,
+    "recall_improved": true,
+    "fpr_increase_bounded": true,
+    "no_extra_query_false_positives": true,
+    "brier_not_worse": true,
+    "primary_alerts_preserved": true
+  },
+  "paired_changes": {
+    "additional_phishing_caught": 2,
+    "additional_false_alerts": 0,
+    "additional_query_false_alerts": 0
+  },
+  "comparison_passed": true,
+  "independent_test_consumed": true,
+  "domain_overlap": 0,
+  "known_campaign_overlap": 0,
+  "promoted": false,
+  "limitations": [
+    "Small convenience test; source labels uncertain.",
+    "Only 13 novel benign query references across five domains.",
+    "No temporal/campaign guarantee; no full live forensic/browser benchmark."
+  ]
+}

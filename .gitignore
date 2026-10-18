@@ -40,6 +40,7 @@ quarantine/
 
 # Testing & Coverage
 .pytest_cache/
+.playwright-cli/
 .coverage
 htmlcov/
 
@@ -82,8 +83,15 @@ Thumbs.db
 
 # Scratch directory
 scratch/
+/tmp/
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
 
 .venv-scam/
+.venv-phishing/
+.phishing-test-venv/
 runtime_state/
 
 # Large selected weights are distributed as a checksummed model package.

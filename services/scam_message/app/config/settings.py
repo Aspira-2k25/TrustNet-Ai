@@ -5,6 +5,7 @@ class ScamSettings(BaseSettings):
     SCAM_PORT: int = 8005
     SCAM_MAX_CONCURRENCY: int = Field(default=2,ge=1,le=8)
     SCAM_TIMEOUT_SECONDS: float = 20
+    PHISHING_SERVICE_URL: str = 'http://127.0.0.1:8007'
     KAFKA_ENABLED: bool = False
     KAFKA_BOOTSTRAP_SERVERS: str = 'localhost:9094'
     SCAM_OPTIONAL_ANALYSIS_ENABLED: bool = False

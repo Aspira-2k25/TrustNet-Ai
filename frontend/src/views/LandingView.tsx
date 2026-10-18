@@ -40,9 +40,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
       title: 'Phishing Websites',
       badge: 'Links & URLs',
       badgeColor: 'bg-emerald-950/70 text-emerald-300 border-emerald-800',
-      desc: 'Paste any suspicious link to find out if it is trying to steal passwords or bank details.',
+      desc: 'Inspect a suspicious address and review URL patterns, domain details and available website evidence.',
       icon: <Globe className="text-emerald-400" size={24} />,
-      simpleNote: 'Planned module — analysis unavailable',
+      simpleNote: 'URL detection and optional live website checks',
     },
     {
       id: 'scam_msg',
@@ -101,7 +101,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
           </h1>
 
           <p className="text-base text-[#94a3b8] leading-relaxed max-w-xl">
-            TrustNet estimates image manipulation and English SMS/email scam risk. Results have limited model coverage; sender identity and linked websites are not verified.
+            TrustNet estimates image manipulation, English SMS/email scam risk and phishing URL risk. Review the evidence and missing checks. Sender identity and website legitimacy are not verified.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -275,7 +275,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStartScan, onExplore
             Available Assessments and Planned Modules
           </h2>
           <p className="text-sm text-[#94a3b8] max-w-2xl mt-1">
-            Image and English SMS/email services are connected. Video, audio, website and review integrations remain unavailable.
+            Image, English SMS/email and phishing URL services are connected. Video, audio and review integrations remain unavailable.
           </p>
         </div>
 

@@ -1,0 +1,23 @@
+# Optional egress collector. Do not attach to trustnet_net.
+services:
+  phishing-collector:
+    build:
+      context: .
+      dockerfile: services/phishing_url/Dockerfile
+    command: ["uvicorn", "services.phishing_url.app.collector_main:app", "--host", "0.0.0.0", "--port", "8008"]
+    environment:
+      PHISHING_COLLECTOR_TOKEN: ${PHISHING_COLLECTOR_TOKEN:?Set collector authentication token}
+    ports:
+      - "127.0.0.1:8008:8008"
+    networks:
+      - phishing_egress
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      disable: true
+networks:
+  phishing_egress:
+    driver: bridge

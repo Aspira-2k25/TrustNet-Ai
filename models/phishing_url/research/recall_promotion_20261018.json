@@ -1,0 +1,11 @@
+{
+  "model_version": "regional-recall-v1",
+  "manifest_sha256": "30407968c6d02ab076db933a74201d7ac29853637e2d98d2a0faed897a8c6a9c",
+  "acceptance_passed": true,
+  "old_regional_v1_bundle_preserved": true,
+  "old_modern_v5_bundle_preserved": true,
+  "independent_test_consumed": true,
+  "score_calibration_established": false,
+  "modest_observed_improvement_not_population_certification": true,
+  "inference_source_sha256": "b97239b010232a9375fcc2fe5fed0998b023163de6b701466fab8004820130d3"
+}

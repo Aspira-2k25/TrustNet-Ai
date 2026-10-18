@@ -1,0 +1,29 @@
+schema_version: 1
+positive_class: phishing
+positive_label: 1
+preprocessing_version: url-lexical-v1
+bert:
+  model: google-bert/bert-base-uncased
+  revision: 86b5e0934494bd15c9632b12f734a8a67f723594
+  max_length: 128
+  learning_rate: 0.00002
+  epochs: 3
+  gpu_batch_size: 8
+lightgbm:
+  learning_rate: 0.05
+  leaves: 31
+  max_iterations: 1000
+  early_stopping_rounds: 30
+validation:
+  group: registrable_domain_including_private_suffixes
+  development_folds: 10
+  holdout_seed: 42
+  folds_seed: 43
+  calibration_partition: domain_sha256_mod3_1
+  selection_and_voting_partition: domain_sha256_mod3_0
+  threshold_partition: domain_sha256_mod3_2
+runtime:
+  collector_enabled_by_default: false
+  historical_metadata_used: false
+  kafka_request_topic: detection.requested.phishing
+  kafka_completion_topic: detector.phishing.completed

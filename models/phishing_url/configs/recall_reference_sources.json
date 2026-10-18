@@ -1,0 +1,26 @@
+{
+  "role": "Curated public operator reference origins; labels apply only to verified exact pages, never whole domains",
+  "origins": [
+    "https://www.imo.org/", "https://www.itu.int/", "https://www.iaea.org/", "https://www.oecd.org/",
+    "https://www.bis.org/", "https://www.ecb.europa.eu/", "https://www.nist.gov/", "https://www.cisa.gov/",
+    "https://www.usa.gov/", "https://www.fdic.gov/", "https://www.consumerfinance.gov/",
+    "https://www.rbi.org.in/", "https://www.sebi.gov.in/", "https://www.nabard.org/", "https://www.npci.org.in/",
+    "https://www.isro.gov.in/", "https://www.csir.res.in/", "https://www.iisc.ac.in/",
+    "https://www.iiserpune.ac.in/", "https://www.iiserb.ac.in/", "https://www.niser.ac.in/",
+    "https://docs.manim.community/", "https://docs.pola.rs/", "https://docs.marimo.io/",
+    "https://docs.vllm.ai/", "https://docs.sglang.ai/", "https://qdrant.tech/documentation/",
+    "https://docs.lancedb.com/", "https://docs.trychroma.com/", "https://docs.getdbt.com/",
+    "https://docs.prefect.io/", "https://docs.dagster.io/", "https://docs.temporal.io/",
+    "https://docs.nats.io/", "https://docs.redpanda.com/", "https://deno.com/", "https://bun.sh/docs/",
+    "https://docs.expo.dev/", "https://docs.taichi-lang.org/", "https://docs.sympy.org/",
+    "https://www.pymc.io/", "https://docs.xarray.dev/", "https://zarr.dev/",
+    "https://www.pyopensci.org/", "https://scientific-python.org/", "https://numfocus.org/",
+    "https://jupyterbook.org/", "https://quarto.org/", "https://posit.co/",
+    "https://www.r-project.org/", "https://www.rust-lang.org/", "https://elixir-lang.org/",
+    "https://www.erlang.org/", "https://www.haskell.org/", "https://ocaml.org/",
+    "https://www.typst.app/", "https://typst.app/", "https://www.latex-project.org/",
+    "https://www.tug.org/", "https://www.ctan.org/", "https://www.crossref.org/",
+    "https://www.datacite.org/", "https://ror.org/", "https://www.openaire.eu/",
+    "https://www.eosc.eu/", "https://www.zenodo.org/", "https://www.doi.org/"
+  ]
+}

@@ -1,0 +1,12 @@
+.git
+.venv
+.venv-scam
+.phishing-test-venv
+**/__pycache__
+**/.pytest_cache
+models/phishing_url/data
+models/phishing_url/checkpoints
+frontend/node_modules
+.env
+runtime_state
+storage_uploads

@@ -19,7 +19,7 @@ class InferenceRunner:
         self.pool=ThreadPoolExecutor(max_workers=settings.SCAM_MAX_CONCURRENCY)
         self.active=0
         try:self.detector=ScamDetector()
-        except Exception as exc:self.error=type(exc).__name__; logger.error('Artifact unavailable: %s',self.error)
+        except Exception as exc:self.error=type(exc).__name__; logger.exception('Artifact unavailable: %s',exc)
     async def predict(self,text,scan_id):
         if self.detector is None: raise HTTPException(503,'Scam model unavailable')
         if self.active>=settings.SCAM_MAX_CONCURRENCY: raise HTTPException(429,'Scam inference busy; retry later')
@@ -59,6 +59,8 @@ async def ready():
 async def infer(req:InferenceRequest):
     if not runner: raise HTTPException(503,'Scam service is not ready')
     result=enrich(await runner.predict(req.canonical_text(),req.scan_id),req)
+    from services.scam_message.app.link_fusion import fuse_links
+    result=await fuse_links(result,req,settings.PHISHING_SERVICE_URL)
     result.metadata['optional_explanation']=await explain(result,req.optional_analysis)
     logger.info('Inference scan=%s status=%s latency_ms=%s',req.scan_id,result.status,result.processing_time_ms)
     return APIResponse(data=result,meta=ResponseMeta(request_id=generate_request_id()))
