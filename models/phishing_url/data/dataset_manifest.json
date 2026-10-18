@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-12",
+  "updated": "2026-10-18",
   "internal_labels": {
     "0": "legitimate",
     "1": "phishing"
@@ -74,6 +74,49 @@
       "sha256": null,
       "original_label_mapping": null,
       "training_allowed": false
+    },
+    {
+      "id": "targeted-url-20261018-v2",
+      "role": "research_development_and_sealed_independent_test",
+      "status": "built_integrity_verified_independent_test_consumed",
+      "training_allowed": true,
+      "production_acceptance_complete": false,
+      "model_retrained": true,
+      "independent_test_status": "consumed_once_for_frozen_regional_v17",
+      "independent_comparison_report": "models/phishing_url/research/regional_independent_20261018.json",
+      "relative_independent_comparison_passed": true,
+      "internal_label_mapping": {
+        "0": "legitimate_reference_or_source_label",
+        "1": "phishing_provider_or_source_label"
+      },
+      "manifest": "models/phishing_url/data/targeted_20261018_v2/dataset_manifest.json",
+      "manifest_sha256": "0f974ec4b24fdb1c3e3d5064ad6289c162b720f3016379601b9847830c08f8b1",
+      "public_summary": "models/phishing_url/research/targeted_dataset_20261018_v2.json",
+      "documentation": "docs/phishing/targeted-dataset-2026-10-18.md",
+      "restrictions": [
+        "Use development splits only for fitting and threshold selection.",
+        "Independent test was evaluated once after model/threshold freeze; reserve a new test before further tuning acceptance.",
+        "Raw feed/data redistribution requires source permission review.",
+        "Reference/provider labels are not independently adjudicated."
+      ]
     }
-  ]
+  ],
+  "current_training_candidate_dataset": "targeted-url-20261018-v2",
+  "current_deployed_model": "regional-recall-v1",
+  "current_evaluation_dataset": {
+    "id": "recall-independent-20261018-v2",
+    "role": "independent_evaluation_only",
+    "training_allowed": false,
+    "status": "consumed_once_after_recall_candidate_freeze",
+    "manifest": "models/phishing_url/data/recall_independent_20261018_v2/manifest.json",
+    "manifest_sha256": "a727f4c50b12df21865cd759a8a0dcb66c6c86778bf13ee915558ce3d175fe3a",
+    "counts": {"reference_negative": 163, "provider_positive": 150},
+    "negative_domains": 35,
+    "positive_domains": 147,
+    "verified_query_negatives": 13,
+    "query_negative_domains": 5,
+    "comparison_report": "models/phishing_url/research/recall_independent_20261018.json",
+    "relative_comparison_passed": true,
+    "limitations": ["Provider/reference labels are not independently adjudicated", "Small convenience sample, limited benign query coverage", "Reserve another independent test before subsequent tuning acceptance", "Parent v1 is also consumed through overlap with this test"]
+  }
 }

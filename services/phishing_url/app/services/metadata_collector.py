@@ -7,6 +7,7 @@ from models.phishing_url.preprocessing.url_parser import parse_url
 from models.phishing_url.inference.forensics import registered_domain
 from html.parser import HTMLParser
 from .reputation import lookup
+from time import monotonic
 
 class PasswordForms(HTMLParser):
     """Static evidence only; never executes scripts, follows form actions or submits data."""
@@ -41,6 +42,7 @@ def password_forms(body, page_url):
             for f in parser.forms if f['password']][:20]
 
 def collect(url, include_html=False):
+    collection_started=monotonic()
     from concurrent.futures import ThreadPoolExecutor
     observed = datetime.now(timezone.utc).isoformat()
     parsed = parse_url(url)
@@ -101,12 +103,40 @@ def collect(url, include_html=False):
         signals['registration'] = registration_result['registration']
         signals['reputation'] = rep.result()
     final_url = signals.get('http',{}).get('final_url')
+    reputation_paused=signals['reputation'].get('status')=='RATE_LIMITED'
     if final_url and final_url != url and not signals['reputation'].get('fresh_match'):
         try:
             final_reputation = lookup(final_url)
+            reputation_paused=final_reputation.get('status')=='RATE_LIMITED'
             if final_reputation.get('fresh_match'):
                 final_reputation['match_scope'] = 'redirect_destination'
                 signals['reputation'] = final_reputation
         except Exception:
             pass  # Keep the original provider observation; no invented final verdict.
+    # Inspect observed intermediate hops too: a benign final page cannot erase
+    # an earlier reported destination. Never follow guessed query parameters.
+    checked={url,final_url}
+    additional=0
+    for hop in signals.get('navigation',{}).get('hops',[])[:4]:
+        hop_url=hop.get('url')
+        if signals['reputation'].get('fresh_match') or additional>=2:break
+        if reputation_paused:break
+        if not hop_url or hop_url in checked:continue
+        # Optional enrichment must leave time for the worker's 30-second RPC.
+        if monotonic()-collection_started>12:break
+        checked.add(hop_url)
+        try:
+            destination=parse_url(hop_url)
+            if destination.parts.username is not None:continue
+            public_addresses(destination.hostname,destination.parts.port or (443 if destination.parts.scheme=='https' else 80))
+            if monotonic()-collection_started>12:break
+            additional+=1
+            hop_reputation=lookup(hop_url)
+            if hop_reputation.get('fresh_match'):
+                hop_reputation.update(match_scope='redirect_hop',matched_url=hop_url)
+                signals['reputation']=hop_reputation
+            elif hop_reputation.get('status')=='RATE_LIMITED':
+                break
+        except Exception:
+            continue
     return {'observed_at':observed,'domain_age_days':registration_result['domain_age_days'],'signals':signals}

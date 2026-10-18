@@ -1,0 +1,15 @@
+{
+  "active_model": "modern-v5",
+  "active_threshold": 0.7,
+  "active_artifact_checks": {
+    "text": true,
+    "structural": true,
+    "fusion": true,
+    "calibrator": true
+  },
+  "v6_promoted": false,
+  "v7_promoted": false,
+  "homepage_regressions_v7": 3,
+  "decision": "Do not activate candidates; collect broader hard negatives and a new independent acceptance set.",
+  "scope": "Phishing research only; no active runtime changes."
+}

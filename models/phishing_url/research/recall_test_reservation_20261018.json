@@ -1,0 +1,41 @@
+{
+  "created_at": "2026-10-18T14:18:57.718785+00:00",
+  "counts": {
+    "1": 150,
+    "0": 150
+  },
+  "domains": {
+    "0": 35,
+    "1": 147
+  },
+  "url_labels_sha256": "af135edc84a691d0055283817c021a8461616099927f7df4b2cdfacf3c67051f",
+  "provenance_sha256": "8f13c446cc6b481cce68276b94c514a70519001a1b0dbe45c504c5176009d5ce",
+  "exclusions_sha256": "fccd74d8908e56b82dd187b099e605728058331007668e907120afc01b3f6d45",
+  "source_events": [
+    {
+      "provider": "openphish",
+      "url": "https://raw.githubusercontent.com/openphish/public_feed/refs/heads/main/feed.txt",
+      "sha256": "c422b814c2bd0e35be8d33c13262908913bb25c9ec8887789fad40695c60a19a",
+      "status": "collected",
+      "provider_rows": 300
+    },
+    {
+      "provider": "phishing_database",
+      "url": "https://raw.githubusercontent.com/Phishing-Database/Phishing.Database/master/phishing-links-ACTIVE-NOW.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "status": "collected",
+      "provider_rows": 0
+    }
+  ],
+  "domain_overlap": 0,
+  "known_campaign_overlap": 0,
+  "model_predictions_generated": 0,
+  "status": "sealed_unscored",
+  "minimum_coverage_met": true,
+  "limitations": [
+    "Provider reports/reference negatives are not independent content adjudication.",
+    "Collection is recent; provider snapshot may be older. No temporal independence guarantee.",
+    "Novel-domain convenience sample; no production certification.",
+    "OpenPhish raw feed is research-only and must not be redistributed; Phishing.Database MIT license retained."
+  ]
+}

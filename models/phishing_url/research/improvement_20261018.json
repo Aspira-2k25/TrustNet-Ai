@@ -1,0 +1,1181 @@
+{
+  "protocol": {
+    "seed": 20261018,
+    "fpr_budget": 0.01,
+    "selection": "Maximum validation recall subject to FPR <= 1%; no fallback to unconstrained threshold.",
+    "candidates": [
+      "retuned_v5",
+      "balanced_structural",
+      "balanced_text_structure_fusion"
+    ],
+    "promotion_gate": "Both FPR and FNR must decrease on historical regression AND frozen fresh challenge; no model promotion from source-only improvement.",
+    "runtime_change": "None until all gates and integration tests pass.",
+    "baseline_hashes": {
+      "text": "a9bad7c94bedb3c7684de07245924f643c87308dd3dd418272942dd78dd41665",
+      "structural": "1391244bc9df8bf97f38e7186ab8dcda2a2c1ffe22bc7940c0acce6e48fe479a",
+      "fusion": "88687f66752b38eebe5db2585ee79133f0d7f09f7c3106ea20b2d81615bd0b19",
+      "calibrator": "d08c7836be9a44c567255f40dcf38029c02786f30c94da38f57e6073b82ccc36"
+    },
+    "fresh_snapshot_sha256": "0f8c4007430e7ec13adda3d58dc1824f69fe8d3bd2d0f8e588db7e7ade138396"
+  },
+  "data": {
+    "created_at": "2026-10-17T20:14:58.013696+00:00",
+    "rows": {
+      "train": 516247,
+      "calibration": 53041,
+      "validation": 42146,
+      "test": 120664
+    },
+    "sources_labels": {
+      "train": {
+        "primary:0": 277750,
+        "primary:1": 75150,
+        "phiusiil:0": 94313,
+        "phiusiil:1": 69034
+      },
+      "calibration": {
+        "primary:1": 8497,
+        "primary:0": 26350,
+        "phiusiil:0": 10838,
+        "phiusiil:1": 7356
+      },
+      "validation": {
+        "primary:0": 19336,
+        "primary:1": 7128,
+        "phiusiil:0": 9599,
+        "phiusiil:1": 6083
+      },
+      "test": {
+        "primary:0": 68835,
+        "primary:1": 16770,
+        "phiusiil:0": 20052,
+        "phiusiil:1": 15007
+      }
+    },
+    "label_mapping": {
+      "primary": {
+        "good": 0,
+        "bad": 1
+      },
+      "phiusiil": {
+        "original_1": 0,
+        "original_0": 1
+      }
+    },
+    "conflicting_urls_removed": 45,
+    "domain_overlap": 0,
+    "fresh_domains_excluded_from_candidate_fit": {
+      "train": 698
+    },
+    "fresh_snapshot_sha256": "0f8c4007430e7ec13adda3d58dc1824f69fe8d3bd2d0f8e588db7e7ade138396",
+    "fresh_rows": 807,
+    "fresh_overlap": {
+      "legacy_fit_domain": 91,
+      "historical_url": 7
+    },
+    "source_hashes": {
+      "models\\phishing_url\\data\\primary\\prepared\\prepared.csv": "8d6cfb9c7dce1d1459bab316e83cd83b74ac85805638ff5b3f5b79af4202696e",
+      "models\\phishing_url\\data\\phiusiil\\source.zip": "0a639fd03aea6308c5b1c10c92aa23c2ce1505447a9137271865cd0badc9a59a"
+    },
+    "limitations": [
+      "Historical test was already inspected in earlier development; it is a regression set.",
+      "Fresh collection is a small convenience challenge with provider-reported positives and official-page reference negatives.",
+      "Reserved fresh domains are removed from all candidate fitting and threshold selection; legacy model may have seen some domains.",
+      "No temporal/campaign generalization or globally representative accuracy claim."
+    ]
+  },
+  "baseline_validation": {
+    "accuracy": 0.8994685142124994,
+    "precision": 0.955625507717303,
+    "recall": 0.712360911361744,
+    "f1": 0.8162539572401232,
+    "roc_auc": 0.9515471048738426,
+    "pr_auc": 0.9193390499810816,
+    "brier": 0.07180984878984085,
+    "ece": 0.006939119566427741,
+    "fpr": 0.015102816658026612,
+    "fnr": 0.287639088638256,
+    "specificity": 0.9848971833419734,
+    "confusion_matrix": [
+      [
+        28498,
+        437
+      ],
+      [
+        3800,
+        9411
+      ]
+    ]
+  },
+  "candidate_validation": {
+    "retuned_v5": {
+      "accuracy": 0.8881744412281118,
+      "precision": 0.9723210315695865,
+      "recall": 0.6620997653470593,
+      "f1": 0.787769622191201,
+      "roc_auc": 0.9515471048738426,
+      "pr_auc": 0.9193390499810816,
+      "brier": 0.07180984878984085,
+      "ece": 0.006939119566427741,
+      "fpr": 0.00860549507516848,
+      "fnr": 0.3379002346529407,
+      "specificity": 0.9913945049248315,
+      "confusion_matrix": [
+        [
+          28686,
+          249
+        ],
+        [
+          4464,
+          8747
+        ]
+      ]
+    },
+    "balanced_structural": {
+      "accuracy": 0.8306600863664405,
+      "precision": 0.9686728395061729,
+      "recall": 0.47513435773219287,
+      "f1": 0.6375501498146361,
+      "roc_auc": 0.9064164682972493,
+      "pr_auc": 0.8543119903872645,
+      "brier": 0.10255960212732884,
+      "ece": 0.012387030296079205,
+      "fpr": 0.007015724900639364,
+      "fnr": 0.5248656422678071,
+      "specificity": 0.9929842750993606,
+      "confusion_matrix": [
+        [
+          28732,
+          203
+        ],
+        [
+          6934,
+          6277
+        ]
+      ]
+    },
+    "balanced_text_structure_fusion": {
+      "accuracy": 0.880344516680112,
+      "precision": 0.9774374561608604,
+      "recall": 0.6328816895011733,
+      "f1": 0.7682977257064094,
+      "roc_auc": 0.9512699377074969,
+      "pr_auc": 0.9180845824886609,
+      "brier": 0.07198198726938883,
+      "ece": 0.00662879408624963,
+      "fpr": 0.006670122688785208,
+      "fnr": 0.36711831049882676,
+      "specificity": 0.9933298773112148,
+      "confusion_matrix": [
+        [
+          28742,
+          193
+        ],
+        [
+          4850,
+          8361
+        ]
+      ]
+    }
+  },
+  "selected": "retuned_v5",
+  "selected_threshold": 0.8611111111111112,
+  "convergence_warnings": [],
+  "text_iterations": 26,
+  "structural_best_iteration": 1593,
+  "results": {
+    "test": {
+      "baseline": {
+        "accuracy": 0.9161307432208446,
+        "precision": 0.9633306234221899,
+        "recall": 0.7084998583881423,
+        "f1": 0.8164937985058388,
+        "roc_auc": 0.9605864860970619,
+        "pr_auc": 0.9202219123259334,
+        "brier": 0.05944000956188712,
+        "ece": 0.005929338928150521,
+        "fpr": 0.00964145488091622,
+        "fnr": 0.2915001416118576,
+        "specificity": 0.9903585451190838,
+        "confusion_matrix": [
+          [
+            88030,
+            857
+          ],
+          [
+            9263,
+            22514
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.9038652787906916,
+        "precision": 0.9776978076613476,
+        "recall": 0.6497781414230418,
+        "f1": 0.7807017543859649,
+        "roc_auc": 0.9605864860970619,
+        "pr_auc": 0.9202219123259334,
+        "brier": 0.05944000956188712,
+        "ece": 0.005929338928150521,
+        "fpr": 0.005298862600830268,
+        "fnr": 0.3502218585769582,
+        "specificity": 0.9947011373991698,
+        "confusion_matrix": [
+          [
+            88416,
+            471
+          ],
+          [
+            11129,
+            20648
+          ]
+        ]
+      },
+      "baseline_slices": {
+        "source:phiusiil": {
+          "rows": 35059,
+          "accuracy": 0.8123449043041729,
+          "precision": 0.990228013029316,
+          "recall": 0.567201972412874,
+          "f1": 0.7212642460704147,
+          "roc_auc": 0.8590586328680634,
+          "pr_auc": 0.8750309804531505,
+          "brier": 0.12718897621756617,
+          "ece": 0.045122022883198665,
+          "fpr": 0.004189108318372232,
+          "fnr": 0.432798027587126,
+          "specificity": 0.9958108916816277,
+          "confusion_matrix": [
+            [
+              19968,
+              84
+            ],
+            [
+              6495,
+              8512
+            ]
+          ]
+        },
+        "source:primary": {
+          "rows": 85605,
+          "accuracy": 0.9586355937153204,
+          "precision": 0.9476818950930626,
+          "recall": 0.834943351222421,
+          "f1": 0.8877476620700586,
+          "roc_auc": 0.9860883975009765,
+          "pr_auc": 0.9561773616804871,
+          "brier": 0.03169383793661462,
+          "ece": 0.01519938231223358,
+          "fpr": 0.011229752306239559,
+          "fnr": 0.165056648777579,
+          "specificity": 0.9887702476937604,
+          "confusion_matrix": [
+            [
+              68062,
+              773
+            ],
+            [
+              2768,
+              14002
+            ]
+          ]
+        },
+        "root_path": {
+          "rows": 38758,
+          "accuracy": 0.8290675473450643,
+          "precision": 0.9265341400172861,
+          "recall": 0.46366782006920415,
+          "f1": 0.6180455462669358,
+          "roc_auc": 0.8375275183067348,
+          "pr_auc": 0.77013238528186,
+          "brier": 0.1241043252465146,
+          "ece": 0.010167616810480186,
+          "fpr": 0.01562614898154276,
+          "fnr": 0.5363321799307958,
+          "specificity": 0.9843738510184572,
+          "confusion_matrix": [
+            [
+              26773,
+              425
+            ],
+            [
+              6200,
+              5360
+            ]
+          ]
+        },
+        "long_path": {
+          "rows": 31551,
+          "accuracy": 0.9737250800291591,
+          "precision": 0.9873205010693553,
+          "recall": 0.8965182410875294,
+          "f1": 0.9397310069065794,
+          "roc_auc": 0.9910255542753066,
+          "pr_auc": 0.9783569896843365,
+          "brier": 0.021150558732715277,
+          "ece": 0.012519825095264269,
+          "fpr": 0.003409744474570701,
+          "fnr": 0.10348175891247052,
+          "specificity": 0.9965902555254293,
+          "confusion_matrix": [
+            [
+              24259,
+              83
+            ],
+            [
+              746,
+              6463
+            ]
+          ]
+        },
+        "has_query": {
+          "rows": 10688,
+          "accuracy": 0.9233720059880239,
+          "precision": 0.9896245059288538,
+          "recall": 0.837549655028225,
+          "f1": 0.9072585211187861,
+          "roc_auc": 0.9769983056347425,
+          "pr_auc": 0.9748462312892998,
+          "brier": 0.05788258079131832,
+          "ece": 0.04915868619240692,
+          "fpr": 0.007112616426756985,
+          "fnr": 0.16245034497177505,
+          "specificity": 0.992887383573243,
+          "confusion_matrix": [
+            [
+              5863,
+              42
+            ],
+            [
+              777,
+              4006
+            ]
+          ]
+        },
+        "digit_hostname": {
+          "rows": 11145,
+          "accuracy": 0.9069537909376402,
+          "precision": 0.9642993752390667,
+          "recall": 0.909014423076923,
+          "f1": 0.9358411186042195,
+          "roc_auc": 0.9674184394145676,
+          "pr_auc": 0.9864123373273541,
+          "brier": 0.05874910564879089,
+          "ece": 0.01168647717607266,
+          "fpr": 0.09911504424778761,
+          "fnr": 0.09098557692307692,
+          "specificity": 0.9008849557522124,
+          "confusion_matrix": [
+            [
+              2545,
+              280
+            ],
+            [
+              757,
+              7563
+            ]
+          ]
+        },
+        "credential_terms": {
+          "rows": 2877,
+          "accuracy": 0.9874869655891554,
+          "precision": 0.9940413599719593,
+          "recall": 0.9933450087565674,
+          "f1": 0.9936930623686054,
+          "roc_auc": 0.7990606591307118,
+          "pr_auc": 0.9970704835724905,
+          "brier": 0.009238286433870226,
+          "ece": 0.00814599722784622,
+          "fpr": 0.7727272727272727,
+          "fnr": 0.006654991243432574,
+          "specificity": 0.22727272727272727,
+          "confusion_matrix": [
+            [
+              5,
+              17
+            ],
+            [
+              19,
+              2836
+            ]
+          ]
+        },
+        "https": {
+          "rows": 27464,
+          "accuracy": 0.9382100203903292,
+          "precision": 0.985721570627231,
+          "recall": 0.782379924446843,
+          "f1": 0.8723580293343363,
+          "roc_auc": 0.9250846005996929,
+          "pr_auc": 0.923889001855933,
+          "brier": 0.06093226695217,
+          "ece": 0.10023157881484306,
+          "fpr": 0.004189108318372232,
+          "fnr": 0.21762007555315704,
+          "specificity": 0.9958108916816277,
+          "confusion_matrix": [
+            [
+              19968,
+              84
+            ],
+            [
+              1613,
+              5799
+            ]
+          ]
+        }
+      },
+      "candidate_slices": {
+        "source:phiusiil": {
+          "rows": 35059,
+          "accuracy": 0.7868450326592316,
+          "precision": 0.9969656992084432,
+          "recall": 0.5035650029986006,
+          "f1": 0.6691459689201753,
+          "roc_auc": 0.8590586328680634,
+          "pr_auc": 0.8750309804531505,
+          "brier": 0.12718897621756617,
+          "ece": 0.045122022883198665,
+          "fpr": 0.001147017753840016,
+          "fnr": 0.49643499700139937,
+          "specificity": 0.99885298224616,
+          "confusion_matrix": [
+            [
+              20029,
+              23
+            ],
+            [
+              7450,
+              7557
+            ]
+          ]
+        },
+        "source:primary": {
+          "rows": 85605,
+          "accuracy": 0.9517901991706091,
+          "precision": 0.96691040697245,
+          "recall": 0.7806201550387597,
+          "f1": 0.8638358243426045,
+          "roc_auc": 0.9860883975009765,
+          "pr_auc": 0.9561773616804871,
+          "brier": 0.03169383793661462,
+          "ece": 0.01519938231223358,
+          "fpr": 0.006508316989903392,
+          "fnr": 0.2193798449612403,
+          "specificity": 0.9934916830100966,
+          "confusion_matrix": [
+            [
+              68387,
+              448
+            ],
+            [
+              3679,
+              13091
+            ]
+          ]
+        },
+        "root_path": {
+          "rows": 38758,
+          "accuracy": 0.8123742195159709,
+          "precision": 0.9534686971235194,
+          "recall": 0.3899653979238754,
+          "f1": 0.5535363457760314,
+          "roc_auc": 0.8375275183067348,
+          "pr_auc": 0.77013238528186,
+          "brier": 0.1241043252465146,
+          "ece": 0.010167616810480186,
+          "fpr": 0.0080888300610339,
+          "fnr": 0.6100346020761246,
+          "specificity": 0.9919111699389661,
+          "confusion_matrix": [
+            [
+              26978,
+              220
+            ],
+            [
+              7052,
+              4508
+            ]
+          ]
+        },
+        "long_path": {
+          "rows": 31551,
+          "accuracy": 0.969097651421508,
+          "precision": 0.9925726927939317,
+          "recall": 0.8712720210847552,
+          "f1": 0.927975179138657,
+          "roc_auc": 0.9910255542753066,
+          "pr_auc": 0.9783569896843365,
+          "brier": 0.021150558732715277,
+          "ece": 0.012519825095264269,
+          "fpr": 0.0019308191602990716,
+          "fnr": 0.12872797891524485,
+          "specificity": 0.998069180839701,
+          "confusion_matrix": [
+            [
+              24295,
+              47
+            ],
+            [
+              928,
+              6281
+            ]
+          ]
+        },
+        "has_query": {
+          "rows": 10688,
+          "accuracy": 0.9101796407185628,
+          "precision": 0.9938000516662361,
+          "recall": 0.804306920342881,
+          "f1": 0.8890686387797551,
+          "roc_auc": 0.9769983056347425,
+          "pr_auc": 0.9748462312892998,
+          "brier": 0.05788258079131832,
+          "ece": 0.04915868619240692,
+          "fpr": 0.004064352243861135,
+          "fnr": 0.19569307965711896,
+          "specificity": 0.9959356477561389,
+          "confusion_matrix": [
+            [
+              5881,
+              24
+            ],
+            [
+              936,
+              3847
+            ]
+          ]
+        },
+        "digit_hostname": {
+          "rows": 11145,
+          "accuracy": 0.8850605652759085,
+          "precision": 0.9758010004055698,
+          "recall": 0.8675480769230769,
+          "f1": 0.91849589616339,
+          "roc_auc": 0.9674184394145676,
+          "pr_auc": 0.9864123373273541,
+          "brier": 0.05874910564879089,
+          "ece": 0.01168647717607266,
+          "fpr": 0.06336283185840708,
+          "fnr": 0.13245192307692308,
+          "specificity": 0.9366371681415929,
+          "confusion_matrix": [
+            [
+              2646,
+              179
+            ],
+            [
+              1102,
+              7218
+            ]
+          ]
+        },
+        "credential_terms": {
+          "rows": 2877,
+          "accuracy": 0.9867917970107751,
+          "precision": 0.9943839943839944,
+          "recall": 0.9922942206654991,
+          "f1": 0.9933380084151473,
+          "roc_auc": 0.7990606591307118,
+          "pr_auc": 0.9970704835724905,
+          "brier": 0.009238286433870226,
+          "ece": 0.00814599722784622,
+          "fpr": 0.7272727272727273,
+          "fnr": 0.007705779334500876,
+          "specificity": 0.2727272727272727,
+          "confusion_matrix": [
+            [
+              6,
+              16
+            ],
+            [
+              22,
+              2833
+            ]
+          ]
+        },
+        "https": {
+          "rows": 27464,
+          "accuracy": 0.9213515875327701,
+          "precision": 0.9956587391468479,
+          "recall": 0.7116837560712358,
+          "f1": 0.8300550747442959,
+          "roc_auc": 0.9250846005996929,
+          "pr_auc": 0.923889001855933,
+          "brier": 0.06093226695217,
+          "ece": 0.10023157881484306,
+          "fpr": 0.001147017753840016,
+          "fnr": 0.28831624392876415,
+          "specificity": 0.99885298224616,
+          "confusion_matrix": [
+            [
+              20029,
+              23
+            ],
+            [
+              2137,
+              5275
+            ]
+          ]
+        }
+      }
+    },
+    "fresh": {
+      "baseline": {
+        "accuracy": 0.8004956629491945,
+        "precision": 0.8564102564102564,
+        "recall": 0.5566666666666666,
+        "f1": 0.6747474747474748,
+        "roc_auc": 0.7817291255752794,
+        "pr_auc": 0.7679170812785094,
+        "brier": 0.17727457809074468,
+        "ece": 0.1435184104015598,
+        "fpr": 0.055226824457593686,
+        "fnr": 0.44333333333333336,
+        "specificity": 0.9447731755424064,
+        "confusion_matrix": [
+          [
+            479,
+            28
+          ],
+          [
+            133,
+            167
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.7843866171003717,
+        "precision": 0.8705882352941177,
+        "recall": 0.49333333333333335,
+        "f1": 0.6297872340425532,
+        "roc_auc": 0.7817291255752794,
+        "pr_auc": 0.7679170812785094,
+        "brier": 0.17727457809074468,
+        "ece": 0.1435184104015598,
+        "fpr": 0.04339250493096647,
+        "fnr": 0.5066666666666667,
+        "specificity": 0.9566074950690335,
+        "confusion_matrix": [
+          [
+            485,
+            22
+          ],
+          [
+            152,
+            148
+          ]
+        ]
+      },
+      "baseline_slices": {
+        "source:https://developer.mozilla.org/en-US/docs/Web": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://doc.rust-lang.org/book/": {
+          "rows": 7,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://docs.djangoproject.com/en/stable/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.075,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://docs.python.org/3/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.45,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://go.dev/doc/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.gnu.org/manual/manual.html": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.gov.uk/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.075,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.kernel.org/doc/html/latest/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.khanacademy.org/": {
+          "rows": 1,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.mozilla.org/en-US/": {
+          "rows": 19,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.nasa.gov/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.025,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.postgresql.org/docs/current/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.075,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.sqlite.org/docs.html": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.w3.org/standards/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.who.int/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:openphish_community": {
+          "rows": 300,
+          "positive_rows": 300,
+          "alert_rate": 0.5566666666666666,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "root_path": {
+          "rows": 142,
+          "accuracy": 0.852112676056338,
+          "precision": 1.0,
+          "recall": 0.8478260869565217,
+          "f1": 0.9176470588235294,
+          "roc_auc": 0.9719202898550725,
+          "pr_auc": 0.999145182848159,
+          "brier": 0.06195517629054033,
+          "ece": 0.10775703618616697,
+          "fpr": 0.0,
+          "fnr": 0.15217391304347827,
+          "specificity": 1.0,
+          "confusion_matrix": [
+            [
+              4,
+              0
+            ],
+            [
+              21,
+              117
+            ]
+          ]
+        },
+        "long_path": {
+          "rows": 235,
+          "accuracy": 0.6042553191489362,
+          "precision": 0.6363636363636364,
+          "recall": 0.07291666666666667,
+          "f1": 0.1308411214953271,
+          "roc_auc": 0.46545263788968816,
+          "pr_auc": 0.42044689477483427,
+          "brier": 0.3804134000572707,
+          "ece": 0.3704668722392381,
+          "fpr": 0.02877697841726619,
+          "fnr": 0.9270833333333334,
+          "specificity": 0.9712230215827338,
+          "confusion_matrix": [
+            [
+              135,
+              4
+            ],
+            [
+              89,
+              7
+            ]
+          ]
+        },
+        "has_query": {
+          "rows": 33,
+          "positive_rows": 33,
+          "alert_rate": 0.12121212121212122,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "digit_hostname": {
+          "rows": 165,
+          "accuracy": 0.9454545454545454,
+          "precision": 1.0,
+          "recall": 0.928,
+          "f1": 0.9626556016597511,
+          "roc_auc": 0.9914000000000001,
+          "pr_auc": 0.9972035111836325,
+          "brier": 0.03302401822860759,
+          "ece": 0.03703895624615803,
+          "fpr": 0.0,
+          "fnr": 0.072,
+          "specificity": 1.0,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              9,
+              116
+            ]
+          ]
+        },
+        "credential_terms": {
+          "rows": 7,
+          "accuracy": 0.42857142857142855,
+          "precision": 0.42857142857142855,
+          "recall": 1.0,
+          "f1": 0.6,
+          "roc_auc": 0.9166666666666666,
+          "pr_auc": 0.8333333333333333,
+          "brier": 0.5459657881981544,
+          "ece": 0.5580157554726877,
+          "fpr": 1.0,
+          "fnr": 0.0,
+          "specificity": 0.0,
+          "confusion_matrix": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        "https": {
+          "rows": 708,
+          "accuracy": 0.8135593220338984,
+          "precision": 0.776,
+          "recall": 0.48258706467661694,
+          "f1": 0.5950920245398773,
+          "roc_auc": 0.7222025964850305,
+          "pr_auc": 0.6597166360669215,
+          "brier": 0.17810125428766047,
+          "ece": 0.15958362392716638,
+          "fpr": 0.055226824457593686,
+          "fnr": 0.5174129353233831,
+          "specificity": 0.9447731755424064,
+          "confusion_matrix": [
+            [
+              479,
+              28
+            ],
+            [
+              104,
+              97
+            ]
+          ]
+        }
+      },
+      "candidate_slices": {
+        "source:https://developer.mozilla.org/en-US/docs/Web": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://doc.rust-lang.org/book/": {
+          "rows": 7,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://docs.djangoproject.com/en/stable/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.075,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://docs.python.org/3/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.325,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://go.dev/doc/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.gnu.org/manual/manual.html": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.gov.uk/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.075,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.kernel.org/doc/html/latest/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.khanacademy.org/": {
+          "rows": 1,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.mozilla.org/en-US/": {
+          "rows": 19,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.nasa.gov/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.025,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.postgresql.org/docs/current/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.05,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.sqlite.org/docs.html": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.w3.org/standards/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:https://www.who.int/": {
+          "rows": 40,
+          "positive_rows": 0,
+          "alert_rate": 0.0,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "source:openphish_community": {
+          "rows": 300,
+          "positive_rows": 300,
+          "alert_rate": 0.49333333333333335,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "root_path": {
+          "rows": 142,
+          "accuracy": 0.7746478873239436,
+          "precision": 1.0,
+          "recall": 0.7681159420289855,
+          "f1": 0.8688524590163934,
+          "roc_auc": 0.9719202898550725,
+          "pr_auc": 0.999145182848159,
+          "brier": 0.06195517629054033,
+          "ece": 0.10775703618616697,
+          "fpr": 0.0,
+          "fnr": 0.2318840579710145,
+          "specificity": 1.0,
+          "confusion_matrix": [
+            [
+              4,
+              0
+            ],
+            [
+              32,
+              106
+            ]
+          ]
+        },
+        "long_path": {
+          "rows": 235,
+          "accuracy": 0.5957446808510638,
+          "precision": 0.5714285714285714,
+          "recall": 0.041666666666666664,
+          "f1": 0.07766990291262135,
+          "roc_auc": 0.46545263788968816,
+          "pr_auc": 0.42044689477483427,
+          "brier": 0.3804134000572707,
+          "ece": 0.3704668722392381,
+          "fpr": 0.02158273381294964,
+          "fnr": 0.9583333333333334,
+          "specificity": 0.9784172661870504,
+          "confusion_matrix": [
+            [
+              136,
+              3
+            ],
+            [
+              92,
+              4
+            ]
+          ]
+        },
+        "has_query": {
+          "rows": 33,
+          "positive_rows": 33,
+          "alert_rate": 0.09090909090909091,
+          "note": "Single-class slice; no overall accuracy/AUC claim."
+        },
+        "digit_hostname": {
+          "rows": 165,
+          "accuracy": 0.9030303030303031,
+          "precision": 1.0,
+          "recall": 0.872,
+          "f1": 0.9316239316239316,
+          "roc_auc": 0.9914000000000001,
+          "pr_auc": 0.9972035111836325,
+          "brier": 0.03302401822860759,
+          "ece": 0.03703895624615803,
+          "fpr": 0.0,
+          "fnr": 0.128,
+          "specificity": 1.0,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              16,
+              109
+            ]
+          ]
+        },
+        "credential_terms": {
+          "rows": 7,
+          "accuracy": 0.42857142857142855,
+          "precision": 0.42857142857142855,
+          "recall": 1.0,
+          "f1": 0.6,
+          "roc_auc": 0.9166666666666666,
+          "pr_auc": 0.8333333333333333,
+          "brier": 0.5459657881981544,
+          "ece": 0.5580157554726877,
+          "fpr": 1.0,
+          "fnr": 0.0,
+          "specificity": 0.0,
+          "confusion_matrix": [
+            [
+              0,
+              4
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        "https": {
+          "rows": 708,
+          "accuracy": 0.8121468926553672,
+          "precision": 0.8035714285714286,
+          "recall": 0.44776119402985076,
+          "f1": 0.5750798722044729,
+          "roc_auc": 0.7222025964850305,
+          "pr_auc": 0.6597166360669215,
+          "brier": 0.17810125428766047,
+          "ece": 0.15958362392716638,
+          "fpr": 0.04339250493096647,
+          "fnr": 0.5522388059701493,
+          "specificity": 0.9566074950690335,
+          "confusion_matrix": [
+            [
+              485,
+              22
+            ],
+            [
+              111,
+              90
+            ]
+          ]
+        }
+      },
+      "strict_unseen_legacy_fit_domains": {
+        "rows": 709,
+        "baseline": {
+          "accuracy": 0.7827926657263752,
+          "precision": 0.8817204301075269,
+          "recall": 0.5540540540540541,
+          "f1": 0.6804979253112033,
+          "roc_auc": 0.7946264969570054,
+          "pr_auc": 0.8050584904311627,
+          "brier": 0.18414751447417743,
+          "ece": 0.15251199416272176,
+          "fpr": 0.053268765133171914,
+          "fnr": 0.44594594594594594,
+          "specificity": 0.9467312348668281,
+          "confusion_matrix": [
+            [
+              391,
+              22
+            ],
+            [
+              132,
+              164
+            ]
+          ]
+        },
+        "candidate": {
+          "accuracy": 0.764456981664316,
+          "precision": 0.8957055214723927,
+          "recall": 0.49324324324324326,
+          "f1": 0.6361655773420479,
+          "roc_auc": 0.7946264969570054,
+          "pr_auc": 0.8050584904311627,
+          "brier": 0.18414751447417743,
+          "ece": 0.15251199416272176,
+          "fpr": 0.04116222760290557,
+          "fnr": 0.5067567567567568,
+          "specificity": 0.9588377723970944,
+          "confusion_matrix": [
+            [
+              396,
+              17
+            ],
+            [
+              150,
+              146
+            ]
+          ]
+        }
+      },
+      "label_caveat": "Provider reports and official-page reference labels; small convenience challenge, not independent adjudicated deployment accuracy."
+    }
+  },
+  "promotion": {
+    "promoted": false,
+    "both_error_rates_improved": {
+      "test": false,
+      "fresh": false
+    },
+    "eligible_for_integration": false,
+    "baseline_artifacts_unchanged": true,
+    "reason": "Promotion rejected: both FPR and FNR did not improve on both the historical regression and fresh challenge."
+  },
+  "elapsed_seconds": 371.1409999999996
+}

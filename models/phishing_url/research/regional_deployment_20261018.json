@@ -1,0 +1,24 @@
+{
+  "model_version": "regional-v1",
+  "local_activation_complete": true,
+  "worker_ready": true,
+  "collector_health": "ok",
+  "manifest_sha256": "93e59ed0b126a902d00e109e998d4d0c61d6f0bca8ee37af89b3144d29a831e3",
+  "collector_source_sha256": "d13af7bedeacd9b2687b59546e64f72b812a06d91c12d80ffa0058cc6c45e072",
+  "linux_local_model_parity_passed": true,
+  "real_live_collection": [
+    {"url": "https://google.com/", "http_status": 200, "verdict": "NO_STRONG_INDICATORS", "risk_score": 24.0},
+    {"url": "https://paypal.com/", "http_status": 200, "verdict": "NO_STRONG_INDICATORS", "risk_score": 20.6}
+  ],
+  "live_observations": ["dns", "tls", "navigation", "http", "html", "registration", "reputation"],
+  "python_tests_passed": 66,
+  "frontend_report_tests_passed": true,
+  "typescript_passed": true,
+  "targeted_frontend_lint_passed": true,
+  "frontend_build_passed": true,
+  "new_authenticated_browser_gateway_kafka_scan_verified": false,
+  "old_modern_v5_bundle_preserved": true,
+  "independent_test_consumed": true,
+  "image_scam_source_changed": false,
+  "remaining": ["Python documentation still receives high model risk/review", "Independent test misses 17/50 provider positives", "Larger reviewed independent data and routed-system calibration required"]
+}

@@ -1,0 +1,86 @@
+{
+  "protocol": {
+    "model_manifest_sha256": "93e59ed0b126a902d00e109e998d4d0c61d6f0bca8ee37af89b3144d29a831e3",
+    "dataset_manifest_sha256": "0f974ec4b24fdb1c3e3d5064ad6289c162b720f3016379601b9847830c08f8b1",
+    "criteria": "No increase in independent FPR or FNR, with fewer total errors; fixed routing/thresholds. No test-based tuning.",
+    "uncertainty": "Wilson 95% intervals by class; small provider/reference-labeled test cannot establish population noninferiority or production calibration.",
+    "automatic_promotion": false
+  },
+  "rows": 153,
+  "baseline": {
+    "accuracy": 0.7712418300653595,
+    "precision": 0.6530612244897959,
+    "recall": 0.64,
+    "f1": 0.6464646464646465,
+    "roc_auc": 0.8298058252427185,
+    "pr_auc": 0.7272580640164634,
+    "brier": 0.20526530336438906,
+    "ece": 0.17318064756431878,
+    "fpr": 0.1650485436893204,
+    "fnr": 0.36,
+    "specificity": 0.8349514563106796,
+    "confusion_matrix": [
+      [
+        86,
+        17
+      ],
+      [
+        18,
+        32
+      ]
+    ]
+  },
+  "candidate": {
+    "accuracy": 0.8431372549019608,
+    "precision": 0.825,
+    "recall": 0.66,
+    "f1": 0.7333333333333333,
+    "roc_auc": 0.8770873786407768,
+    "pr_auc": 0.8417135015040094,
+    "brier": 0.15691187280000032,
+    "ece": 0.13558949987254487,
+    "fpr": 0.06796116504854369,
+    "fnr": 0.34,
+    "specificity": 0.9320388349514563,
+    "confusion_matrix": [
+      [
+        96,
+        7
+      ],
+      [
+        17,
+        33
+      ]
+    ]
+  },
+  "wilson_intervals": {
+    "baseline": {
+      "fpr_95": [
+        0.1056782517180507,
+        0.24850503292055828
+      ],
+      "fnr_95": [
+        0.24138749651846741,
+        0.49858983123887307
+      ]
+    },
+    "candidate": {
+      "fpr_95": [
+        0.03330773910988612,
+        0.13368229469933413
+      ],
+      "fnr_95": [
+        0.2243694922250009,
+        0.478461739497674
+      ]
+    }
+  },
+  "paired_changes": {
+    "baseline_wrong_candidate_correct": 12,
+    "baseline_correct_candidate_wrong": 1
+  },
+  "relative_comparison_passed": true,
+  "independent_test_consumed": true,
+  "promoted": false,
+  "calibration_of_routed_system_established": false
+}

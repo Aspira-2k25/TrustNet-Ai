@@ -1,13 +1,13 @@
 import type { ScanRecord } from '../../types';
 import { jsPDF } from 'jspdf';
-import { TrustScoreGauge } from '../TrustScoreGauge';
+import { PhishingAnalysis } from './PhishingAnalysis';
+import { domainDifference, reportOpinion, urlReportSummary } from './reportInsights';
 
 export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
   const result=scan.result, meta=result?.metadata || {}, forensic=meta.forensics;
   const legacy=!!result && (meta.assessment_policy!=='dynamic-v2' || meta.link_analysis_version!=='links-v1');
   const assessed=!!result && !legacy && ['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
   const score=assessed ? scan.trust_score?.trust_risk_score ?? result.risk_score : null;
-  const level=scan.trust_score?.risk_level || 'UNKNOWN';
   const title=legacy?'Rescan this URL':meta.display_verdict || 'Check incomplete';
   const url=meta.assessed_url || scan.raw_input || '';
   const reasons:string[]=meta.reasons || [result?.explanation || 'No assessment was produced.'];
@@ -15,9 +15,31 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
   const signals=forensic?.network?.signals || {};
   const certificate=signals.tls?.analysis;
   const hops=signals.navigation?.hops || [];
+  const opinion=reportOpinion(scan);
+  const summary=urlReportSummary(scan);
+  const domainMatch=forensic?.visual_domain_match;
   const rows=[title,`Scan ID: ${scan.id}`,`URL: ${url}`,
-    `Trust score: ${score!==null?`${score.toFixed(1)} / 100 (${level} risk; higher means more risk)`:'not available'}`,
+    `Risk score: ${summary.risk!==null?`${summary.risk.toFixed(1)} / 100 (higher means more risk)`:'not available'}`,
+    `Trust score: ${summary.trust!==null?`${summary.trust.toFixed(1)} / 100 (100 minus risk; higher means less detected risk)`:'not available'}`,
+    `Assessment confidence: ${summary.confidence}. ${summary.confidenceReason} Qualitative evidence assessment, not a validated statistical confidence percentage.`,
+    'What we found for this URL:',...summary.cards.map(c=>`${c.title}: ${c.text}`),
+    `What the model found: ${summary.modelText}`,
     'Findings:',...reasons,
+    `Qualitative opinion: ${opinion.title}. ${opinion.reason}`,
+    ...(domainMatch?domainDifference(domainMatch.actual_domain,domainMatch.resembles_domain).filter(c=>c.changed).map(c=>`Domain difference at position ${c.actualPosition}: actual '${c.actual || '(absent)'}', reference '${c.reference || '(absent)'}'.`):[]),
+    `Threat provider: ${signals.reputation?.provider || 'Unavailable'}; recent exact match: ${signals.reputation?.fresh_match === true?'yes':'not established'}; checked at: ${signals.reputation?.checked_at || 'not recorded'}`,
+    ...(signals.reputation?.reports || []).map((r:{id?:number;reported_at?:string;provider_score?:number})=>`Threat report ${r.id}: ${r.reported_at}; provider score ${r.provider_score}`),
+    'Recorded forensic findings:',...(forensic?.findings || []).map((f:{code:string;severity:string;reason:string})=>`${f.code} [${f.severity}]: ${f.reason}`),
+    `Actual hostname: ${forensic?.hostname || 'Not established'}`,
+    `Registered domain: ${forensic?.registered_domain || 'Not established'}`,
+    `Inspected path: ${forensic?.path_analysis?.path || 'Not established'}`,
+    `Final observed destination: ${signals.http?.final_url || 'Not established'}`,
+    `Model ensemble estimate: ${meta.score_components?.model_probability!=null?(Number(meta.score_components.model_probability)*100).toFixed(1)+'%':'Unavailable'}; alert threshold: ${meta.threshold!=null?(Number(meta.threshold)*100).toFixed(1)+'%':'Unavailable'}`,
+    ...Object.entries(meta.branch_probabilities || {}).map(([name,value])=>`Diagnostic ${name}: ${(Number(value)*100).toFixed(1)}%`),
+    'Exact character-level model attribution is unavailable. Observed features are measurements, not causal explanations.',
+    `Combined score formula: ${meta.score_components?.formula || 'Unavailable'}`,
+    ...(meta.score_components?.evidence_updates || []).map((u:{code:string;policy_weight:number})=>`Policy update ${u.code}: weight ${u.policy_weight} (not a probability)`),
+    ...Object.entries(meta.structural_features || {}).map(([name,value])=>`Observed model input ${name}: ${value}`),
     `Live website inspection: ${meta.coverage?.website_fetched?'applied':'not available'}`,
     ...Object.entries(signals).map(([name,value])=>`${name}: ${(value as {status?:string}).status || 'unknown'}`),
     ...(certificate?[`Certificate issuer: ${certificate.issuer}`,`Signature: ${certificate.signature_hash || certificate.signature_algorithm_oid}; key: ${certificate.public_key_type} ${certificate.public_key_bits || ''}`,`Certificate expires: ${certificate.not_after}`,`Certificate SHA-256: ${certificate.sha256_fingerprint}`,`Revocation: ${certificate.revocation_status}`]:[]),
@@ -40,13 +62,16 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
     <div className={panel}>
       <h1 className="text-2xl font-bold">{title}</h1>
       {legacy?<p>Submit a new scan to apply the current detector and live checks.</p>:score!==null?
-        <div className="flex flex-wrap items-center gap-6"><TrustScoreGauge score={Math.round(score)} riskLevel={level} label="Trust score" size={160}/>
-          <div><p className="text-xl font-bold">{score.toFixed(1)} / 100 · {level} risk</p><p className="text-sm text-slate-400">Higher means more phishing risk.</p><p className="text-xs text-slate-400 mt-2">Risk index, not a probability or safety guarantee.</p></div></div>:
-        <p className="text-amber-200">{result?.explanation || 'We could not complete this URL check. Please try again.'}</p>}
-      {!legacy && <div className="space-y-2"><h2 className="font-bold">Why this result?</h2>{reasons.map((reason:string,i:number)=><p key={i} className="text-sm">{reason}</p>)}</div>}
+        <div className="space-y-3"><div className="grid sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-rose-400/30 bg-rose-950/20 p-4"><p className="text-sm text-rose-200">Risk score</p><p className="text-3xl font-bold mt-2">{summary.risk?.toFixed(1)}<span className="text-sm text-slate-400"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-rose-400" style={{width:`${summary.risk ?? 0}%`}} /></div><p className="text-xs text-slate-400 mt-2">Higher means more detected risk.</p></div>
+          <div className="rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-4"><p className="text-sm text-emerald-200">Trust score</p><p className="text-3xl font-bold mt-2">{summary.trust?.toFixed(1)}<span className="text-sm text-slate-400"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-emerald-400" style={{width:`${summary.trust ?? 0}%`}} /></div><p className="text-xs text-slate-400 mt-2">100 − risk score. Higher means less detected risk.</p></div>
+          <div className="rounded-xl border border-sky-400/30 bg-sky-950/20 p-4"><p className="text-sm text-sky-200">Assessment confidence</p><p className="text-xl font-bold mt-2">{summary.confidence}</p><p className="text-xs text-slate-300 mt-3">{summary.confidenceReason}</p></div>
+        </div><p className="text-xs text-slate-400">Trust and risk are complementary display indices, not probabilities or ownership verification. Confidence describes the available evidence qualitatively; a validated confidence percentage is not available.</p></div>:
+        <div className="space-y-2"><p className="text-amber-200">{result?.explanation || 'We could not complete this URL check. Please try again.'}</p><p className="text-sm text-slate-400">Risk score: unavailable · Trust score: unavailable · Assessment confidence: {summary.confidence}</p><p className="text-xs text-slate-400">{summary.confidenceReason}</p></div>}
       <p className="break-all rounded-xl bg-[#111d38] p-3 font-mono text-sm">{url}</p>
       <div className="flex flex-wrap gap-3"><button onClick={exportPdf} className="px-4 py-2 bg-[#0077b6] rounded-lg">Export report</button></div>
     </div>
+    {!legacy && <PhishingAnalysis scan={scan} />}
     {forensic && <div className={panel}><h2 className="font-bold">Live checks and destination</h2>
       <p className="text-sm break-all">Actual hostname: {forensic.hostname || 'No website hostname in this link'}</p><p className="text-sm">Registered domain: {forensic.registered_domain || 'not established'}</p>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">{['dns','tls','http','html','registration','reputation'].map(name=>{
@@ -58,7 +83,7 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
     </div>}
     {(certificate || hops.length>0 || forensic?.path_analysis?.path) && <div className={panel}>
       <h2 className="font-bold">Certificate and navigation analysis</h2>
-      {certificate && <div className="text-sm space-y-1 break-all"><p>TLS certificate chain and hostname verified.</p><p>Issuer: {certificate.issuer}</p><p>Signature: {certificate.signature_hash || certificate.signature_algorithm_oid} · Key: {certificate.public_key_type} {certificate.public_key_bits || ''}</p><p>Expires: {certificate.not_after}</p><p>Revocation: not checked.</p><p className="text-xs text-slate-400">A valid certificate protects the connection; it does not prove the site is legitimate.</p></div>}
+      {certificate && <div className="text-sm space-y-1 break-all"><p>{signals.tls?.validated === false?'TLS certificate verification failed.':signals.tls?.validated === true || (signals.tls?.status?.toLowerCase()==='observed' && signals.tls?.certificate)?'TLS certificate chain and hostname verified.':'TLS verification outcome was not recorded.'}</p><p>Issuer: {certificate.issuer}</p><p>Signature: {certificate.signature_hash || certificate.signature_algorithm_oid} · Key: {certificate.public_key_type} {certificate.public_key_bits || ''}</p><p>Expires: {certificate.not_after}</p><p>Revocation: not checked.</p><p className="text-xs text-slate-400">A valid certificate protects the connection; it does not prove the site is legitimate.</p></div>}
       {forensic?.path_analysis?.path && <p className="text-sm break-all">Inspected path: {forensic.path_analysis.path} · {forensic.path_analysis.segments} segments. Redirect parameters are inspected without following them.</p>}
       {hops.map((hop:{url:string;status_code:number},i:number)=><p key={i} className="text-sm break-all">{i+1}. HTTP {hop.status_code} — {hop.url}</p>)}
       <p className="text-xs text-slate-400">Only observed HTTP redirects are followed, with a three-redirect limit and public-address validation at every hop. Page links are not crawled.</p>

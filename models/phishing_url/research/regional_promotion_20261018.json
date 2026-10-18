@@ -1,0 +1,11 @@
+{
+  "model_version": "regional-v1",
+  "manifest_sha256": "93e59ed0b126a902d00e109e998d4d0c61d6f0bca8ee37af89b3144d29a831e3",
+  "relative_independent_comparison_passed": true,
+  "independent_test_consumed": true,
+  "production_accuracy_certification": false,
+  "routed_calibration_established": false,
+  "previous_bundle_preserved": "modern_v5",
+  "activation": "Local compose modern model binding; requires phishing service restart/rebuild.",
+  "scope": "Phishing only; no scam/image changes."
+}

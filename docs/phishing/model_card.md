@@ -1,6 +1,30 @@
 # Phishing model card — current CPU model and historical experiments
 
-## Current deployment: modern-v5 / dynamic-v2 (16 October 2026)
+## Current local model: regional-recall-v1 — 18 October 2026
+
+This version adds a second-expert rescue for selected primary negatives while preserving every primary model alert. It reuses frozen component weights; development-selected rescue boundaries are 0.9936734693877551 for root URLs and 0.9 for query URLs, with no path-only rescue. Model-score boundaries are not confidence percentages. See [recall improvement](recall-improvement-2026-10-18.md) for architecture, controls and limitations.
+
+On a newly reserved, domain/campaign-filtered 313-URL test (163 operator references, 150 OpenPhish reports), the previous regional-v1 scored 90.10% accuracy / 86.00% recall; this version scored 90.73% / 87.33%. False alerts stayed at 10/163; missed phishing fell from 21 to 19/150. These are same-test, model-only comparisons. The older 66% recall was on a different 153-URL test. The fresh test and its overlapping parent are now consumed; no post-test tuning was performed. Two extra detections are a modest observed gain, not a population reliability guarantee. Calibration remains unestablished and live forensics remain necessary.
+
+## Previous local model: regional-v1 — 18 October 2026
+
+The accepted regional bundle preserves v5 for root/query URLs and uses an out-of-fit disagreement correction for path-only URLs, with separate development-selected thresholds. Routing uses URL shape, never a domain allowlist. Both structural/masked text and the complementary unmasked text research branch contribute to the path expert. Familiar-site checks are reused development constraints and are not independent accuracy evidence.
+
+On the newly reserved 153-row independent provider/reference test, FPR decreased from 17/103 (16.50%) to 7/103 (6.80%), FNR from 18/50 (36%) to 17/50 (34%), and accuracy from 77.12% to 84.31%. Twelve old errors were corrected and one previously correct result regressed. This small test does not certify production accuracy; candidate Wilson 95% intervals are FPR 3.33–13.37% and FNR 22.44–47.85%, without domain-cluster adjustment. The test is now consumed and cannot be reused for fresh acceptance.
+
+Historical regression (120,560 already-used rows): accuracy 91.608% → 91.800%, FPR 0.964% → 0.906%, FNR 29.230% → 28.665%. Targeted development: false positives 20/62 → 7/62; misses unchanged at 6/17. Google/GitHub/PayPal root URLs no longer receive the rejected complementary candidate's phishing verdict. Python documentation `/3/` still receives a high model risk index and a review recommendation; its safety is not established by this fix.
+
+The routed system is not independently calibrated as a probability. Numeric prediction confidence remains unavailable; the report retains qualitative confidence, risk/trust indices, per-URL evidence and limitations. Fresh exact-URL reputation reports and observed intermediate redirects supplement the URL model. Source labels, inactive/compromised pages, redirects, JavaScript and cloaking remain material limitations. See [correction report](regional-correction-2026-10-18.md) for bundle hash, activation, verification and rollback. The original modern-v5 bundle remains intact.
+
+## Targeted training follow-up — 18 October 2026
+
+Two new isolated research candidates used the verified targeted v2 dataset. Structural v8 reduced historical FPR but worsened FNR and was rejected. Complementary text v9 improved historical FPR to 0.566% and FNR to 26.108% (active v5: 0.964% / 29.230%), but falsely flagged Google/GitHub/PayPal homepages and worsened targeted-development misses from six to seven. It was also rejected. The independent research test remains unscored, active artifacts are unchanged, and these historical results are not independent acceptance. See `docs/phishing/targeted-training-2026-10-18.md` for the complete comparison and remaining gaps.
+
+## 18 October 2026 research update — active model unchanged
+
+Two offline improvement experiments were completed with a separate 807-row local research challenge (300 provider-reported positives, 507 official-page reference negatives). Research-v6 did not meet validation/acceptance criteria. Complementary research-v7 improved historical model accuracy to 92.712%, FPR to 0.610% and FNR to 25.968%, but retained 133/300 misses on the recent challenge and introduced Google/GitHub/PayPal homepage alerts. It was rejected for activation. These are model-only regression results, not deployed improvements or independent deployment accuracy. See [experiment audit](performance-improvement-2026-10-18.md). Modern-v5 remains active with its original artifact hashes and operating point.
+
+## Previous deployment: modern-v5 / dynamic-v2 (16 October 2026)
 
 The CPU ensemble replaces the v1 BERT default. Registered-domain identity is masked in its URL-text branch; structural features and subdomain/path/query/fragment patterns are learned without per-domain verdict exceptions. Live DNS/TLS/page/form/RDAP/reputation collection is enabled by normal phishing startup. The previous blanket HTTPS rejection, named-brand rules and fixed 75-point output are superseded. See [audit](audit-2026-10-16.md) and [dynamic policy](forensics.md).
 

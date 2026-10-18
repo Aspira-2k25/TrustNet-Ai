@@ -2,7 +2,9 @@ param([switch]$Baseline, [switch]$Forensics, [switch]$Offline)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
-$manifest = if ($Baseline) {'models/phishing_url/checkpoints/baseline/rf.json'} else {'models/phishing_url/checkpoints/modern_v5/manifest.json'}
+$taskModernBundle = if ($env:PHISHING_MODERN_BUNDLE) {$env:PHISHING_MODERN_BUNDLE} else {'regional_recall_v1'}
+if ($taskModernBundle -notmatch '^[a-zA-Z0-9_-]+$') { throw 'Invalid PHISHING_MODERN_BUNDLE folder name.' }
+$manifest = if ($Baseline) {'models/phishing_url/checkpoints/baseline/rf.json'} else {"models/phishing_url/checkpoints/$taskModernBundle/manifest.json"}
 if (-not (Test-Path -LiteralPath $manifest)) {
     throw "Phishing model missing: $manifest. Restore its checked bundle before launching."
 }

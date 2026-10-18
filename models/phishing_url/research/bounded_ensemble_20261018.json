@@ -1,0 +1,493 @@
+{
+  "protocol": {
+    "architecture": "Convex blend of frozen identity-neutral v5 probability and raw complementary fusion; held-out-domain isotonic calibration.",
+    "weights": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "fpr_budget": 0.009,
+    "dataset_manifest_sha256": "0f974ec4b24fdb1c3e3d5064ad6289c162b720f3016379601b9847830c08f8b1",
+    "selection": "Lowest validation FNR among weights with no targeted validation FPR/FNR regression; otherwise reject.",
+    "no_domain_overrides": true,
+    "independent_test_read": false,
+    "baseline_hashes": {
+      "text": "a9bad7c94bedb3c7684de07245924f643c87308dd3dd418272942dd78dd41665",
+      "structural": "1391244bc9df8bf97f38e7186ab8dcda2a2c1ffe22bc7940c0acce6e48fe479a",
+      "fusion": "88687f66752b38eebe5db2585ee79133f0d7f09f7c3106ea20b2d81615bd0b19",
+      "calibrator": "d08c7836be9a44c567255f40dcf38029c02786f30c94da38f57e6073b82ccc36"
+    },
+    "complementary_hashes": {
+      "calibrator.joblib": "1f18feef1c3a0b0b8fc8dd4788986d4e090274a1cee1d6235bf4bfd3c6012674",
+      "fusion.joblib": "bba598c595f5362b7dc76ca90f7936d77adcebfd312997875d7a27b8ec33b8c4",
+      "lexical.joblib": "80c66466e0b7317ec2b7dd44af6915502246a83ff155ef5206ce3675d93077f2"
+    }
+  },
+  "selection": {
+    "weight": 0.75,
+    "threshold": 0.8900454710788883,
+    "validation": {
+      "accuracy": 0.9124374807405125,
+      "precision": 0.9748075577326802,
+      "recall": 0.739104070340332,
+      "f1": 0.8407484048973961,
+      "roc_auc": 0.9690081489061628,
+      "pr_auc": 0.946132204928109,
+      "brier": 0.055685389010228854,
+      "ece": 0.007091052191113527,
+      "fpr": 0.008691453404152583,
+      "fnr": 0.260895929659668,
+      "specificity": 0.9913085465958474,
+      "confusion_matrix": [
+        [
+          28742,
+          252
+        ],
+        [
+          3442,
+          9751
+        ]
+      ]
+    },
+    "frozen_before_regression": true,
+    "artifact_hashes": {
+      "calibrator.joblib": "2015d7810a66816343ac61e9abc47ab0e42a0750bdcd401d70716fd86e0abef8"
+    }
+  },
+  "validation_candidates": [
+    {
+      "weight": 0.25,
+      "validation": {
+        "accuracy": 0.8953706117998436,
+        "precision": 0.9766532739711152,
+        "recall": 0.681725157280376,
+        "f1": 0.8029640210695473,
+        "roc_auc": 0.9618632259773128,
+        "pr_auc": 0.9335151336117905,
+        "brier": 0.06342242177088088,
+        "ece": 0.010261762236221411,
+        "fpr": 0.0074153273090984346,
+        "fnr": 0.31827484271962403,
+        "specificity": 0.9925846726909016,
+        "confusion_matrix": [
+          [
+            28779,
+            215
+          ],
+          [
+            4199,
+            8994
+          ]
+        ]
+      },
+      "targeted_validation": {
+        "accuracy": 0.759493670886076,
+        "precision": 0.45454545454545453,
+        "recall": 0.5882352941176471,
+        "f1": 0.5128205128205128,
+        "roc_auc": 0.7893738140417457,
+        "pr_auc": 0.5968805973804354,
+        "brier": 0.28578070225823865,
+        "ece": 0.3097995990951504,
+        "fpr": 0.1935483870967742,
+        "fnr": 0.4117647058823529,
+        "specificity": 0.8064516129032258,
+        "confusion_matrix": [
+          [
+            50,
+            12
+          ],
+          [
+            7,
+            10
+          ]
+        ]
+      },
+      "development_eligible": false
+    },
+    {
+      "weight": 0.5,
+      "validation": {
+        "accuracy": 0.9018417996065139,
+        "precision": 0.974722047409272,
+        "recall": 0.7043886909724854,
+        "f1": 0.8177938135257623,
+        "roc_auc": 0.9664130294345851,
+        "pr_auc": 0.9423948032285286,
+        "brier": 0.05823833047468673,
+        "ece": 0.007754913400023423,
+        "fpr": 0.008312064565082431,
+        "fnr": 0.2956113090275146,
+        "specificity": 0.9916879354349176,
+        "confusion_matrix": [
+          [
+            28753,
+            241
+          ],
+          [
+            3900,
+            9293
+          ]
+        ]
+      },
+      "targeted_validation": {
+        "accuracy": 0.7341772151898734,
+        "precision": 0.4166666666666667,
+        "recall": 0.5882352941176471,
+        "f1": 0.4878048780487805,
+        "roc_auc": 0.8040796963946869,
+        "pr_auc": 0.5589565734067012,
+        "brier": 0.26762848846166587,
+        "ece": 0.3147699807932668,
+        "fpr": 0.22580645161290322,
+        "fnr": 0.4117647058823529,
+        "specificity": 0.7741935483870968,
+        "confusion_matrix": [
+          [
+            48,
+            14
+          ],
+          [
+            7,
+            10
+          ]
+        ]
+      },
+      "development_eligible": false
+    },
+    {
+      "weight": 0.75,
+      "validation": {
+        "accuracy": 0.9124374807405125,
+        "precision": 0.9748075577326802,
+        "recall": 0.739104070340332,
+        "f1": 0.8407484048973961,
+        "roc_auc": 0.9690081489061628,
+        "pr_auc": 0.946132204928109,
+        "brier": 0.055685389010228854,
+        "ece": 0.007091052191113527,
+        "fpr": 0.008691453404152583,
+        "fnr": 0.260895929659668,
+        "specificity": 0.9913085465958474,
+        "confusion_matrix": [
+          [
+            28742,
+            252
+          ],
+          [
+            3442,
+            9751
+          ]
+        ]
+      },
+      "targeted_validation": {
+        "accuracy": 0.759493670886076,
+        "precision": 0.45454545454545453,
+        "recall": 0.5882352941176471,
+        "f1": 0.5128205128205128,
+        "roc_auc": 0.8159392789373814,
+        "pr_auc": 0.6066841888838812,
+        "brier": 0.24808207267829213,
+        "ece": 0.24787871219873578,
+        "fpr": 0.1935483870967742,
+        "fnr": 0.4117647058823529,
+        "specificity": 0.8064516129032258,
+        "confusion_matrix": [
+          [
+            50,
+            12
+          ],
+          [
+            7,
+            10
+          ]
+        ]
+      },
+      "development_eligible": false
+    }
+  ],
+  "regression": {
+    "historical_regression": {
+      "baseline": {
+        "accuracy": 0.9160832780358328,
+        "precision": 0.9631825407054173,
+        "recall": 0.7077020202020202,
+        "f1": 0.8159106210309879,
+        "roc_auc": 0.9604778645478185,
+        "pr_auc": 0.919829495006552,
+        "brier": 0.05948508064136851,
+        "ece": 0.005946763621685298,
+        "fpr": 0.009642214221422142,
+        "fnr": 0.2922979797979798,
+        "specificity": 0.9903577857785778,
+        "confusion_matrix": [
+          [
+            88023,
+            857
+          ],
+          [
+            9260,
+            22420
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.9258543463835435,
+        "precision": 0.977892657504308,
+        "recall": 0.7344381313131313,
+        "f1": 0.8388585437960809,
+        "roc_auc": 0.9715351707400854,
+        "pr_auc": 0.9425261384186391,
+        "brier": 0.04791097597309879,
+        "ece": 0.00693386533125698,
+        "fpr": 0.005918091809180918,
+        "fnr": 0.2655618686868687,
+        "specificity": 0.9940819081908191,
+        "confusion_matrix": [
+          [
+            88354,
+            526
+          ],
+          [
+            8413,
+            23267
+          ]
+        ]
+      }
+    },
+    "regression_reference": {
+      "baseline": {
+        "accuracy": 0.7837837837837838,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.4513888888888889,
+        "pr_auc": 0.04124116260801257,
+        "brier": 0.23434129745258897,
+        "ece": 0.2970204282124209,
+        "fpr": 0.19444444444444445,
+        "fnr": 1.0,
+        "specificity": 0.8055555555555556,
+        "confusion_matrix": [
+          [
+            58,
+            14
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.8783783783783784,
+        "precision": 0.1111111111111111,
+        "recall": 0.5,
+        "f1": 0.18181818181818182,
+        "roc_auc": 0.5034722222222222,
+        "pr_auc": 0.07004830917874395,
+        "brier": 0.18958986471261582,
+        "ece": 0.26293568508133136,
+        "fpr": 0.1111111111111111,
+        "fnr": 0.5,
+        "specificity": 0.8888888888888888,
+        "confusion_matrix": [
+          [
+            64,
+            8
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      }
+    }
+  },
+  "targeted_validation": {
+    "baseline": {
+      "accuracy": 0.6708860759493671,
+      "precision": 0.3548387096774194,
+      "recall": 0.6470588235294118,
+      "f1": 0.4583333333333333,
+      "roc_auc": 0.7471537001897534,
+      "pr_auc": 0.4112670145360736,
+      "brier": 0.30015652820999505,
+      "ece": 0.30641161238416226,
+      "fpr": 0.3225806451612903,
+      "fnr": 0.35294117647058826,
+      "specificity": 0.6774193548387096,
+      "confusion_matrix": [
+        [
+          42,
+          20
+        ],
+        [
+          6,
+          11
+        ]
+      ]
+    },
+    "candidate": {
+      "accuracy": 0.759493670886076,
+      "precision": 0.45454545454545453,
+      "recall": 0.5882352941176471,
+      "f1": 0.5128205128205128,
+      "roc_auc": 0.8159392789373814,
+      "pr_auc": 0.6066841888838812,
+      "brier": 0.24808207267829213,
+      "ece": 0.24787871219873578,
+      "fpr": 0.1935483870967742,
+      "fnr": 0.4117647058823529,
+      "specificity": 0.8064516129032258,
+      "confusion_matrix": [
+        [
+          50,
+          12
+        ],
+        [
+          7,
+          10
+        ]
+      ]
+    }
+  },
+  "homepages": [
+    {
+      "url": "https://amazon.in/",
+      "baseline_probability": 0.39351851851851855,
+      "candidate_probability": 0.2857142857142857,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://bbc.com/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.016597510373443983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.5235602094240838,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "baseline_probability": 0.9373297002724795,
+      "candidate_probability": 0.9192100538599641,
+      "candidate_alert": true
+    },
+    {
+      "url": "https://example.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.3857677902621723,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://github.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.7843137254901961,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://gnu.org/",
+      "baseline_probability": 0.009554140127388535,
+      "candidate_probability": 0.00642570281124498,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://google.com/",
+      "baseline_probability": 0.23972602739726032,
+      "candidate_probability": 0.8043478260869565,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://kernel.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.05982905982905983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.05982905982905983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://microsoft.com/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.3540856031128405,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://mozilla.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.05982905982905983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://nasa.gov/",
+      "baseline_probability": 0.03832752613240418,
+      "candidate_probability": 0.006493506493506494,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://paypal.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.889763779527559,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://python.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.059113300492610835,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.12415196743554953,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://ubuntu.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.3540856031128405,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://w3.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.016597510373443983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://who.int/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.016597510373443983,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://wikipedia.org/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.03017241379310345,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://www.google.com/",
+      "baseline_probability": 0.1623529411764706,
+      "candidate_probability": 0.6623376623376623,
+      "candidate_alert": false
+    }
+  ],
+  "gates": {
+    "homepages_no_alerts": false,
+    "historical_both_error_rates_improved": true,
+    "reference_no_error_rate_regression": true,
+    "targeted_no_error_rate_regression": false
+  },
+  "eligible_for_independent_evaluation": false,
+  "independent_test_read": false,
+  "promoted": false,
+  "baseline_unchanged": true
+}

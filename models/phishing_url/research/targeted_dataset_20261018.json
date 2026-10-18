@@ -1,0 +1,190 @@
+{
+  "version": "targeted-url-data-v1",
+  "created_at": "2026-10-17T21:12:39.997437+00:00",
+  "label_mapping": {
+    "0": "legitimate_reference_or_source_label",
+    "1": "phishing_provider_or_source_label"
+  },
+  "split_counts": {
+    "train": {
+      "1": 143789,
+      "0": 372220
+    },
+    "validation": {
+      "0": 28994,
+      "1": 13193
+    },
+    "calibration": {
+      "0": 37234,
+      "1": 15828
+    },
+    "regression_reference": {
+      "0": 72,
+      "1": 2
+    },
+    "sealed_test": {
+      "0": 103,
+      "1": 32
+    },
+    "historical_regression": {
+      "0": 88880,
+      "1": 31680
+    }
+  },
+  "slice_counts": {
+    "train": {
+      "1:query_parameters": 19272,
+      "1:authentication_account_payment": 13289,
+      "1:encoded_characters": 1474,
+      "1:navigation_parameter": 225,
+      "0:authentication_account_payment": 268,
+      "0:long_path": 96293,
+      "0:query_parameters": 39045,
+      "0:encoded_characters": 6169,
+      "0:root_path": 128575,
+      "1:root_path": 56610,
+      "1:shared_hosting": 2319,
+      "1:other": 39406,
+      "0:other": 113639,
+      "0:shared_hosting": 5230,
+      "1:long_path": 32427,
+      "1:internationalized": 181,
+      "0:navigation_parameter": 96,
+      "0:internationalized": 120
+    },
+    "validation": {
+      "0:long_path": 7206,
+      "0:authentication_account_payment": 36,
+      "1:query_parameters": 2186,
+      "1:authentication_account_payment": 1524,
+      "1:encoded_characters": 137,
+      "1:navigation_parameter": 23,
+      "0:query_parameters": 1963,
+      "0:encoded_characters": 398,
+      "0:root_path": 12737,
+      "1:root_path": 5264,
+      "1:shared_hosting": 201,
+      "1:long_path": 2461,
+      "1:other": 3670,
+      "0:shared_hosting": 526,
+      "0:other": 7381,
+      "0:internationalized": 20,
+      "0:navigation_parameter": 2,
+      "1:internationalized": 18
+    },
+    "calibration": {
+      "0:authentication_account_payment": 33,
+      "1:authentication_account_payment": 1661,
+      "0:long_path": 9741,
+      "0:root_path": 14412,
+      "0:query_parameters": 2568,
+      "1:root_path": 6322,
+      "0:other": 10950,
+      "1:long_path": 3613,
+      "1:query_parameters": 2298,
+      "1:other": 4438,
+      "0:shared_hosting": 601,
+      "0:encoded_characters": 549,
+      "1:encoded_characters": 188,
+      "0:internationalized": 59,
+      "1:shared_hosting": 254,
+      "1:navigation_parameter": 12,
+      "0:navigation_parameter": 14,
+      "1:internationalized": 16
+    },
+    "regression_reference": {
+      "0:authentication_account_payment": 20,
+      "0:long_path": 34,
+      "0:query_parameters": 7,
+      "0:navigation_parameter": 2,
+      "0:root_path": 15,
+      "0:other": 9,
+      "0:encoded_characters": 2,
+      "1:other": 2
+    },
+    "sealed_test": {
+      "0:long_path": 43,
+      "0:authentication_account_payment": 26,
+      "1:authentication_account_payment": 2,
+      "1:root_path": 11,
+      "0:root_path": 34,
+      "0:query_parameters": 2,
+      "1:shared_hosting": 1,
+      "1:other": 14,
+      "0:other": 7,
+      "1:long_path": 4,
+      "1:query_parameters": 4
+    },
+    "historical_regression": {
+      "0:other": 32810,
+      "1:root_path": 11552,
+      "1:query_parameters": 4696,
+      "1:authentication_account_payment": 2915,
+      "1:long_path": 7176,
+      "1:other": 9442,
+      "0:query_parameters": 5903,
+      "0:root_path": 27193,
+      "0:shared_hosting": 1132,
+      "0:long_path": 24342,
+      "1:encoded_characters": 289,
+      "1:shared_hosting": 424,
+      "0:encoded_characters": 2276,
+      "0:authentication_account_payment": 44,
+      "1:navigation_parameter": 97,
+      "0:internationalized": 87,
+      "0:navigation_parameter": 8,
+      "1:internationalized": 40
+    }
+  },
+  "new_targeted_counts": {
+    "train": 212,
+    "validation": 79,
+    "calibration": 51,
+    "regression_reference": 74,
+    "sealed_test": 135
+  },
+  "retained_historical": {
+    "train": 515797,
+    "calibration": 53011,
+    "validation": 42108,
+    "historical_regression": 120560
+  },
+  "excluded_historical": {
+    "historical_ephemeral_token": 558,
+    "credential_bearing_authority": 19,
+    "exceeds_runtime_input_limit": 8,
+    "replaced_by_current_same_label_evidence": 12
+  },
+  "new_label_conflicts_quarantined": 0,
+  "new_duplicate_evidence_merged": 12,
+  "quarantine_rows": 720,
+  "domain_overlap": {
+    "train__calibration": 0,
+    "train__validation": 0,
+    "train__sealed_test": 0,
+    "calibration__validation": 0,
+    "calibration__sealed_test": 0,
+    "validation__sealed_test": 0
+  },
+  "test_domain_counts_by_class": {
+    "0": 25,
+    "1": 32
+  },
+  "test_status": "sealed_not_evaluated",
+  "previously_seen_test_domains": 0,
+  "minimum_research_test_coverage_met": false,
+  "production_acceptance_complete": false,
+  "retraining_started": false,
+  "lineage": {
+    "historical_manifest_sha256": "a83c85396a6a40e954f7e5e4a4c18c223e0d5d021bef1ec60ba4d7a936169bd4",
+    "collection_manifest_sha256": "9b12ee2eeda3e781ad87f25399cb2bc3c1b0b625f8f8c3074862adeeb4ea4169"
+  },
+  "limitations": [
+    "Reference negative and provider labels are not independently adjudicated.",
+    "Small targeted test has selection/source bias; not the entire web.",
+    "Near-duplicate grouping is heuristic; campaigns with generic/root paths cannot be fully resolved.",
+    "Historical labels are inherited, not live verified; source collection dates are unavailable.",
+    "Live forensic observations are label evidence/provenance, not leaked URL-model inputs.",
+    "Test remains sealed until a candidate and threshold are frozen; no performance claim has been made."
+  ]
+}

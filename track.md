@@ -1,5 +1,101 @@
 # Phishing detection implementation — nirmala
 
+## Current accuracy/recall improvement — 18 October 2026
+
+- [x] Added monotone second-expert rescue: preserve all primary alerts, use high model-score boundaries for additional root/query detections, and keep path-only behavior unchanged. No runtime domain allowlist, new GPU requirement or changes to learned component weights.
+- [x] Selected the candidate on development data with targeted/reference false-alert guards and known-site score margins. Validation: 242 additional detections, zero extra false alerts; accuracy 90.08% → 90.65%, recall 71.31% → 73.14%.
+- [x] Historical regression: 510 additional detections with two additional false alerts; accuracy 91.80% → 92.22%, recall 71.34% → 72.95%. Additional false alerts remained within the predeclared bound.
+- [x] Reserved a new test excluding all old raw-source/evaluated domains and known distinctive path groups. Expanded before predictions with verified legitimate query links: 313 URLs, 163 references/35 domains, 150 provider positives/147 domains, including 13 benign queries/five domains. No reported phishing page was visited or model prediction used as a label.
+- [x] Froze candidate bundle and performed one independent comparison: accuracy 90.10% → 90.73%, recall 86.00% → 87.33%, false alerts unchanged at 10, misses 21 → 19. All acceptance gates passed; the child test and overlapping parent are consumed. Earlier 66% recall belongs to a different test and is not the baseline for this comparison.
+- [x] Packaged regional-recall-v1 with checksums and preserved regional-v1/modern-v5 rollback bundles. Updated phishing-only loading, launcher defaults and report explanation of second-expert alerts. Actual offline inference/event/report smoke passed for known roots, lookalikes, both rescue routes and a threat-report fixture.
+- [x] Relevant Python regressions: 69 passed. Phishing frontend report tests, TypeScript and targeted lint passed.
+- [x] Frontend production build passed. Running phishing worker is ready and reports regional-recall-v1 with the accepted manifest hash. Linux inference and live Google/PayPal collection/report checks passed (HTTP 200); Google registration evidence was unavailable. Recorded in `models/phishing_url/research/recall_deployment_20261018.json`.
+- [ ] Larger adjudicated datasets, broader benign query/auth coverage, new independent acceptance data for future tuning, routed/rescue calibration and full authenticated browser/Gateway/Kafka verification. Current fresh test still has 19/150 misses and 10/163 false alerts; documentation-path review score remains unresolved.
+
+Details: `docs/phishing/recall-improvement-2026-10-18.md`. Image/scam sources remain unchanged; work stays on nirmala.
+
+## Current correction and deployment — 18 October 2026 (supersedes earlier pending entries)
+
+- [x] Replaced the rejected raw-hostname candidate with a checked regional expert bundle. URL shape selects v5 for root/query links and the out-of-fit correction for path-only links; no named-domain allowlist or verdict override was added.
+- [x] Enforced known-site development regressions, global validation FPR and targeted recall gates. Fixed regional search coverage by including the existing query expert's operating point. All development gates passed before opening the new test.
+- [x] Froze artifacts/routing/thresholds, then consumed the 153-row independent test once: false positives 17 → 7, misses 18 → 17, accuracy 77.12% → 84.31%. Twelve old errors corrected, one new error. Small provider/reference test; no production-certification claim or post-test tuning.
+- [x] Historical regression: FPR 0.964% → 0.906%, FNR 29.230% → 28.665%. Targeted development false positives 20 → 7 with six misses unchanged. Dataset registry and consumption marker updated; reserve a new test before later tuning acceptance.
+- [x] Added checked regional loading, per-URL-shape thresholds, honest calibration metadata and matching phishing-only advanced report text. Preserved modern-v5 artifacts for rollback; default phishing launchers now select regional-v1.
+- [x] Expanded offline destination inspection and bounded reputation checks for observed intermediate redirect hops. Query destinations are never fetched solely because they appear in a parameter. Public-address checks, quota/backoff and an optional-enrichment time bound remain enforced.
+- [x] Passed 66 relevant Python tests, actual local inference/event/report smoke, phishing report regression checks, TypeScript, targeted lint, Vite production build, PowerShell parse and Git whitespace checks.
+- [x] Rebuilt only phishing worker/collector containers (Kafka/Mongo dependencies started). Worker `/ready` true, collector healthy, loaded regional-v1 manifest hash verified. Linux matches local Google/GitHub/PayPal/doc-path regression outputs. Live Google and PayPal checks returned HTTP 200 with DNS/TLS/page/registration/reputation observations and no phishing verdict.
+- [x] Branch remains nirmala. Image/scam detector sources and original modern-v5 model hashes preserved. No commit/push performed. Existing saved reports are historical; submit a new scan to use regional-v1.
+- [ ] Improve remaining false positives/misses, including the high model risk/review result on Python documentation; add reviewed active/compromised-site labels and representative benign paths. The independent test still has 7/103 false positives and 17/50 misses.
+- [ ] Establish routed-system calibration and larger temporal/domain/campaign-aware evaluation. Reserve a genuinely new independent test; the previous test is consumed.
+- [ ] Full authenticated browser → Gateway → Kafka scan/report verification, throughput/drift assessment and an exercised rollback drill. Worker broker readiness/live collection are verified, not a new authenticated full-system scan.
+
+Details: `docs/phishing/regional-correction-2026-10-18.md`; aggregate acceptance/deployment reports: `models/phishing_url/research/regional_*20261018.json`.
+
+## Targeted retraining implementation — 18 October 2026
+
+- [x] Added isolated, reproducible targeted structural retraining, validation-only fusion selection, fixed targeted-example weighting, immutable artifacts and frozen selection hashes. Independent-test inputs are excluded from both training commands.
+- [x] Completed v8 on 516,006 training records. Historical FPR improved from 0.964% to 0.332%, but FNR worsened from 29.230% to 40.846%; rejected without deployment. Familiar-homepage checks passed.
+- [x] Added a hash-verified targeted validation diagnostic: on 62 reference and 17 provider-positive URLs, v8 reduced false positives from 20 to 10 but increased false negatives from six to seven. These development results are not independent accuracy claims.
+- [x] Implemented complementary targeted text training with a class-balanced sample plus every targeted training example, bounded text/fusion weighting, unweighted calibration and explicit historical/reference/homepage/targeted/convergence gates.
+- [x] Dataset isolation, threshold-tie/FPR selection and domain-masking regressions: 16 tests passed. Python syntax and Git whitespace checks passed.
+- [x] Completed v9 complementary training (160,158 sampled/targeted rows) and regression. Historical accuracy improved from 91.608% to 92.722%, FPR 0.964% to 0.566%, FNR 29.230% to 26.108%. Rejected for deployment: Google/GitHub/PayPal homepage false alerts and targeted validation FNR regression (six to seven misses). No independent-test URLs were scored.
+- [x] Kept both research candidates isolated, preserved all active artifact hashes and verified no protected image/scam detector diff. Recorded the reasons and remaining gaps in the targeted training report; no runtime switch or branch change.
+- [ ] Independent research-test evaluation, larger reviewed cohorts and complete live-policy/deployment acceptance remain required for promotion.
+
+Details: `docs/phishing/targeted-training-2026-10-18.md`. Active model and image/scam modules remain unchanged.
+
+## Targeted dataset and independent reservation — 18 October 2026
+
+- [x] Collected public evidence from two curated official-origin batches and nine successful PhishStats pages. PhishTank access failed and the next PhishStats page returned 429; attempts were recorded and collection stopped. No reported phishing pages were visited and no model predictions supplied labels.
+- [x] Built `targeted_20261018_v2`: 565 accepted targeted examples (209 train, 50 calibration, 79 validation, 74 regression references, 153 new test records), with source-tier provenance and observed reference-page/TLS evidence. Raw URL records remain ignored by Git.
+- [x] Retained 610,916 usable historical development examples. Final development exports: train 516,006; calibration 53,061; validation 42,187. Historical regression remains separate (120,560 rows); old evaluation domains were not recycled into the new test.
+- [x] Reserved an unscored independent research test with 103 legitimate/reference URLs across 25 domains and 50 provider-reported phishing URLs across 48 domains. Zero overlap with all original URL-source domains and earlier challenges. Known specific-path campaign groups are separated; full campaign/temporal independence is not claimed.
+- [x] Preserved the undersized v1 reservation without scoring it, then expanded/revised the reservation before any retraining. The v2 test meets the unchanged minimum research coverage gate. Data integrity is not a production accuracy certification.
+- [x] Verified frozen hashes, counts, complete provenance, learning/test domain/URL/known-group separation and canonical labels against both complete original corpora. Added a loader that rejects test/regression data for fitting and checks verification/hash gates.
+- [x] Registered the candidate dataset and documented source terms, two-column exports, evidence tiers, privacy/duplicate exclusions and next-training protocol in `docs/phishing/targeted-dataset-2026-10-18.md`.
+- [x] Final checks: 16 dataset/research/masking tests passed, development-loader smoke passed, Python syntax/whitespace checks passed, canonical label audit found zero conflicts, and all four active model hashes remained unchanged. Image/scam detector diff stayed empty.
+- [ ] Retrain and select candidates using development splits only; pass older regression/homepage checks before opening the new independent test. Collect broader independently reviewed labels and additional fresh internationalized/lookalike/shared-hosting examples. Active modern-v5 and image/scam implementations remain unchanged.
+
+## Model performance experiment — 18 October 2026
+
+- [x] Verified official PhiUSIIL label mapping and reconstructed original source/domain partitions. Quarantined 45 conflicting URL keys. Kept historical evaluation explicitly labeled a reused regression benchmark.
+- [x] Froze a separate local research challenge with 300 provider-reported phishing URLs and 507 official-page reference negatives. Recorded source hashes, collection times, label provenance and limitations. No phishing pages were opened; proprietary feed data remains under ignored data paths.
+- [x] Removed fresh-challenge domains from all candidate fitting/selection partitions (698 training rows excluded). Candidate structural training has 516,247 available rows before its separate early-stopping partition. Dataset manifest records zero cross-partition domain overlap and legacy-domain overlap in the fresh collection.
+- [x] Added a CPU candidate pipeline with source/class balancing, longer text convergence budget, full-structure fusion, separate isotonic calibration and validation-only maximum-recall threshold selection under a 1% FPR cap.
+- [x] Five research integrity tests passed: tied-score handling, FPR budget enforcement, private-suffix domain grouping, balanced class/source mass and single-class metric reporting. Syntax/whitespace checks passed.
+- [x] Completed v6 fitting and locked evaluation; rejected its selected threshold retune because FNR worsened despite lower FPR. Newly trained branches did not outperform retuned-v5 validation recall at the fixed cap. The text branch converged without the old warning.
+- [x] Completed a complementary v7 experiment using existing branches plus regularized hostname text and HGB fusion. Historical accuracy improved 91.61% → 92.71%, FPR 0.964% → 0.610%, FNR 29.15% → 25.97%; however, challenge misses remained 133/300 and three familiar homepages regressed (Google/GitHub/PayPal). Candidate rejected for activation; no hard-coded domain exceptions added.
+- [x] Saved aggregate metrics, source/error slices, strict legacy-unseen-domain challenge results, thresholds, candidate artifacts and 19-homepage regression evidence. Detailed findings and rejected-promotion rationale are in `docs/phishing/performance-improvement-2026-10-18.md`.
+- [ ] Collect broader independently labeled hard-negative/authentication and recent phishing development data; freeze a new independent acceptance set before further selection. Improve root-path and recent long-path campaign recall without hostname-identity bias. Validate full live policy, calibration and deployment regression/rollback before switching models.
+- [x] Active modern-v5 artifacts remain unchanged; no image/scam/shared-runtime source was modified by these experiments. Branch stays `nirmala`; no commit/push performed.
+- [x] Final verification: nine research/masking tests, Python syntax and Git whitespace checks passed. All four active artifact hashes match their starting values. Saved explicit non-promotion decision in `models/phishing_url/research/acceptance_20261018.json`.
+
+## URL-specific plain-language report — 17 October 2026
+
+- [x] Replaced the default generic workflow with recorded per-URL findings: address structure, destination identity, path/navigation parameters, DNS addresses, verified certificate details, final page/status/redirects, password-form actions, registration age and exact-URL reputation. Missing and truncated evidence is explicitly identified.
+- [x] Added a URL-specific conclusion, model disagreement/borderline explanation and practical recommendation. Raw branches, formulas and measured feature table are collapsed in advanced diagnostics.
+- [x] Display risk score (higher = more risk), phishing report trust score (100 minus risk; higher = less detected risk), and qualitative assessment confidence with a reason. This display-only trust index does not change shared backend `trust_risk_score` semantics, detector decisions or other module reports. No statistical confidence percentage is fabricated.
+- [x] PDF includes the same specific findings, score definitions and confidence explanation. Borderline opinions remain uncertain even just below threshold.
+- [x] Added regression checks for 69.9/70 boundary, 7.6/99 branch disagreement, inverse trust calculation, missing evidence, actual redirect/form targets, certificate issuer and rendered report content. Build and regression checks passed; browser visual review remains pending.
+
+## Evidence opinion and visual comparison — 17 October 2026
+
+- [x] Kept uncertain verdicts while adding an explicitly qualitative opinion: phishing, suspicious, weak legitimate leaning or insufficient evidence. Strong/medium forensic findings take precedence; model threshold and observed coverage support the explanation. No fabricated confidence percentage or score change.
+- [x] Added insertion/deletion-aware domain alignment with highlighted character changes, canonical positions and Unicode code points. Explains destination identity and impersonation risk without claiming that a spelling difference proves malicious intent.
+- [x] Surfaced existing PhishStats exact-URL match provenance, scope, dates, report IDs, provider score, cache status and incomplete lookup warnings. Distinguished recent qualifying reports, historical reports, no match and unavailable checks. Extended PDF output.
+- [x] Domain alignment/Unicode/insertion/deletion and opinion-policy regression checks passed; TypeScript, scoped lint, production build and Git whitespace checks passed. Implementation and suggested future work documented in `docs/phishing/report-evidence.md`.
+- [ ] Optional next integration: PhishTank verified-online feed, subject to provider access; not connected or claimed active. Add independent exact-match corroboration and feed freshness monitoring before stronger corroborated labels.
+- [ ] Browser visual review and independent confidence calibration remain outstanding; image/scam code and detector decisions unchanged.
+
+## Phishing report presentation — 17 October 2026
+
+- [x] Added phishing-specific color-coded verdicts, live-check coverage visualization, URL destination/path breakdown, lookalike comparison and forensic evidence cards with relevant locations and policy participation.
+- [x] Added diagnostic structure/text/ensemble bars, original model label and threshold, score formula, evidence weights and observed feature table. Distinguishes model inference from recorded forensic evidence; exact character-level model attribution is not available.
+- [x] Expanded PDF export with forensic findings, destinations, model diagnostics, policy weights and feature measurements. Certificate verification text now reflects the recorded verification outcome.
+- [x] Detection policy, scores, image/scam implementations and shared report components remain unchanged. Low-risk verdict is qualified as likely legitimate; ownership is not claimed verified.
+- [x] TypeScript and production frontend build passed; Git whitespace check passed. Browser visual review remains outstanding.
+- [ ] Future model work: validated local feature attribution and independent combined-score confidence calibration. Current UI explicitly identifies both limitations.
+
 ## Phishing-only cleanup — 17 October 2026
 
 - [x] Removed 19 obsolete phishing files (11,994,585 bytes): rejected modern-v4 binaries/trainer, two one-off debug scripts, duplicate final/progress text checkpoint, stale pre-fix reports and obsolete sign-in/verification/Colab screenshots. Exact paths are listed in `models/phishing_url/research/cleanup-2026-10-17.json`.

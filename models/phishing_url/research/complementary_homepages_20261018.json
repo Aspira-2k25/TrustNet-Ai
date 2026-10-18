@@ -1,0 +1,174 @@
+{
+  "role": "Previously used familiar-homepage regression, not new independently labeled accuracy data.",
+  "threshold": 0.8667728022332694,
+  "rows": [
+    {
+      "url": "https://amazon.in/",
+      "baseline_probability": 0.39351851851851855,
+      "candidate_probability": 0.5136612021857921,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://bbc.com/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.03933253873659118,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.8543307086614174,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://example.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.23106060606060602,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://github.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.9009584664536742,
+      "candidate_model_alert": true,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://gnu.org/",
+      "baseline_probability": 0.009554140127388535,
+      "candidate_probability": 0.018018018018018018,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://google.com/",
+      "baseline_probability": 0.23972602739726032,
+      "candidate_probability": 0.9590163934426229,
+      "candidate_model_alert": true,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://kernel.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.06373626373626375,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.03933253873659118,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://microsoft.com/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.5408163265306122,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://mozilla.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.06373626373626375,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://nasa.gov/",
+      "baseline_probability": 0.03832752613240418,
+      "candidate_probability": 0.01615798922800718,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://paypal.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.975609756097561,
+      "candidate_model_alert": true,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://python.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.06373626373626375,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.2601880877742947,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://ubuntu.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.3854166666666667,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://w3.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.007738607050730868,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://who.int/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.022425249169435217,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://wikipedia.org/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.013029315960912051,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "baseline_probability": 0.9373297002724795,
+      "candidate_probability": 0.8543307086614174,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://www.google.com/",
+      "baseline_probability": 0.1623529411764706,
+      "candidate_probability": 0.7385892116182573,
+      "candidate_model_alert": false,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://paypal.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.975609756097561,
+      "candidate_model_alert": true,
+      "offline_forensic_outcome": "NO_STRONG_INDICATORS"
+    },
+    {
+      "url": "https://paypaI.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.975609756097561,
+      "candidate_model_alert": true,
+      "offline_forensic_outcome": "SUSPICIOUS"
+    }
+  ],
+  "official_homepage_alerts": 3,
+  "illustrative_lookalike_note": "The paypaI input is a visual-domain test, not an independently verified live phishing label.",
+  "artifact_hashes": {
+    "calibrator.joblib": "a6949e824619aebbec9a625623fda9f6dc9094882e250df0a427e33ba582b730",
+    "fusion.joblib": "8a1415ba8fd53cfb6b2cc83a63c49ce99cf6daffa4a44743055578196af5cbba",
+    "lexical.joblib": "6fe3f8e25d2e95ebac640c141af49b160b3751edca1d47a105c9ccd526a7ed38"
+  }
+}

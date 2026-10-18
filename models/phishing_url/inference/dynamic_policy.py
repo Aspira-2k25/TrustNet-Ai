@@ -21,7 +21,8 @@ def apply(result, url, threshold=None, observations=None):
     diagnostic = meta.setdefault('diagnostic_model', {'probability': result.native_score,
                     'risk_score': result.risk_score, 'label': result.label, 'status': result.status.value,
                     'error_code': result.error_code})
-    trusted = result.model_version == 'modern-v5' and diagnostic['status'] in {'SUCCESS', 'PARTIAL_SUCCESS'}
+    trusted = result.model_version in {'modern-v5','regional-v1','regional-recall-v1'} and diagnostic['status'] in {'SUCCESS', 'PARTIAL_SUCCESS'}
+    model_calibrated=trusted and result.model_version=='modern-v5'
     model_p = float(diagnostic['probability']) if trusted else None
     policy = evidence_policy()
     residual = 1 - model_p if trusted else 1.
@@ -39,14 +40,14 @@ def apply(result, url, threshold=None, observations=None):
     signals = report['network'].get('signals', {})
     observed = lambda name: str(signals.get(name, {}).get('status', '')).lower() == 'observed'
     meta.update(assessment_policy=POLICY_VERSION, link_analysis_version='links-v1', assessed_url=link.get('normalized',url), original_input=url, input_handling=link, forensics=report,
-                confidence_available=False, calibrated=False, model_calibrated=trusted,
-                score_basis='model_and_live_evidence' if trusted and updates else 'calibrated_url_model' if trusted else 'live_evidence' if assessed else 'withheld',
-                score_definition='Risk index from the calibrated URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.',
+                confidence_available=False, calibrated=False, model_calibrated=model_calibrated,
+                score_basis='model_and_live_evidence' if trusted and updates else ('calibrated_url_model' if model_calibrated else 'regional_url_model') if trusted else 'live_evidence' if assessed else 'withheld',
+                score_definition='Risk index from the selected URL model and recorded forensic evidence. Higher means more risk; this combined index is not a probability or safety guarantee.',
                 score_components={'model_probability': model_p, 'evidence_updates': updates, 'policy_version': policy['version'],
                                   'formula': '100 * (1 - (1 - model_probability) * product(1 - evidence_weight))',
                                   'combined_calibration_validated': False},
                 threshold=threshold,
-                threshold_definition='Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.',
+                threshold_definition=('Development-selected threshold for the selected URL expert and URL shape. Strong current forensic findings can also trigger an alert.' if result.model_version in {'regional-v1','regional-recall-v1'} else 'Validation-selected model alert threshold. Strong current forensic findings can also trigger an alert.'),
                 coverage={'status': 'LIVE_CHECKS_APPLIED' if observed('http') else 'URL_ANALYSIS_ONLY',
                           'website_fetched': observed('http'),
                           'reason': 'Live checks supplement the URL model. Unavailable checks are listed in the report.'},

@@ -1,0 +1,16 @@
+{
+  "dataset_revision": "targeted_20261018_v2",
+  "dataset_manifest_sha256": "0f974ec4b24fdb1c3e3d5064ad6289c162b720f3016379601b9847830c08f8b1",
+  "file_hashes_verified": true,
+  "csv_counts_verified": true,
+  "provenance_complete": true,
+  "learning_domain_overlap": 0,
+  "learning_url_overlap": 0,
+  "known_group_overlap": 0,
+  "test_raw_historical_domain_overlap": 0,
+  "test_previous_challenge_domain_overlap": 0,
+  "test_status": "sealed_not_evaluated",
+  "model_predictions_generated": 0,
+  "minimum_research_test_coverage_met": true,
+  "not_production_acceptance": "Data integrity verified; labels retain source/reference uncertainty and no accuracy has been measured."
+}

@@ -1,0 +1,83 @@
+{
+  "ready": {
+    "ready": true
+  },
+  "model_version": "regional-recall-v1",
+  "manifest_sha256": "30407968c6d02ab076db933a74201d7ac29853637e2d98d2a0faed897a8c6a9c",
+  "linux_offline_regressions": [
+    {
+      "url": "https://google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 24,
+      "model_version": "regional-recall-v1"
+    },
+    {
+      "url": "https://www.google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 16.2,
+      "model_version": "regional-recall-v1"
+    },
+    {
+      "url": "https://paypal.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "model_version": "regional-recall-v1"
+    },
+    {
+      "url": "https://github.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "model_version": "regional-recall-v1"
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "verdict": "REVIEW_RECOMMENDED",
+      "risk_score": 82.9,
+      "model_version": "regional-recall-v1"
+    }
+  ],
+  "live_collection": [
+    {
+      "url": "https://google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 24,
+      "model_version": "regional-recall-v1",
+      "collector_applied": true,
+      "checks": {
+        "dns": "observed",
+        "tls": "observed",
+        "navigation": "observed",
+        "http": "observed",
+        "html": "observed",
+        "registration": "unavailable",
+        "reputation": "OBSERVED"
+      },
+      "http_status": 200
+    },
+    {
+      "url": "https://paypal.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "model_version": "regional-recall-v1",
+      "collector_applied": true,
+      "checks": {
+        "dns": "observed",
+        "tls": "observed",
+        "navigation": "observed",
+        "http": "observed",
+        "html": "observed",
+        "registration": "observed",
+        "reputation": "OBSERVED"
+      },
+      "http_status": 200
+    }
+  ],
+  "not_an_authenticated_browser_or_published_kafka_event_test": true,
+  "python_tests_passed": 69,
+  "typescript_passed": true,
+  "frontend_report_checks_passed": true,
+  "frontend_build_passed": true,
+  "targeted_lint_passed": true,
+  "image_scam_source_changed": false,
+  "independent_test_consumed": true
+}

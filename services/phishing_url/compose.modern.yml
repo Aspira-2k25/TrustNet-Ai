@@ -9,4 +9,4 @@ services:
       OMP_NUM_THREADS: "2"
       MKL_NUM_THREADS: "2"
     volumes:
-      - ./models/phishing_url/checkpoints/modern_v5:/modern:ro
+      - ./models/phishing_url/checkpoints/${PHISHING_MODERN_BUNDLE:-regional_recall_v1}:/modern:ro

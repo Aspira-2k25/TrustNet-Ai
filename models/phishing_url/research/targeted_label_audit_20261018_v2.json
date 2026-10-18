@@ -1,0 +1,6 @@
+{
+  "exported_urls": 732041,
+  "historical_matching_records": 732475,
+  "normalized_label_conflicts": 0,
+  "method": "Compare canonical full URL labels against both complete original URL sources, including excluded records; no model predictions."
+}

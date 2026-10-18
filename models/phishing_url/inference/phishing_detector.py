@@ -31,6 +31,16 @@ class PhishingDetector(BaseDetector):
                 self.model = ModernModel(path.parent, manifest)
                 self.manifest = manifest
                 return
+            if manifest.get('kind') == 'regional_v1':
+                from .regional_model import RegionalModel
+                self.model = RegionalModel(path.parent, manifest)
+                self.manifest = manifest
+                return
+            if manifest.get('kind') == 'regional_recall_v1':
+                from .recall_model import RecallModel
+                self.model = RecallModel(path.parent, manifest)
+                self.manifest = manifest
+                return
             if manifest.get("kind") == "lightgbm_bert":
                 from .model_loader import HybridModel
                 self.model = HybridModel(path.parent, manifest)
@@ -84,7 +94,7 @@ class PhishingDetector(BaseDetector):
             metadata["missing_signals"] = ["whois", "tls", "dns", "html"]
             if hybrid['configuration'] == 'url_text_v2':
                 metadata['missing_signals'].extend(['bert', 'lightgbm'])
-            elif hybrid['configuration'] in {'structural_v3','modern_v5'}:
+            elif hybrid['configuration'] in {'structural_v3','modern_v5','regional_v1'}:
                 metadata['missing_signals'].extend(['bert'])
             elif hybrid["configuration"] != "lightgbm_bert":
                 metadata["missing_signals"].append("bert" if hybrid["configuration"] == "lightgbm" else "lightgbm")

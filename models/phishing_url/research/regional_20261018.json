@@ -1,0 +1,406 @@
+{
+  "protocol": {
+    "selection": "Validation-only regional expert/threshold choice with reused familiar-site development constraints; untouched independent test required.",
+    "regions": [
+      "root",
+      "query",
+      "path"
+    ],
+    "regional_fpr_budgets": [
+      0.005,
+      0.01,
+      0.015,
+      0.02
+    ],
+    "global_validation_fpr_budget": 0.015,
+    "targeted_errors_must_not_increase": true,
+    "dataset_manifest_sha256": "0f974ec4b24fdb1c3e3d5064ad6289c162b720f3016379601b9847830c08f8b1",
+    "independent_test_read": false,
+    "components": {
+      "text": {
+        "artifact": "text.joblib",
+        "sha256": "a9bad7c94bedb3c7684de07245924f643c87308dd3dd418272942dd78dd41665"
+      },
+      "structural": {
+        "artifact": "structural.joblib",
+        "sha256": "1391244bc9df8bf97f38e7186ab8dcda2a2c1ffe22bc7940c0acce6e48fe479a"
+      },
+      "base_fusion": {
+        "artifact": "base_fusion.joblib",
+        "sha256": "88687f66752b38eebe5db2585ee79133f0d7f09f7c3106ea20b2d81615bd0b19"
+      },
+      "base_calibrator": {
+        "artifact": "base_calibrator.joblib",
+        "sha256": "d08c7836be9a44c567255f40dcf38029c02786f30c94da38f57e6073b82ccc36"
+      },
+      "complementary_text": {
+        "artifact": "complementary_text.joblib",
+        "sha256": "80c66466e0b7317ec2b7dd44af6915502246a83ff155ef5206ce3675d93077f2"
+      },
+      "complementary_fusion": {
+        "artifact": "complementary_fusion.joblib",
+        "sha256": "bba598c595f5362b7dc76ca90f7936d77adcebfd312997875d7a27b8ec33b8c4"
+      },
+      "correction_fusion": {
+        "artifact": "correction_fusion.joblib",
+        "sha256": "bc0616582784e3a35b16c99ddbf79091b869b5061b453c9cac02efabf6506fbf"
+      },
+      "correction_calibrator": {
+        "artifact": "correction_calibrator.joblib",
+        "sha256": "84a8792e71e2dd100355da4dde694c695aab25a4e361fbf567938f6886526151"
+      }
+    },
+    "no_domain_rules": true,
+    "homepage_role": "Reused labeled development constraints, not independent evidence."
+  },
+  "selection": {
+    "routing": {
+      "root": {
+        "expert": "baseline",
+        "threshold": 0.6857142857142857
+      },
+      "query": {
+        "expert": "correction",
+        "threshold": 0.9017247390328227
+      },
+      "path": {
+        "expert": "correction",
+        "threshold": 0.8292682926829269
+      }
+    },
+    "validation": {
+      "accuracy": 0.9038803422855382,
+      "precision": 0.9553518038668527,
+      "recall": 0.7265974380353217,
+      "f1": 0.8254186937615706,
+      "roc_auc": 0.9542493994306284,
+      "pr_auc": 0.9221548411564037,
+      "brier": 0.06953066177443214,
+      "ece": 0.008015772863737836,
+      "fpr": 0.01545147271849348,
+      "fnr": 0.2734025619646782,
+      "specificity": 0.9845485272815065,
+      "confusion_matrix": [
+        [
+          28546,
+          448
+        ],
+        [
+          3607,
+          9586
+        ]
+      ]
+    },
+    "targeted_validation": {
+      "accuracy": 0.810126582278481,
+      "precision": 0.5555555555555556,
+      "recall": 0.5882352941176471,
+      "f1": 0.5714285714285714,
+      "roc_auc": 0.8728652751423149,
+      "pr_auc": 0.6104013015777722,
+      "brier": 0.17843124597426613,
+      "ece": 0.22382081271258625,
+      "fpr": 0.12903225806451613,
+      "fnr": 0.4117647058823529,
+      "specificity": 0.8709677419354839,
+      "confusion_matrix": [
+        [
+          54,
+          8
+        ],
+        [
+          7,
+          10
+        ]
+      ]
+    },
+    "frozen_before_regression": true,
+    "manifest_sha256": "2d7fed4394eb2ec6fe70c39ba0d4334b0741e3767c6d15f1d33c460528933ffa",
+    "eligible_configurations": 0
+  },
+  "regression": {
+    "historical_regression": {
+      "baseline": {
+        "accuracy": 0.9160832780358328,
+        "precision": 0.9631825407054173,
+        "recall": 0.7077020202020202,
+        "f1": 0.8159106210309879,
+        "roc_auc": 0.9604778645478185,
+        "pr_auc": 0.919829495006552,
+        "brier": 0.05948508064136851,
+        "ece": 0.005946763621685298,
+        "fpr": 0.009642214221422142,
+        "fnr": 0.2922979797979798,
+        "specificity": 0.9903577857785778,
+        "confusion_matrix": [
+          [
+            88023,
+            857
+          ],
+          [
+            9260,
+            22420
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.9187292634372927,
+        "precision": 0.9589730682104204,
+        "recall": 0.7215909090909091,
+        "f1": 0.8235166972873662,
+        "roc_auc": 0.9614777837869014,
+        "pr_auc": 0.9245633444331294,
+        "brier": 0.05773842523793803,
+        "ece": 0.005448464353148287,
+        "fpr": 0.011003600360036003,
+        "fnr": 0.2784090909090909,
+        "specificity": 0.988996399639964,
+        "confusion_matrix": [
+          [
+            87902,
+            978
+          ],
+          [
+            8820,
+            22860
+          ]
+        ]
+      }
+    },
+    "regression_reference": {
+      "baseline": {
+        "accuracy": 0.7837837837837838,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.4513888888888889,
+        "pr_auc": 0.04124116260801257,
+        "brier": 0.23434129745258897,
+        "ece": 0.2970204282124209,
+        "fpr": 0.19444444444444445,
+        "fnr": 1.0,
+        "specificity": 0.8055555555555556,
+        "confusion_matrix": [
+          [
+            58,
+            14
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      "candidate": {
+        "accuracy": 0.8918918918918919,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.4965277777777778,
+        "pr_auc": 0.05637254901960784,
+        "brier": 0.1617284249404583,
+        "ece": 0.22626482721530797,
+        "fpr": 0.08333333333333333,
+        "fnr": 1.0,
+        "specificity": 0.9166666666666666,
+        "confusion_matrix": [
+          [
+            66,
+            6
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      }
+    }
+  },
+  "targeted_validation": {
+    "baseline": {
+      "accuracy": 0.6708860759493671,
+      "precision": 0.3548387096774194,
+      "recall": 0.6470588235294118,
+      "f1": 0.4583333333333333,
+      "roc_auc": 0.7471537001897534,
+      "pr_auc": 0.4112670145360736,
+      "brier": 0.30015652820999505,
+      "ece": 0.30641161238416226,
+      "fpr": 0.3225806451612903,
+      "fnr": 0.35294117647058826,
+      "specificity": 0.6774193548387096,
+      "confusion_matrix": [
+        [
+          42,
+          20
+        ],
+        [
+          6,
+          11
+        ]
+      ]
+    },
+    "candidate": {
+      "accuracy": 0.810126582278481,
+      "precision": 0.5555555555555556,
+      "recall": 0.5882352941176471,
+      "f1": 0.5714285714285714,
+      "roc_auc": 0.8728652751423149,
+      "pr_auc": 0.6104013015777722,
+      "brier": 0.17843124597426613,
+      "ece": 0.22382081271258625,
+      "fpr": 0.12903225806451613,
+      "fnr": 0.4117647058823529,
+      "specificity": 0.8709677419354839,
+      "confusion_matrix": [
+        [
+          54,
+          8
+        ],
+        [
+          7,
+          10
+        ]
+      ]
+    }
+  },
+  "homepages": [
+    {
+      "url": "https://amazon.in/",
+      "baseline_probability": 0.39351851851851855,
+      "candidate_probability": 0.39351851851851855,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://bbc.com/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.029556650246305414,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://cloudflare.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.1035923141186299,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "baseline_probability": 0.9373297002724795,
+      "candidate_probability": 0.8292682926829268,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://example.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://github.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://gnu.org/",
+      "baseline_probability": 0.009554140127388535,
+      "candidate_probability": 0.009554140127388535,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://google.com/",
+      "baseline_probability": 0.23972602739726032,
+      "candidate_probability": 0.23972602739726032,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://kernel.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://khanacademy.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.09382151029748284,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://microsoft.com/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.1774193548387097,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://mozilla.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://nasa.gov/",
+      "baseline_probability": 0.03832752613240418,
+      "candidate_probability": 0.03832752613240418,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://paypal.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://python.org/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "baseline_probability": 0.1035923141186299,
+      "candidate_probability": 0.1035923141186299,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://ubuntu.com/",
+      "baseline_probability": 0.20618556701030927,
+      "candidate_probability": 0.20618556701030927,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://w3.org/",
+      "baseline_probability": 0.09382151029748284,
+      "candidate_probability": 0.09382151029748284,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://who.int/",
+      "baseline_probability": 0.029556650246305414,
+      "candidate_probability": 0.029556650246305414,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://wikipedia.org/",
+      "baseline_probability": 0.1774193548387097,
+      "candidate_probability": 0.1774193548387097,
+      "candidate_alert": false
+    },
+    {
+      "url": "https://www.google.com/",
+      "baseline_probability": 0.1623529411764706,
+      "candidate_probability": 0.1623529411764706,
+      "candidate_alert": false
+    }
+  ],
+  "gates": {
+    "homepages_no_alerts": true,
+    "historical_both_error_rates_improved": false,
+    "reference_no_error_rate_regression": true,
+    "targeted_no_error_rate_regression": false,
+    "validation_constraints": false
+  },
+  "eligible_for_independent_evaluation": false,
+  "independent_test_read": false,
+  "promoted": false,
+  "baseline_unchanged": true
+}

@@ -170,7 +170,7 @@ def analyze(url, observations=None):
             add('MULTI_DOMAIN_NAVIGATION','medium','The observed redirect chain crosses registered-domain boundaries more than once. Ad networks and identity providers can also do this.')
         reputation = signals.get('reputation', {})
         if str(reputation.get('status', '')).lower() == 'observed' and reputation.get('fresh_match'):
-            subject = 'The final redirect destination' if reputation.get('match_scope') == 'redirect_destination' else 'This exact URL'
+            subject = {'redirect_destination':'The final redirect destination','redirect_hop':'An observed intermediate redirect destination'}.get(reputation.get('match_scope'),'This exact URL')
             add('REPUTATION_MATCH', 'high', f'{subject} has a phishing report in {reputation.get("provider", "the reputation provider")}; the report date is recorded in the evidence.')
         elif reputation.get('matched'):
             add('REPUTATION_HISTORY', 'info', 'A historical URL report exists, but its freshness or provider score is insufficient for a current phishing alert.')

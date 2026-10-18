@@ -1,0 +1,54 @@
+{
+  "model_version": "regional-v1",
+  "offline_actual_inference": [
+    {
+      "url": "https://google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 24.0,
+      "trust_index": 76.0,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://www.google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 16.2,
+      "trust_index": 83.8,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://paypal.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "trust_index": 79.4,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://github.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "trust_index": 79.4,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "verdict": "REVIEW_RECOMMENDED",
+      "risk_score": 82.9,
+      "trust_index": 17.1,
+      "region": "path",
+      "selected_expert": "correction",
+      "threshold": 0.8292682926829269
+    }
+  ],
+  "lookalike_risk_detected": true,
+  "mocked_fresh_intermediate_report_detected": true,
+  "no_live_network_requests": true,
+  "not_a_live_gateway_kafka_or_browser_test": true
+}

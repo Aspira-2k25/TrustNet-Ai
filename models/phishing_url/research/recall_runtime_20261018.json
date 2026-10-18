@@ -1,0 +1,66 @@
+{
+  "model_version": "regional-recall-v1",
+  "offline_actual_inference": [
+    {
+      "url": "https://google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 24.0,
+      "trust_index": 76.0,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://www.google.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 16.2,
+      "trust_index": 83.8,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://paypal.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "trust_index": 79.4,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://github.com/",
+      "verdict": "NO_STRONG_INDICATORS",
+      "risk_score": 20.6,
+      "trust_index": 79.4,
+      "region": "root",
+      "selected_expert": "baseline",
+      "threshold": 0.7
+    },
+    {
+      "url": "https://docs.python.org/3/",
+      "verdict": "REVIEW_RECOMMENDED",
+      "risk_score": 82.9,
+      "trust_index": 17.1,
+      "region": "path",
+      "selected_expert": "correction",
+      "threshold": 0.8292682926829269
+    }
+  ],
+  "lookalike_risk_detected": true,
+  "actual_rescue_checks": [
+    {
+      "region": "root",
+      "url_sha256": "3f23f7ca5615d2c8fbe04f2b706da93f3f44e36c155b789f647e57d661fa0001",
+      "rescue_applied": true
+    },
+    {
+      "region": "query",
+      "url_sha256": "88e9ade51c6dcdfcc862d5d4b65bfa81754f483b6ee7f8c5e5e9ea036c7f55a1",
+      "rescue_applied": true
+    }
+  ],
+  "mocked_fresh_intermediate_report_detected": true,
+  "no_live_network_requests": true,
+  "not_a_live_gateway_kafka_or_browser_test": true
+}
