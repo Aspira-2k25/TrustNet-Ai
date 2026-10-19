@@ -1,0 +1,7 @@
+-r ../requirements-runtime.txt
+pytest==8.4.2
+pydantic-settings>=2.7,<3
+PyYAML>=6,<7
+SQLAlchemy[asyncio]>=2,<3
+aiosqlite>=0.20,<1
+Pillow>=10,<13

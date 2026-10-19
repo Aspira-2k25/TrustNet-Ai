@@ -1,0 +1,82 @@
+# Reference deployment; supply Kafka/Mongo services, model PVC and approved image.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trustnet-phishing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trustnet-phishing
+  template:
+    metadata:
+      labels:
+        app: trustnet-phishing
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: phishing
+          image: trustnet-ai-phishing:approved-version
+          ports:
+            - containerPort: 8007
+          env:
+            - name: PHISHING_KAFKA_ENABLED
+              value: "true"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+            - name: PHISHING_MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: phishing-infrastructure
+                  key: mongodb-uri
+            - name: PHISHING_MODEL_MANIFEST
+              value: /models/manifest.json
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8007
+            initialDelaySeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8007
+            initialDelaySeconds: 30
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 6Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+            - name: temp
+              mountPath: /tmp
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: phishing-models
+        - name: temp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trustnet-phishing
+spec:
+  selector:
+    app: trustnet-phishing
+  ports:
+    - port: 8007
+      targetPort: 8007
+  type: ClusterIP

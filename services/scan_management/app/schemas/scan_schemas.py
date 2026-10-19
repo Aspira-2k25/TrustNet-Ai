@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 from typing import Optional, List, Dict, Any
 from shared.schemas.message_input import MessageInput
 
@@ -6,7 +6,14 @@ class ScanCreateTextRequest(MessageInput):
     pass
 
 class ScanCreateURLRequest(BaseModel):
-    url: str = Field(..., min_length=4, max_length=2048, description="The URL to scan for phishing")
+    url: str = Field(..., min_length=1, max_length=2048, description="A domain or URI to inspect for phishing")
+
+    @field_validator('url')
+    @classmethod
+    def validate_phishing_url(cls, value):
+        from models.phishing_url.preprocessing.link_input import inspect_input
+        inspect_input(value)
+        return value
 
 class ScanResponse(BaseModel):
     id: str

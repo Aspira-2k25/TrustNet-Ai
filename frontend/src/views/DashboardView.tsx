@@ -205,7 +205,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-mono font-bold text-[#f8fafc]">
-                        {scan.trust_score?.trust_risk_score ?? '—'} / 100
+                        {scan.result?.module==='phishing' && (scan.result.metadata?.assessment_policy!=='dynamic-v2' || scan.result.metadata?.link_analysis_version!=='links-v1') ? '— (rescan)' : scan.trust_score?.trust_risk_score ?? '—'} / 100
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">

@@ -1,0 +1,26 @@
+{
+  "version": "targeted-supplement-20261018-v1",
+  "purpose": "Additional curated official reference origins for authentication, developer services and finance. Same collection/evidence rules as the first batch; no domain-wide safe labels.",
+  "origins": [
+    "https://www.cursor.com/", "https://windsurf.com/", "https://lovable.dev/",
+    "https://bolt.new/", "https://v0.app/", "https://replit.com/",
+    "https://www.perplexity.ai/", "https://claude.ai/", "https://chatgpt.com/",
+    "https://suno.com/", "https://elevenlabs.io/", "https://runwayml.com/",
+    "https://replicate.com/", "https://www.together.ai/", "https://modal.com/",
+    "https://www.baseten.co/", "https://www.fireworks.ai/", "https://groq.com/",
+    "https://www.cerebras.ai/", "https://www.genspark.ai/", "https://www.manus.im/",
+    "https://www.dify.ai/", "https://n8n.io/", "https://www.langchain.com/",
+    "https://www.jetbrains.com/", "https://www.postman.com/", "https://insomnia.rest/",
+    "https://railway.com/", "https://planetscale.com/", "https://www.cockroachlabs.com/",
+    "https://www.mongodb.com/", "https://www.databricks.com/", "https://www.snowflake.com/",
+    "https://auth0.com/", "https://www.okta.com/", "https://www.keepersecurity.com/",
+    "https://www.dashlane.com/", "https://www.fidelity.com/", "https://www.schwab.com/",
+    "https://www.nationwide.co.uk/", "https://monzo.com/", "https://www.revolut.com/",
+    "https://wise.com/", "https://n26.com/", "https://www.starlingbank.com/",
+    "https://www.hdfcbank.com/", "https://www.icicibank.com/", "https://www.bankofbaroda.in/"
+  ],
+  "per_origin_limit": 20,
+  "per_category_limit": 12,
+  "verify_links_per_origin": 6,
+  "label_caveat": "Operator-reference negatives with observed link/TLS/HTTP evidence, not independently certified safe pages. No account interactions or form submission."
+}

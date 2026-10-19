@@ -7,7 +7,6 @@ export const API_BASE_URL: string =
   import.meta.env.VITE_API_GATEWAY_URL || (import.meta.env.DEV ? '' : 'http://127.0.0.1:8000');
 
 class HttpClient {
-  private allowDeveloperFallback = localStorage.getItem('trustnet_logged_out') !== 'true';
   private token: string | null = localStorage.getItem('trustnet_token');
 
   setToken(token: string | null): void {
@@ -15,11 +14,9 @@ class HttpClient {
     if (token) {
       localStorage.setItem('trustnet_token', token);
       localStorage.removeItem('trustnet_logged_out');
-      this.allowDeveloperFallback = true;
     } else {
       localStorage.removeItem('trustnet_token');
       localStorage.setItem('trustnet_logged_out', 'true');
-      this.allowDeveloperFallback = false;
     }
   }
 
@@ -29,7 +26,7 @@ class HttpClient {
 
   getHeaders(customHeaders: Record<string, string> = {}, requiresAuth: boolean = true): Record<string, string> {
     const headers: Record<string, string> = { ...customHeaders };
-    const effectiveToken = this.token || (import.meta.env.DEV && this.allowDeveloperFallback ? 'mock_jwt_developer_token' : null);
+    const effectiveToken = this.token;
     if (requiresAuth && effectiveToken) {
       headers['Authorization'] = `Bearer ${effectiveToken}`;
     }

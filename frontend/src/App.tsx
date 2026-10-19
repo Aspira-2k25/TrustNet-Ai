@@ -7,6 +7,7 @@ const LandingView = lazy(() => import('./views/LandingView').then(m => ({ defaul
 const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })));
 const ScanUploadView = lazy(() => import('./views/ScanUploadView').then(m => ({ default: m.ScanUploadView })));
 const ReportView = lazy(() => import('./views/ReportView').then(m => ({ default: m.ReportView })));
+const PhishingReport = lazy(() => import('./components/phishing_url/PhishingReport').then(m => ({ default: m.PhishingReport })));
 const LoginView = lazy(() => import('./views/LoginView').then(m => ({ default: m.LoginView })));
 const RegisterView = lazy(() => import('./views/RegisterView').then(m => ({ default: m.RegisterView })));
 import { scanApi } from './services/api/scan.api';
@@ -27,6 +28,7 @@ export function App() {
     }).catch(() => {if (httpClient.getToken() === sessionToken) setUser(null);});
   }, []);
   useEffect(() => {
+    if (!user) { setScans([]); setHistoryError(''); return; }
     let cancelled = false;
     const loadHistory = async () => {
       const loaded = new Map<string, ScanRecord>();
@@ -90,7 +92,10 @@ export function App() {
             />
           )}
 
-          {activeTab === 'report' && selectedScan && (
+          {activeTab === 'report' && selectedScan?.content_type === 'url' && (
+            <PhishingReport scan={selectedScan} onBack={() => setActiveTab('dashboard')}/>
+          )}
+          {activeTab === 'report' && selectedScan && selectedScan.content_type !== 'url' && (
             <ReportView
               scan={selectedScan}
               onBack={() => setActiveTab('dashboard')}

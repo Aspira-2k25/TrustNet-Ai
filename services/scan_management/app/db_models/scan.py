@@ -66,3 +66,12 @@ class ScanAssessment(Base):
     __tablename__ = "scan_assessments"
     scan_id: Mapped[str] = mapped_column(String(100), primary_key=True)
     assessment: Mapped[dict] = mapped_column(JSON, nullable=False)
+
+
+class LinkInspection(Base):
+    __tablename__ = 'scan_link_inspections'
+    scan_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    link_index: Mapped[int] = mapped_column(Integer, primary_key=True)
+    status: Mapped[str] = mapped_column(String(30), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    assessment: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)

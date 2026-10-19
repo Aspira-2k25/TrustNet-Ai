@@ -1,0 +1,90 @@
+{
+  "version": "url-lexical-v1",
+  "ordered_features": [
+    {
+      "name": "url_length",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "host_length",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "path_length",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "query_length",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "host_labels",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "digits",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "hyphens",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "percent_signs",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "has_userinfo",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "is_ip",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "is_idn",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "https",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "explicit_port",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    },
+    {
+      "name": "sensitive_tokens",
+      "type": "float",
+      "missing": false,
+      "source": "offline lexical URL"
+    }
+  ],
+  "metadata_features": []
+}

@@ -10,6 +10,33 @@ VERDICTS={
  'UNABLE_TO_ASSESS':'Unable to assess reliably',
 }
 
+SCAM_ADVANCE_FEE_PATTERN = re.compile(
+    r'\b(?:crypto|bitcoin|usdt|gift\s*card|telegram|whatsapp|western\s*union|moneygram|'
+    r'processing\s*fee|registration\s*fee|security\s*deposit|refundable\s*deposit|'
+    r'part-time\s*job\s*(?:daily|per\s*day|hourly)|earn\s*\$?\d{3,}|'
+    r'like\s*(?:youtube|video|tiktok)|complete\s*tasks?\s*to\s*earn|claim\s*prize|lottery)\b',
+    re.I
+)
+
+LEGITIMATE_ACADEMIC_PATTERN = re.compile(
+    r'\b(?:conference|symposium|call\s*for\s*papers|academic|university|institute|fellowship|'
+    r'research\s*track|registrations?\s*are\s*(?:officially\s*)?open|annual\s*meeting|journal\s*submission)\b',
+    re.I
+)
+
+LEGITIMATE_OFFER_PATTERN = re.compile(
+    r'\b(?:we\s*are\s*pleased\s*to\s*offer|offer\s*of\s*employment|formal\s*offer|employment\s*agreement|'
+    r'annual\s*(?:compensation|salary|ctc)|benefits\s*package|reporting\s*to|joining\s*date|'
+    r'terms\s*of\s*employment|human\s*resources|welcome\s*to\s*(?:the\s*)?team)\b',
+    re.I
+)
+
+TRUSTED_DOMAINS = (
+    '.edu', '.ac.in', '.edu.in', '.org', '.gov', '.gov.in',
+    'greenhouse.io', 'lever.co', 'workday.com', 'docusign.net', 'docusign.com',
+    'smartrecruiters.com', 'myworkdayjobs.com', 'icims.com', 'taleo.net'
+)
+
 def hostname(value):
     try:
         url=value if '://' in value else 'https://'+value
@@ -20,14 +47,40 @@ def enrich(result, request):
     meta=result.metadata
     threshold=float(meta.get('threshold', .4))
     score=result.risk_score/100
-    insufficient=len(re.findall(r'\b\w+\b',request.canonical_text()))<4
+    canonical_text = request.canonical_text()
+    insufficient=len(re.findall(r'\b\w+\b',canonical_text))<4
     evaluated = meta.get('evaluated_domains', ['English SMS'])
     email_evaluated = 'English email' in evaluated
     # Collection-specific evaluation never establishes universal email reliability.
-    outside=(request.message_type=='email' or len(request.canonical_text())>1600) and not email_evaluated
+    outside=(request.message_type=='email' or len(canonical_text)>1600) and not email_evaluated
+
+    has_scam_trigger = bool(SCAM_ADVANCE_FEE_PATTERN.search(canonical_text))
+    is_academic = bool(LEGITIMATE_ACADEMIC_PATTERN.search(canonical_text))
+    is_corporate_offer = bool(LEGITIMATE_OFFER_PATTERN.search(canonical_text))
+
+    has_trusted_link = any(
+        hostname(l.href).endswith(TRUSTED_DOMAINS) or hostname(l.href) in TRUSTED_DOMAINS
+        for l in request.displayed_links
+    ) if request.displayed_links else False
+
+    is_benign_profile = (is_academic or is_corporate_offer) and not has_scam_trigger
+
+    if is_benign_profile and request.message_type == 'email':
+        if score >= 0.50:
+            score = min(score, 0.28 if has_trusted_link else 0.38)
+            result.risk_score = round(score * 100, 1)
+            result.label = 'ham'
+            meta['mitigation'] = {
+                'profile': 'academic_announcement' if is_academic else 'corporate_offer',
+                'reason': 'Professional institutional / employment communication format detected with no advance-fee or fraud indicators.'
+            }
+            if meta.get('message_model'):
+                meta['message_model']['risk_score'] = result.risk_score
+
+    likely_threshold = 0.50 if request.message_type != 'email' else 0.78
     verdict=('UNABLE_TO_ASSESS' if insufficient or (outside and score<threshold)
-             else 'SUSPICIOUS' if outside or result.confidence<.65 or threshold<=score<.5
-             else 'LIKELY_SCAM' if score>=max(.5,threshold) else 'NO_STRONG_INDICATORS')
+             else 'SUSPICIOUS' if outside or result.confidence<.65 or threshold<=score<likely_threshold
+             else 'LIKELY_SCAM' if score>=likely_threshold else 'NO_STRONG_INDICATORS')
     category='phishing/fraud' if verdict=='LIKELY_SCAM' else 'spam' if result.label=='spam' and not outside else 'unknown'
     # Ham annotations cannot distinguish personal, transactional and promotional.
     result.verdict=verdict

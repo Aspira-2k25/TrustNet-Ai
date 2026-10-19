@@ -32,7 +32,8 @@ class AuthService:
             )
             
         hashed_pw = hash_password(req.password)
-        role = req.role or "user"
+        # Public self-registration never grants cross-user privileges.
+        role = "user"
         user = await self.user_repo.create(
             email=req.email,
             hashed_password=hashed_pw,

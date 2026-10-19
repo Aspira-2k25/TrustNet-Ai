@@ -1,4 +1,52 @@
 (() => {
+  const TrustNetExtract = (typeof window !== 'undefined' && window.TrustNetExtract) ||
+    (typeof globalThis !== 'undefined' && globalThis.TrustNetExtract) ||
+    (() => {
+      const shown = el => {
+        if (!el || !el.isConnected) return false;
+        if (el.getAttribute('aria-hidden') === 'true' || el.hidden) return false;
+        try {
+          const style = window.getComputedStyle(el);
+          if (style.display === 'none' || style.visibility === 'hidden') return false;
+        } catch {}
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0 && rect.width === 0) return false;
+        return true;
+      };
+      function opened(root = document) {
+        const bodies = [...root.querySelectorAll('.a3s')].filter(shown);
+        if (bodies.length > 0) {
+          const containers = bodies.map(b => b.closest('.adn') || b.closest('[data-message-id]') || b.closest('[role="listitem"]') || b.parentElement).filter(Boolean);
+          return [...new Set(containers)];
+        }
+        return [...root.querySelectorAll('.adn.ads')].filter(el => !el.closest('.a3s') && shown(el));
+      }
+      function extract(container) {
+        const body = container.querySelector('.a3s') || (container.classList?.contains('a3s') ? container : null);
+        if (!body || !shown(body)) throw new Error('Message is collapsed or not readable. Expand it or paste it into TrustNet.');
+        const subject = document.querySelector('h2.hP')?.innerText || document.querySelector('h2.hP')?.textContent || document.querySelector('[data-thread-perm-id]')?.innerText || '';
+        const text = body.innerText ?? body.textContent;
+        const headerSender = [...container.querySelectorAll('.gD[email]')].find(el => !body.contains(el)) || document.querySelector('.gD[email]');
+        const sender = headerSender?.getAttribute('email') || '';
+        if (!text?.trim()) throw new Error('Selected message has no readable text. Use manual paste.');
+        if (Array.from(text).length + Array.from(subject).length + 2 > 10000) throw new Error('Subject/body exceed 10,000 characters. Paste and explicitly select a shorter section; nothing was silently truncated.');
+        const isWebHref = h => {
+          if (!h || typeof h !== 'string') return false;
+          const lower = h.trim().toLowerCase();
+          if (lower.startsWith('mailto:') || lower.startsWith('tel:') || lower.startsWith('javascript:') || lower.startsWith('#')) return false;
+          return lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('www.');
+        };
+        const anchors = [...body.querySelectorAll('a[href]')].filter(shown);
+        const displayed_links = anchors
+          .map(a => ({ text: (a.innerText || a.textContent || '').trim(), href: (a.getAttribute('href') || '').trim() }))
+          .filter(a => isWebHref(a.href));
+        if (displayed_links.length > 50) throw new Error('More than 50 displayed web links. Use manual paste; links were not silently discarded.');
+        if (displayed_links.some(a => a.href.length > 2048 || a.text.length > 500) || Array.from(subject).length > 500 || sender.length > 320) throw new Error('A link or header exceeds supported length. Use manual paste.');
+        return { message_type: 'email', text, subject: subject.slice(0, 500), claimed_sender: sender.slice(0, 320), reply_to: '', displayed_links, optional_analysis: false };
+      }
+      return { opened, extract, fingerprint: message => JSON.stringify(message) };
+    })();
+
   const installed = new Map();
   let timer;
   const rpc = request => chrome.runtime.sendMessage(request);
@@ -8,6 +56,29 @@
     if (className) element.className = className;
     if (text) element.textContent = text;
     return element;
+  }
+
+  function renderInspection(container, inspection) {
+    container.replaceChildren();
+    if (!inspection) { container.append(el('p', '', 'No inspection snapshot was returned. The quick assessment is unchanged.')); return; }
+    container.append(el('p', '', `Inspection: ${inspection.status}. Snapshot: ${new Date(inspection.updated_at).toLocaleString()}.`));
+    if (inspection.reason) container.append(el('p', '', inspection.reason));
+      const result = inspection.result;
+      if (result && ['SUCCESS', 'PARTIAL_SUCCESS'].includes(result.status)) {
+        container.append(el('p', '', `Separate website assessment: ${result.risk_score}/100. This does not replace the original quick warning.`));
+      }
+    const summary = inspection.summary;
+    if (!summary) return;
+    container.append(el('p', '', summary.scope));
+    container.append(el('h4', '', 'What we observed and why it matters'));
+    for (const item of summary.observations || []) {
+      const card=el('div','tn-explanation');
+      card.append(el('strong','',item.title),el('p','',item.observed),el('p','',`Why it matters: ${item.why_it_matters}`));
+      container.append(card);
+    }
+    container.append(el('h4','','Model assessment'),el('p','',summary.model_assessment));
+    container.append(el('h4','','What we could not check'));
+    for (const item of summary.missing_checks || []) container.append(el('p','',`${item.check.replaceAll('_',' ')}: ${item.reason}`));
   }
 
   // Safe In-Email Highlighting Helper
@@ -94,7 +165,8 @@
 
     const host = el('div', 'trustnet-host-root');
     host.dataset.trustnetControl = 'true';
-    const shadow = host.attachShadow({ mode: 'closed' });
+    host.style.cssText = 'display: block !important; margin: 14px 0 18px 0 !important; width: 100% !important; clear: both !important; position: relative !important; z-index: 1000 !important;';
+    const shadow = host.attachShadow({ mode: 'open' });
 
     const style = el('style', '', `
       :host {
@@ -528,12 +600,13 @@
     shadow.append(style, box);
 
     // Insert directly above email body
-    const bodyEl = message.querySelector('.a3s');
+    const bodyEl = message.querySelector('.a3s') || (message.classList?.contains('a3s') ? message : null);
     if (bodyEl && bodyEl.parentElement) {
       bodyEl.parentElement.insertBefore(host, bodyEl);
     } else {
       message.prepend(host);
     }
+    console.log('[TrustNet Mail] Card injected into message body');
 
     const state = {
       host,
@@ -609,7 +682,7 @@
 
       connectionNote.hidden = true;
       scanTrack.hidden = false;
-      scanStatusText.textContent = 'Extracting message tokens & verifying links…';
+      scanStatusText.textContent = 'Analysing message and embedded links…';
 
       const stepTimer = setTimeout(() => {
         if (state.busy) scanStatusText.textContent = 'Evaluating DistilBERT neural fraud signals…';
@@ -637,19 +710,19 @@
         // 1. Verdict Banner
         let toneClass = 'safe';
         let iconSymbol = '✓';
-        let headline = 'Verified Safe / Low Risk';
-        let subline = 'No active phishing, credential harvesting or scam signals detected.';
+        let headline = 'No strong scam indicators';
+        let subline = 'Limited model assessment. Sender identity and website safety are not verified.';
 
-        if (riskScore >= 60 || result.verdict === 'SMISHING_RISK') {
+        if (result.verdict === 'LIKELY_SCAM' || result.verdict === 'SMISHING_RISK') {
           toneClass = 'danger';
           iconSymbol = '!';
           headline = 'Phishing / Fraud Warning';
           subline = 'High risk deceptive pattern detected. Do not click links or share credentials.';
-        } else if (riskScore >= 20 || meta.assessment_dimensions?.message_category?.value === 'spam') {
+        } else if (['SUSPICIOUS','UNABLE_TO_ASSESS'].includes(result.verdict) || meta.assessment_dimensions?.message_category?.value === 'spam') {
           toneClass = 'warn';
           iconSymbol = 'ℹ';
-          headline = 'Promotional Spam / Caution';
-          subline = 'Marketing broadcast detected with low smishing probability.';
+          headline = result.verdict === 'UNABLE_TO_ASSESS' ? 'Unable to assess reliably' : 'Review recommended';
+          subline = meta.display_verdict || 'Some signals or missing checks require review.';
         }
 
         const banner = el('div', `tn-verdict-banner ${toneClass}`);
@@ -664,6 +737,35 @@
           <div class="tn-score-pill">${riskScore.toFixed(1)} / 100 Risk</div>
         `;
         resultsDeck.append(banner);
+        if (meta.fusion?.links_found) {
+          resultsDeck.append(el('div','tn-explanation',`Message model: ${Number(meta.fusion.message_score).toFixed(1)}/100. Highest URL risk: ${meta.fusion.url_score==null?'Unavailable':Number(meta.fusion.url_score).toFixed(1)+'/100'}. ${meta.fusion.links_assessed}/${meta.fusion.links_found} links assessed. Combined score is a warning index, not a probability.`));
+          for (const [linkIndex, link] of (meta.links || []).entries()) {
+            const isWeb = typeof link.url === 'string' && /^(?:https?:\/\/|www\.)/i.test(link.url.trim());
+            const linkCard=el('div','tn-explanation');
+            linkCard.append(el('p','',`${link.url} — ${link.status}${link.risk_score==null?'':': '+Number(link.risk_score).toFixed(1)+'/100'}. ${link.reason||''}`));
+            const details=el('div');
+            if(link.inspection)renderInspection(details,link.inspection);
+            if(linkIndex<8 && isWeb){
+              const inspectButton=el('button','tn-btn-secondary','Inspect this URL');
+              const notice=el('p','','On request, the backend contacts this destination for bounded DNS, HTTPS and static page checks. Scripts are not run.');
+              inspectButton.onclick=async()=>{
+                if(state.busy)return;
+                const inspectId='inspect-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+                state.id=inspectId;state.busy=true;scanBtn.disabled=true;cancelBtn.hidden=false;inspectButton.disabled=true;
+                details.replaceChildren(el('p','','Inspecting website...'));
+                try{
+                  const inspected=await rpc({action:'INSPECT_LINK',id:inspectId,scanId:response.scan.id,linkIndex});
+                  if(state.id!==inspectId||!message.isConnected||TrustNetExtract.fingerprint(TrustNetExtract.extract(message))!==identity)return;
+                  if(!inspected.ok)throw new Error(inspected.error||'Inspection unavailable');
+                  renderInspection(details,inspected.scan.result.metadata?.links?.[linkIndex]?.inspection);
+                }catch(error){if(state.id===inspectId)details.replaceChildren(el('p','',error.message||'Inspection unavailable. The quick assessment is unchanged.'));}
+                finally{if(state.id===inspectId){state.id='';state.busy=false;scanBtn.disabled=false;cancelBtn.hidden=true;inspectButton.disabled=false;}}
+              };
+              linkCard.append(inspectButton,notice);
+            }
+            linkCard.append(details);resultsDeck.append(linkCard);
+          }
+        }
 
         // 2. Metrics Deck
         const metricsDeck = el('div', 'tn-grid');
@@ -673,12 +775,12 @@
             <div class="tn-stat-val">${meta.assessment_dimensions?.message_category?.value || 'Standard'}</div>
           </div>
           <div class="tn-stat-card">
-            <div class="tn-stat-label">Confidence</div>
-            <div class="tn-stat-val">${(Number(result.confidence || 0) * 100).toFixed(1)}%</div>
+            <div class="tn-stat-label">Message-model confidence</div>
+            <div class="tn-stat-val">${(Number(meta.message_model?.confidence ?? result.confidence ?? 0) * 100).toFixed(1)}%</div>
           </div>
           <div class="tn-stat-card">
             <div class="tn-stat-label">Sender Authenticity</div>
-            <div class="tn-stat-val">${meta.claimed_sender ? 'Unverified Sender' : 'Standard'}</div>
+            <div class="tn-stat-val">Not verified</div>
           </div>
         `;
         resultsDeck.append(metricsDeck);
@@ -699,12 +801,25 @@
         state.flaggedWords = [];
         const chipsFlow = el('div', 'tn-chips-flow');
 
-        // Stopwords to ignore in chip preview to keep UI clean
-        const ignoreList = new Set(['we', 'live', 'gap', 'to', 'for', 'the', 'is', 'in', 'at', 'it']);
+        // Comprehensive stopword set to prevent common grammatical words from appearing as indicators
+        const ignoreList = new Set([
+          'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'as', 'at',
+          'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can', 'could',
+          'did', 'do', 'does', 'doing', 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'gap', 'had', 'has',
+          'have', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'i', 'if',
+          'in', 'into', 'is', 'it', 'its', 'itself', 'just', 'live', 'me', 'more', 'most', 'my', 'myself', 'no', 'nor',
+          'not', 'now', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over',
+          'own', 'same', 'she', 'should', 'so', 'some', 'such', 'than', 'that', 'the', 'their', 'theirs',
+          'them', 'themselves', 'then', 'there', 'these', 'they', 'this', 'those', 'through', 'to', 'too', 'under',
+          'until', 'up', 'very', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom',
+          'why', 'will', 'with', 'would', 'you', 'your', 'yours', 'yourself', 'yourselves'
+        ]);
 
         spans.forEach(s => {
           const rawWord = text.slice(s.start, s.end).join('').trim();
-          if (!rawWord || ignoreList.has(rawWord.toLowerCase())) return;
+          if (!rawWord || ignoreList.has(rawWord.toLowerCase()) || rawWord.length <= 2) return;
+          // Filter out sub-threshold model noise (micro-fluctuations below 1.5% probability sensitivity)
+          if (s.kind === 'model' && Math.abs(s.contribution || 0) < 0.015) return;
 
           let chipClass = 'green';
           let prefix = '✓';
@@ -752,7 +867,8 @@
           const a = points[i];
           const b = points[i + 1];
           const value = spans.filter(s => s.start <= a && s.end >= b).reduce((sum, s) => sum + s.contribution, 0);
-          const part = el(value ? 'mark' : 'span', value > 0 ? 'support' : value < 0 ? 'counter' : '', text.slice(a, b).join(''));
+          const hasSignificantModel = Math.abs(value) >= 0.015;
+          const part = el(hasSignificantModel ? 'mark' : 'span', value >= 0.015 ? 'support' : value <= -0.015 ? 'counter' : '', text.slice(a, b).join(''));
           annotatedBox.append(part);
         }
 
@@ -800,6 +916,9 @@
       }
     }
     for (const message of opened) attach(message);
+    if (opened.size > 0) {
+      console.log('[TrustNet Mail] Active message cards attached:', opened.size);
+    }
   }
 
   new MutationObserver(records => {
@@ -814,5 +933,8 @@
   });
 
   addEventListener('hashchange', refresh);
+  addEventListener('popstate', refresh);
+  setInterval(refresh, 1000);
   refresh();
+  console.log('[TrustNet Mail] Content script initialized on Gmail');
 })();

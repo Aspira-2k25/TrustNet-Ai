@@ -1,0 +1,29 @@
+# Use with: docker compose -f docker-compose.yml -f services/phishing_url/compose.phishing.yml up -d phishing
+services:
+  phishing:
+    build:
+      context: .
+      dockerfile: services/phishing_url/Dockerfile
+    restart: unless-stopped
+    environment:
+      PHISHING_KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      PHISHING_MONGODB_URI: mongodb://mongodb:27017
+      PHISHING_MODEL_MANIFEST: /models/rf.json
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - ./models/phishing_url/checkpoints/baseline:/models:ro
+    depends_on:
+      - kafka
+      - mongodb
+    networks:
+      - trustnet_net
+    ports:
+      - "127.0.0.1:8007:8007"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

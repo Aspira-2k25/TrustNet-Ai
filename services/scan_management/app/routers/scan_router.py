@@ -43,9 +43,7 @@ def get_current_user_id(
     authorization: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None)
 ) -> str:
-    """Extracts and verifies the user_id from x-user-id or Authorization header."""
-    if x_user_id:
-        return x_user_id
+    """Derive ownership from the signed token, never caller-supplied identity headers."""
     if authorization:
         try:
             payload = verify_token(
@@ -54,7 +52,7 @@ def get_current_user_id(
                 algorithm=settings.JWT_ALGORITHM,
                 expected_type="access"
             )
-            return payload.get("sub", "usr-researcher-1")
+            return payload["sub"]
         except TokenVerificationError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -280,6 +278,36 @@ async def create_url_scan(
     db: AsyncSession = Depends(get_db)
 ):
     request_id = generate_request_id()
+    if not settings.KAFKA_ENABLED:
+        # Same local phishing runtime also powers embedded-message link checks.
+        import httpx
+        from shared.schemas.detection_result import DetectionResult
+        from services.scan_management.app.db_models.scan import Scan, ScanAssessment
+        from services.trust_engine.app.services.fusion_engine import fusion_engine
+        scan_id = str(uuid.uuid4())
+        try:
+            async with httpx.AsyncClient(timeout=15, trust_env=False) as client:
+                response = await client.post(settings.PHISHING_SERVICE_URL.rstrip('/') + '/infer', json={'scan_id':scan_id, 'url':req.url})
+                response.raise_for_status()
+                detection = DetectionResult.model_validate(response.json()['data'])
+            if detection.scan_id != scan_id or detection.module.value != 'phishing':
+                raise ValueError('Mismatched phishing result')
+        except (httpx.HTTPError, ValueError, KeyError):
+            raise HTTPException(503, 'Phishing service unavailable or returned an invalid result')
+        trust = fusion_engine.fuse([detection], scan_id).model_dump(mode='json')
+        trust['module_scores'] = {'phishing':detection.risk_score if detection.status in (StatusEnum.SUCCESS, StatusEnum.PARTIAL_SUCCESS) else None}
+        trust['contradiction_detected'] = trust['contradiction_flag']
+        assessment = {'result':detection.model_dump(mode='json'), 'trust_score':trust}
+        scan = Scan(id=scan_id, user_id=user_id, status=detection.status.value, content_type='url', raw_input=req.url,
+                    filename='url.txt', mime_type='text/plain', file_size_bytes=len(req.url.encode()))
+        db.add(scan); db.add(ScanAssessment(scan_id=scan_id, assessment=assessment))
+        try:
+            await db.commit(); await db.refresh(scan)
+        except Exception:
+            await db.rollback()
+            raise HTTPException(503, 'URL assessment could not be saved')
+        scan.saved_assessment = assessment
+        return APIResponse(data=ScanService(db)._to_response(scan), meta=ResponseMeta(request_id=request_id))
     service = ScanService(db)
     result = await service.create_url_scan(user_id=user_id, url=req.url)
     
@@ -297,7 +325,7 @@ async def get_scan_status(
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    filter_user = user_id
     scan = await service.get_scan(scan_id=scan_id, user_id=filter_user)
     
     return APIResponse(
@@ -314,7 +342,7 @@ async def get_scan_by_id(
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    filter_user = user_id
     result = await service.get_scan(scan_id=scan_id, user_id=filter_user)
     
     return APIResponse(
@@ -332,7 +360,7 @@ async def list_scans(
 ):
     request_id = generate_request_id()
     service = ScanService(db)
-    filter_user = None if (x_user_role in ("admin", "researcher") or user_id.startswith("demo_")) else user_id
+    filter_user = user_id
     result = await service.list_scans(user_id=filter_user, page=page, limit=limit)
     
     return APIResponse(

@@ -119,7 +119,7 @@ async def test_get_current_user_me(client):
     body = response.json()
     assert body["error"] is None
     assert body["data"]["email"] == unique_email
-    assert body["data"]["role"] == "researcher"
+    assert body["data"]["role"] == "user"
     assert body["data"]["is_active"] is True
 
 @pytest.mark.anyio

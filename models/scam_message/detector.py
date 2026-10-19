@@ -28,7 +28,7 @@ class ScamDetector:
                     for chunk in iter(lambda: stream.read(1024 * 1024), b''):
                         digest.update(chunk)
                 if digest.hexdigest() != checksum:
-                    raise ValueError('Scam artifact checksum mismatch')
+                    raise ValueError(f'Scam artifact checksum mismatch: {name}')
             from models.scam_message.inference.semantic_detector import SemanticDetector
             self.semantic = SemanticDetector(self.path, self.manifest)
             self.config = self.semantic.config

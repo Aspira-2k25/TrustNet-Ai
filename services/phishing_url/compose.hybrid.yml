@@ -1,0 +1,10 @@
+# Add after compose.phishing.yml once the GPU-trained bundle passes evaluation.
+services:
+  phishing:
+    build:
+      args:
+        PHISHING_HYBRID: "true"
+    environment:
+      PHISHING_MODEL_MANIFEST: /hybrid/manifest.json
+    volumes:
+      - ./models/phishing_url/checkpoints/hybrid:/hybrid:ro

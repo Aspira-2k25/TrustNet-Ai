@@ -389,13 +389,34 @@ function exportMessagePDF(scan: ScanRecord): void {
   const r=scan.result;
   if(r && ['SUCCESS','PARTIAL_SUCCESS'].includes(r.status) && ['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status)) {
     const riskLabel=r.metadata?.evaluated_domains?.includes('English email') ? 'Message-model fraud estimate (limited coverage)' : `SMS-model smishing estimate${r.metadata?.message_type==='email'?' (email calibration unavailable)':''}`;
-    line(`${riskLabel}: ${r.risk_score.toFixed(1)}/100`);
+    line(`${r.metadata?.fusion?.links_found?'Combined message / URL warning index':riskLabel}: ${r.risk_score.toFixed(1)}/100`);
+    if(r.metadata?.fusion?.links_found){
+      const f=r.metadata.fusion;
+      line(`Message model: ${f.message_score}/100. Highest URL risk: ${f.url_score??'Unavailable'}. Links assessed: ${f.links_assessed}/${f.links_found}.`);
+      line(f.definition);
+      (r.metadata.links || []).forEach((link:{url:string;status:string;risk_score?:number;reason?:string;inspection?:import('../components/scam_message/LinkInspection').SavedInspection})=>{
+        line(`${link.url}: ${link.status}; quick URL risk ${link.risk_score??'Unavailable'}. ${link.reason||''}`);
+        const inspection=link.inspection;
+        if(inspection){
+          line(`Separate website inspection: ${inspection.status}. Snapshot: ${inspection.updated_at}.`);
+          if(inspection.reason)line(inspection.reason);
+          if(inspection.summary){
+            line(inspection.summary.scope);
+            line('What we observed and why it matters:');
+            inspection.summary.observations.forEach(item=>{line(`${item.title}: ${item.observed}`);line(`Why it matters: ${item.why_it_matters}`);});
+            line(`Model assessment: ${inspection.summary.model_assessment}`);
+            line('What we could not check:');
+            inspection.summary.missing_checks.forEach(item=>line(`${item.check}: ${item.reason}`));
+          }
+        }
+      });
+    }
     const dimensions=r.metadata?.assessment_dimensions;
     if(dimensions){line(`Category: ${dimensions.message_category.value}. ${dimensions.message_category.reason}`);line(`Sender: ${dimensions.sender_verification.status}. ${dimensions.sender_verification.reason}`);line(`AI authorship: ${dimensions.ai_authorship.status}. ${dimensions.ai_authorship.reason}`);}
     (r.metadata?.sender_link_observations || []).forEach((o:Record<string,unknown>)=>line(Object.entries(o).map(([k,v])=>`${k}: ${String(v)}`).join('; ')));
     (r.metadata?.next_steps || []).forEach((s:string)=>line(s));
     if(r.metadata?.optional_explanation){line(`Optional evidence summary: ${r.metadata.optional_explanation.status}. ${r.metadata.optional_explanation.reason || r.metadata.optional_explanation.method}`);(r.metadata.optional_explanation.evidence || []).forEach((e:{note:string})=>line(e.note));}
-    line(`Prediction confidence: ${(r.confidence*100).toFixed(1)}%. ${r.metadata?.confidence_definition || 'Definition unavailable'}`);
+    line(`Message-model confidence: ${((r.metadata?.message_model?.confidence??r.confidence)*100).toFixed(1)}%. ${r.metadata?.message_model?.confidence_definition || r.metadata?.confidence_definition || 'Definition unavailable'}`);
     line(r.explanation || 'Explanation unavailable');
     line('Original message (non-ASCII codepoints shown as Unicode escapes):');line(scan.raw_input || 'Original message unavailable');
     line(`Signed model evidence (${r.metadata?.attribution_unit || 'logit margin, not probability points'}):`);

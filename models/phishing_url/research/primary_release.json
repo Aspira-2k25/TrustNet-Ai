@@ -1,0 +1,11 @@
+{
+  "title": "Phishing Site URLs",
+  "subtitle": "Malicious and Phishing attacks ulrs",
+  "currentVersionNumber": 1,
+  "lastUpdated": "2020-07-21T20:13:04.897Z",
+  "licenseName": "Database: Open Database, Contents: Database Contents",
+  "description": "### Phishing site Predict dataset\n\nYoutube [Explaination](https://www.youtube.com/watch?v=zKNXHluHneU) \n\n### Content\n\n* Data is containg  5,49,346 entries.\n* There are two columns.\n* Label column is prediction col which has 2 categories \n    A. Good - which means the URLs is not containing malicious stuff and **this site is not a Phishing Site.**\n    B. Bad - which means the URLs contains malicious stuff and **this site is a Phishing Site.**\n* There is no missing value in the dataset.\n\nSee  Live Attack [here](https://threatmap.checkpoint.com/)\n\n\n\n\n### Inspiration\n\nI Love this data set since start data scientist so thought why don't create the ML model which can predict phishing sites, So Finally i created this data now everyone can perform on this. \nThank You.",
+  "metadata_sha256": "99a3807fc7b5c1ce929e2ffd4953b39a07122dfc6a80477aa589f985e5ccf167",
+  "archive_sha256": "d2076cdfb371b9da65b7b8b8fcf71d2b1a7544f5002345fde0e5f15c9d6eb61f",
+  "approved_source": "https://www.kaggle.com/datasets/taruntiwarihp/phishing-site-urls"
+}

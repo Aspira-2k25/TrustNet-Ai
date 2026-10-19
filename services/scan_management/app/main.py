@@ -10,6 +10,7 @@ from services.scan_management.app.config.settings import settings
 from services.scan_management.app.database.session import init_db
 from services.scan_management.app.core.broker import publisher
 from services.scan_management.app.routers.scan_router import router as scan_router
+from services.scan_management.app.routers.link_inspection_router import router as link_inspection_router
 
 logger = get_logger(settings.SERVICE_NAME)
 
@@ -51,6 +52,7 @@ app.add_middleware(
 
 # Include Scan Router
 app.include_router(scan_router)
+app.include_router(link_inspection_router)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):

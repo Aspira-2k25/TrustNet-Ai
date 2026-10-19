@@ -1,0 +1,22 @@
+# Python 3.11; install CPU torch separately with scripts/setup/install-scam.ps1.
+torch==2.6.0
+transformers==4.50.3
+numpy==2.4.6
+scikit-learn==1.7.2
+scipy>=1.13,<2
+safetensors>=0.4,<1
+regex==2026.9.29
+fastapi>=0.110,<1
+uvicorn>=0.29,<1
+pydantic>=2.6,<3
+pydantic-settings>=2,<3
+httpx==0.28.1
+sqlalchemy[asyncio]>=2,<3
+aiosqlite>=0.20,<1
+email-validator>=2,<3
+PyJWT>=2.8,<3
+bcrypt>=4,<6
+python-multipart>=0.0.9,<1
+Pillow>=10.4,<13
+aiokafka>=0.12,<1
+PyYAML>=6,<7

@@ -55,7 +55,7 @@ services:
     image: mongo:7.0
     container_name: trustnet_mongodb
     ports:
-      - "27017:27017"
+      - "${MONGO_HOST_PORT:-27017}:27017"
     volumes:
       - mongodb_data:/data/db
     healthcheck:

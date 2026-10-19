@@ -36,7 +36,7 @@ export const authApi = {
   async register(
     email: string,
     password: string,
-    role: string = 'researcher'
+    role: string = 'user'
   ): Promise<{ user: User; token: string }> {
     const res = await httpClient.request<{ data: AuthResponse; status: string }>(
       '/api/v1/auth/register',

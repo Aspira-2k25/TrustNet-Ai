@@ -17,6 +17,23 @@ from models.scam_message.configs.runtime import load_runtime
 from models.scam_message.explainability.occlusion import measure_spans
 from models.scam_message.preprocessing.links import feature_matrix, FEATURE_NAMES
 
+STOPWORDS = {
+    'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'aren\'t', 'as', 'at',
+    'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'can\'t', 'cannot', 'could',
+    'couldn\'t', 'did', 'didn\'t', 'do', 'does', 'doesn\'t', 'doing', 'don\'t', 'down', 'during', 'each', 'few', 'for',
+    'from', 'further', 'had', 'hadn\'t', 'has', 'hasn\'t', 'have', 'haven\'t', 'having', 'he', 'he\'d', 'he\'ll', 'he\'s',
+    'her', 'here', 'here\'s', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'how\'s', 'i', 'i\'d', 'i\'ll', 'i\'m',
+    'i\'ve', 'if', 'in', 'into', 'is', 'isn\'t', 'it', 'it\'s', 'its', 'itself', 'let\'s', 'me', 'more', 'most', 'mustn\'t',
+    'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours',
+    'ourselves', 'out', 'over', 'own', 'same', 'shan\'t', 'she', 'she\'d', 'she\'ll', 'she\'s', 'should', 'shouldn\'t',
+    'so', 'some', 'such', 'than', 'that', 'that\'s', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there',
+    'there\'s', 'these', 'they', 'they\'d', 'they\'ll', 'they\'re', 'they\'ve', 'this', 'those', 'through', 'to', 'too',
+    'under', 'until', 'up', 'very', 'was', 'wasn\'t', 'we', 'we\'d', 'we\'ll', 'we\'re', 'we\'ve', 'were', 'weren\'t',
+    'what', 'what\'s', 'when', 'when\'s', 'where', 'where\'s', 'which', 'while', 'who', 'who\'s', 'whom', 'why', 'why\'s',
+    'with', 'won\'t', 'would', 'wouldn\'t', 'you', 'you\'d', 'you\'ll', 'you\'re', 'you\'ve', 'your', 'yours', 'yourself',
+    'yourselves'
+}
+
 
 class SemanticDetector:
     def __init__(self, path: Path, manifest: dict):
@@ -112,19 +129,23 @@ class SemanticDetector:
                           'note': 'Extracted link; analysis unavailable', 'contribution': 0, 'direction': 'observation'})
 
         # Context chooses possible spans only; it never alters the prediction.
-        # Add uniform samples across the whole text so candidates include its tail.
+        # Add uniform samples across meaningful content words so candidates avoid stopwords and short tokens.
         words = list(re.finditer(r'\b[A-Za-z][A-Za-z\d\'-]{1,}\b', text))
+        content_words = [m for m in words if m.group().lower() not in STOPWORDS and len(m.group()) > 2]
         candidates = [(s['start'], s['end']) for s in context[:6]]
-        if words:
-            candidates += [(words[i].start(), words[i].end())
-                           for i in np.linspace(0, len(words) - 1, 8, dtype=int)]
+        pool = content_words if content_words else words
+        if pool:
+            sample_count = min(8, len(pool))
+            candidates += [(pool[i].start(), pool[i].end())
+                           for i in np.linspace(0, len(pool) - 1, sample_count, dtype=int)]
         candidates = list(dict.fromkeys(candidates))[:12]
         attribution_start = time.perf_counter()
-        model_spans, evidence, partial, _ = measure_spans(
+        model_spans, evidence, timed_out, _ = measure_spans(
             self.probabilities, text, score, candidates,
             float(self.config.get('occlusion_budget_seconds', 3)),
             estimated_call_seconds=prediction_seconds,
         )
+        partial = timed_out
         spans.extend(model_spans)
         measured = self.manifest['evaluation'].get('final_holdout')
         limitations = [
@@ -149,10 +170,11 @@ class SemanticDetector:
             ])
         if len(text) > 1500 and not measured:
             limitations.append('Long/email input is outside validated SMS coverage; all windows were processed without silent tail truncation.')
-        if partial:
-            limitations.append('Attribution stopped at its time budget; displayed evidence is partial.')
-        if not evidence and candidates:
-            limitations.append('A masked prediction was estimated to exceed the attribution budget; model highlights are unavailable for this request.')
+        if timed_out:
+            if not evidence and candidates:
+                limitations.append('A masked prediction was estimated to exceed the attribution budget; model highlights are unavailable for this request.')
+            else:
+                limitations.append('Attribution stopped at its time budget; displayed evidence is partial.')
         return DetectionResult(
             scan_id=scan_id, module='scam_message', detector_id=self.manifest.get('detector_id', 'scam_message.distilbert-hybrid.v2' if self.hybrid else 'scam_message.distilbert.v1'),
             model_version=self.manifest['model_version'], preprocessing_version=self.manifest.get('preprocessing_version', 'unicode-window384-stride64-tfidf-mixture.v2' if self.hybrid else 'unicode-window384-stride64.v1'),
