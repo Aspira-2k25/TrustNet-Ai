@@ -101,14 +101,7 @@ def combine(result, links):
     has_failed_check = any(l.get('status') == 'UNAVAILABLE' and l.get('reason') != 'URL assessment limit reached; not analysed' for l in links[:MAX_LINKS])
     no_links_assessed = len(assessed) == 0 and len(links) > 0
     needs_attention = review or no_links_assessed or has_failed_check
-    if meta.get('mitigation') and not flagged:
-        needs_attention = False
-        if url_score is not None and url_score <= 50:
-            combined = text_score
-        else:
-            combined = max(text_score, url_score if url_score is not None else text_score)
-    else:
-        combined = max(text_score, url_score if url_score is not None else text_score)
+    combined = max(text_score, url_score if url_score is not None else text_score)
     meta['message_model'] = dict(risk_score=text_score, verdict=text_verdict, confidence=result.confidence,
                                 model_version=result.model_version, confidence_definition=meta.get('confidence_definition'))
     meta['links'] = links
@@ -124,9 +117,6 @@ def combine(result, links):
     elif needs_attention and text_verdict == 'NO_STRONG_INDICATORS':
         result.verdict = 'SUSPICIOUS'
         meta['display_verdict'] = 'Review recommended — embedded link checks need attention'
-    elif meta.get('mitigation') and not flagged:
-        result.verdict = text_verdict
-        meta['display_verdict'] = meta.get('display_verdict', 'No strong scam indicators detected')
     if flagged or review:
         result.explanation = (result.explanation or '') + ' Embedded URL analysis also found a phishing risk or details requiring review.'
     meta['assessment_dimensions']['embedded_urls'] = dict(status=meta['fusion']['status'], score=url_score,

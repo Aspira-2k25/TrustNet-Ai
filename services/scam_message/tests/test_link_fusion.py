@@ -66,7 +66,7 @@ def test_url_limit_is_explicit_and_corrupt_response_rejected():
     assert len(links)==10 and all(link.get('risk_score') is None for link in links)
     assert links[-1]['reason']=='URL assessment limit reached; not analysed'
 
-def test_genuine_academic_announcement_and_offer_not_flagged_as_scam():
+def test_professional_wording_never_suppresses_an_existing_warning():
     req_academic = MessageInput(
         message_type='email',
         text='ConfAI 2026 Academic Conference Announcement at Plaksha University. Registrations are officially open.',
@@ -80,8 +80,9 @@ def test_genuine_academic_announcement_and_offer_not_flagged_as_scam():
     )
     res_academic = enrich(raw_academic, req_academic)
     fused_academic = combine(res_academic, [{'url':'https://www.conf-ai.in/','status':'PARTIAL_SUCCESS','risk_score':38.0,'verdict':'REVIEW_RECOMMENDED'}])
-    assert fused_academic.verdict == 'NO_STRONG_INDICATORS'
-    assert fused_academic.risk_score <= 40
+    assert fused_academic.verdict == 'LIKELY_SCAM'
+    assert fused_academic.risk_score == 92
+    assert 'mitigation' not in fused_academic.metadata
 
     req_offer = MessageInput(
         message_type='email',
@@ -96,8 +97,8 @@ def test_genuine_academic_announcement_and_offer_not_flagged_as_scam():
     )
     res_offer = enrich(raw_offer, req_offer)
     fused_offer = combine(res_offer, [{'url':'https://careers.example.com/','status':'PARTIAL_SUCCESS','risk_score':25.0,'verdict':'REVIEW_RECOMMENDED'}])
-    assert fused_offer.verdict == 'NO_STRONG_INDICATORS'
-    assert fused_offer.risk_score <= 40
+    assert fused_offer.verdict == 'SUSPICIOUS'
+    assert fused_offer.risk_score == 75
 
 def test_real_recruitment_scam_with_advance_fee_still_flagged():
     req_scam = MessageInput(
