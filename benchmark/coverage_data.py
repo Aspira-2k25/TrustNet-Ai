@@ -61,10 +61,15 @@ class RemoteZIP(io.RawIOBase):
         length=self.size-self.position if n<0 else min(n,self.size-self.position)
         value=self.block(self.position,length);self.position+=length;return value
     def member(self,info):
-        header=self.block(info.header_offset,30)
+        # Fetch the local header and compressed member in one validated range.
+        # The slack covers ordinary local extra fields; unusually large extras
+        # fall back to a second exact read rather than guessing offsets.
+        length=min(self.size-info.header_offset,30+len(info.filename.encode('utf-8'))+512+info.compress_size)
+        chunk=self.block(info.header_offset,length);header=chunk[:30]
         if header[:4]!=b'PK\x03\x04':raise ValueError('Invalid ZIP header')
         name,extra=struct.unpack_from('<HH',header,26)
-        payload=self.block(info.header_offset+30+name+extra,info.compress_size)
+        offset=30+name+extra
+        payload=chunk[offset:offset+info.compress_size] if offset+info.compress_size<=len(chunk) else self.block(info.header_offset+offset,info.compress_size)
         data=zlib.decompress(payload,-15) if info.compress_type==8 else payload if info.compress_type==0 else None
         if data is None or len(data)!=info.file_size or zlib.crc32(data)!=info.CRC:raise ValueError('Archive integrity failure')
         return data

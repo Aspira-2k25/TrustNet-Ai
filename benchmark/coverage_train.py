@@ -121,10 +121,17 @@ def features(out,doc,test=False):
     for start in range(0,len(pending),16):
         group=pending[start:start+16];images=[view(out,row,v) for row,v in group]
         batch=model.processor(images=[x[0] for x in images],size={'height':224,'width':224},return_tensors='pt')
-        with torch.inference_mode():emb=model.model.vit(**batch,interpolate_pos_encoding=True).last_hidden_state[:,0].cpu().numpy()
+        with torch.inference_mode():
+            emb=model.model.vit(**batch,interpolate_pos_encoding=True).last_hidden_state[:,0].cpu().numpy()
+            baseline=None
+            if test:
+                original_view=model.processor(images=[x[0] for x in images],return_tensors='pt')
+                baseline=torch.sigmoid(model.model(**original_view).logits[:,0]).cpu().numpy()
         with path.open('a',encoding='utf-8') as stream:
-            for (row,v),(_,sha),vector in zip(group,images,emb):
-                record={k:row[k] for k in ['identity','family','split','source','generator','positive','schedule']};record.update(view=v,view_sha256=sha,embedding=vector.tolist());stream.write(json.dumps(record)+'\n');existing.append(record)
+            for index,((row,v),(_,sha),vector) in enumerate(zip(group,images,emb)):
+                record={k:row[k] for k in ['identity','family','split','source','generator','positive','schedule']};record.update(view=v,view_sha256=sha,embedding=vector.tolist())
+                if baseline is not None:record['baseline_primary_raw']=float(baseline[index])
+                stream.write(json.dumps(record)+'\n');existing.append(record)
         if start%128==0:print('Frozen features',start+len(group),'/',len(pending),'elapsed',round(time.monotonic()-started),'seconds',flush=True)
     return existing
 
@@ -165,7 +172,10 @@ def evaluate(out,doc,head):
     for split in ['test','seen_test']:
         indexes=np.array([r['split']==split for r in data]);group=[r for r in data if r['split']==split]
         results[split]=summary(group,prob[indexes]);results[split]['by_generator']={g:summary([r for r in group if r['generator']==g],prob[np.array([r['split']==split and r['generator']==g for r in data])]) for g in sorted({r['generator'] for r in group})};results[split]['by_real_source']={g:summary([r for r in group if r['source']==g and not r['positive']],prob[np.array([r['split']==split and r['source']==g and not r['positive'] for r in data])]) for g in sorted({r['source'] for r in group if not r['positive']})}
-    report={'candidate_sha256':digest(out/'candidate.json'),'manifest_sha256':digest(out/'manifest.json'),'threshold':threshold,'results':results,'limits':doc['limitations']+['Wilson assumes independent photos; correlated camera/scene captures weaken that assumption.','No deployment promotion or authenticity enablement follows from classifier metrics alone.']}
+    baseline_threshold=.3546251223812103
+    baseline=np.asarray([r['baseline_primary_raw']>=baseline_threshold for r in data]);test_indexes=np.array([r['split']=='test' for r in data]);truth=np.array([r['positive'] for r in data]);real=test_indexes&~truth;fake=test_indexes&truth
+    prior={'real_fpr':float(np.mean(baseline[real])),'real_fpr_wilson95':wilson(int(sum(baseline[real])),int(sum(real))),'generated_recall':float(np.mean(baseline[fake])),'ai_stream_inconclusive_rate':float(np.mean(~baseline[test_indexes])),'scope':'Frozen existing primary-model alert boundary, generation stream only. Manipulation/provenance/authenticity decisions require separate paired pipeline checks.'}
+    report={'candidate_sha256':digest(out/'candidate.json'),'manifest_sha256':digest(out/'manifest.json'),'threshold':threshold,'baseline_ai_stream':prior,'results':results,'limits':doc['limitations']+['Wilson assumes independent photos; correlated camera/scene captures weaken that assumption.','No deployment promotion or authenticity enablement follows from classifier metrics alone.']}
     (out/'holdout-report.json').write_text(json.dumps(report,indent=2),encoding='utf-8');print(json.dumps(report,indent=2),flush=True)
     target=out/'holdout-predictions.jsonl'
     with target.open('w',encoding='utf-8') as stream:
