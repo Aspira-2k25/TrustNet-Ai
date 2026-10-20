@@ -1,6 +1,6 @@
 # Selected model: message-distilbert-lexical-links-hybrid-4
 
-Current runtime adds explicit rule warnings and language coverage handling. The accuracy figures below are historical selected-weight results, not a measurement of the changed runtime. The small multilingual comparison and current limitations are recorded in `benchmark/results/reference-evaluation.json`. Live Gmail and the browser download action remain unverified.
+Current runtime adds explicit rule warnings and language coverage handling. The accuracy figures below are historical selected-weight results, not a measurement of the changed runtime. The small multilingual comparison and current limitations are recorded in `benchmark/results/reference-evaluation.json`. Live Gmail extraction remains unverified. Image and message PDF downloads were verified in the browser with a synthetic local QA account.
 
 Local three-class English SMS/email screening: ham, phishing/smishing/fraud (legacy class name `smishing`), and unsolicited spam. Sender verification and AI authorship are not implemented. Contemporary inbox reliability and multilingual/Hinglish performance are not established.
 
