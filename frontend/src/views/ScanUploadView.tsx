@@ -1,106 +1,27 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Image, Film, Mic, Globe, MessageSquare, Star } from 'lucide-react';
+import { useState } from 'react';
+import { Image, Link, MessageSquare, ScanLine } from 'lucide-react';
 import type { ScanRecord } from '../types';
 import { ImageScanView } from './image/ImageScanView';
 import { ScamMessageScanView } from './scam_message/ScamMessageScanView';
 import { PhishingScanView } from './phishing_url/PhishingScanView';
 
-interface ScanUploadViewProps {
-  onScanCompleted: (scan: ScanRecord) => void;
-  onViewReport: (scan: ScanRecord) => void;
-}
+export type ModalityType = 'image' | 'phishing' | 'scam_message';
+interface Props { onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void }
 
-export type ModalityType = 'image' | 'video' | 'audio' | 'phishing' | 'scam_message' | 'fake_review';
-
-export const ScanUploadView: React.FC<ScanUploadViewProps> = ({ onScanCompleted, onViewReport }) => {
-  const [selectedModality, setSelectedModality] = useState<ModalityType>('image');
-
-  const modalityTabs = [
-    {
-      id: 'image' as const,
-      label: 'Deepfake Photos',
-      icon: <Image size={16} />,
-    },
-    {
-      id: 'video' as const,
-      label: 'Deepfake Videos',
-      icon: <Film size={16} />,
-    },
-    {
-      id: 'audio' as const,
-      label: 'Voice Clones',
-      icon: <Mic size={16} />,
-    },
-    {
-      id: 'phishing' as const,
-      label: 'Phishing Websites',
-      icon: <Globe size={16} />,
-    },
-    {
-      id: 'scam_message' as const,
-      label: 'Scam Messages',
-      icon: <MessageSquare size={16} />,
-    },
-    {
-      id: 'fake_review' as const,
-      label: 'Fake Reviews (CSV Batch)',
-      icon: <Star size={16} />,
-    },
+export function ScanUploadView({ onScanCompleted, onViewReport }: Props) {
+  const [selected, setSelected] = useState<ModalityType>('image');
+  const modules = [
+    { id: 'image' as const, name: 'Image', icon: Image },
+    { id: 'phishing' as const, name: 'URL', icon: Link },
+    { id: 'scam_message' as const, name: 'Message', icon: MessageSquare },
   ];
-
-  return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 rounded-full bg-[#111d38] border border-[#1e3a5f] text-[#00b4d8] text-xs font-bold shadow-sm">
-          <ShieldCheck size={14} className="text-[#00b4d8]" />
-          <span>TrustNet AI Multi-Threat Scanner</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#f8fafc] font-serif tracking-tight mb-2">
-          What Would You Like to Check?
-        </h1>
-        <p className="text-xs sm:text-sm text-[#94a3b8]">
-          Image, phishing URL and limited-coverage English SMS/email assessments use connected services. Other modules are awaiting implementation.
-        </p>
-      </div>
-
-      {/* 6 Clean Category Switcher Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-10 p-1.5 bg-[#080e20] border border-[#1e3a5f] rounded-2xl max-w-4xl mx-auto shadow-3d-card">
-        {modalityTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSelectedModality(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              selectedModality === tab.id
-                ? 'bg-[#0077b6] text-white shadow-3d-sm'
-                : 'text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#111d38]'
-            }`}
-          >
-            {tab.icon}
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Dynamic Active Modality View */}
-      <div>
-        {!['image', 'scam_message', 'phishing'].includes(selectedModality) && (
-          <div role="status" className="rounded-2xl border border-[#1e3a5f] bg-[#111d38] p-8 text-center">
-            <h2 className="text-lg font-semibold text-[#f8fafc]">Analysis unavailable</h2>
-            <p className="mt-3 text-sm text-[#94a3b8]">This module has no validated inference integration yet. No assessment or history entry is created.</p>
-          </div>
-        )}
-        {selectedModality === 'image' && (
-          <ImageScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport} />
-        )}
-        {selectedModality === 'scam_message' && (
-          <ScamMessageScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport} />
-        )}
-        {selectedModality === 'phishing' && (
-          <PhishingScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport} />
-        )}
-      </div>
+  return <div className="workspace-page checker-page">
+    <div className="checker-intro"><div className="page-intro"><h1>A closer look.<br/>A clearer decision.</h1><p>Check a photo, message or link before you trust it. Get a clear assessment, the reasons behind it and the limits of each check.</p></div><div className="workspace-principle"><ScanLine size={52} strokeWidth={1.2} aria-hidden="true"/><p>Evidence you can inspect.<br/><strong>Uncertainty you can see.</strong></p></div></div>
+    <div className="module-switch" role="group" aria-label="Content type">
+      {modules.map(({id,name,icon:Icon}) => <button key={id} aria-pressed={selected===id} onClick={()=>setSelected(id)}><Icon size={18} aria-hidden="true"/>{name}</button>)}
     </div>
-  );
-};
+    {selected === 'image' && <ImageScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport}/>}
+    {selected === 'phishing' && <PhishingScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport}/>}
+    {selected === 'scam_message' && <ScamMessageScanView onScanCompleted={onScanCompleted} onViewReport={onViewReport}/>}
+  </div>;
+}

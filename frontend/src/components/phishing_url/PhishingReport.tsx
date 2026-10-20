@@ -1,3 +1,4 @@
+import { AssessmentNotice } from '../AssessmentNotice';
 import type { ScanRecord } from '../../types';
 import { jsPDF } from 'jspdf';
 import { PhishingAnalysis } from './PhishingAnalysis';
@@ -18,7 +19,7 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
   const opinion=reportOpinion(scan);
   const summary=urlReportSummary(scan);
   const domainMatch=forensic?.visual_domain_match;
-  const rows=[title,`Scan ID: ${scan.id}`,`URL: ${url}`,
+  const rows=['This tool can make mistakes. Results are indicators, not proof. Verify important decisions independently.',title,`Scan ID: ${scan.id}`,`URL: ${url}`,
     `Risk score: ${summary.risk!==null?`${summary.risk.toFixed(1)} / 100 (higher means more risk)`:'not available'}`,
     `Trust score: ${summary.trust!==null?`${summary.trust.toFixed(1)} / 100 (100 minus risk; higher means less detected risk)`:'not available'}`,
     `Assessment confidence: ${summary.confidence}. ${summary.confidenceReason} Qualitative evidence assessment, not a validated statistical confidence percentage.`,
@@ -56,37 +57,37 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
     }
     pdf.save(`phishing-${scan.id}.pdf`);
   };
-  const panel='rounded-2xl border border-[#1e3a5f] bg-[#0b132b] p-6 space-y-4';
-  return <section className="max-w-5xl mx-auto p-6 space-y-5 text-slate-200">
-    <button onClick={onBack} className="text-sky-300">Back to history</button>
+  const panel='rounded-2xl border border-[#cbd3d7] bg-white p-6 space-y-4';
+  return <section className="max-w-5xl mx-auto p-6 space-y-5 text-slate-700">
+    <button onClick={onBack} className="text-[#24695b]">Back to history</button>
+    <AssessmentNotice/>
     <div className={panel}>
       <h1 className="text-2xl font-bold">{title}</h1>
       {legacy?<p>Submit a new scan to apply the current detector and live checks.</p>:score!==null?
-        <div className="space-y-3"><div className="grid sm:grid-cols-3 gap-3">
-          <div className="rounded-xl border border-rose-400/30 bg-rose-950/20 p-4"><p className="text-sm text-rose-200">Risk score</p><p className="text-3xl font-bold mt-2">{summary.risk?.toFixed(1)}<span className="text-sm text-slate-400"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-rose-400" style={{width:`${summary.risk ?? 0}%`}} /></div><p className="text-xs text-slate-400 mt-2">Higher means more detected risk.</p></div>
-          <div className="rounded-xl border border-emerald-400/30 bg-emerald-950/20 p-4"><p className="text-sm text-emerald-200">Trust score</p><p className="text-3xl font-bold mt-2">{summary.trust?.toFixed(1)}<span className="text-sm text-slate-400"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-emerald-400" style={{width:`${summary.trust ?? 0}%`}} /></div><p className="text-xs text-slate-400 mt-2">100 − risk score. Higher means less detected risk.</p></div>
-          <div className="rounded-xl border border-sky-400/30 bg-sky-950/20 p-4"><p className="text-sm text-sky-200">Assessment confidence</p><p className="text-xl font-bold mt-2">{summary.confidence}</p><p className="text-xs text-slate-300 mt-3">{summary.confidenceReason}</p></div>
-        </div><p className="text-xs text-slate-400">Trust and risk are complementary display indices, not probabilities or ownership verification. Confidence describes the available evidence qualitatively; a validated confidence percentage is not available.</p></div>:
-        <div className="space-y-2"><p className="text-amber-200">{result?.explanation || 'We could not complete this URL check. Please try again.'}</p><p className="text-sm text-slate-400">Risk score: unavailable · Trust score: unavailable · Assessment confidence: {summary.confidence}</p><p className="text-xs text-slate-400">{summary.confidenceReason}</p></div>}
-      <p className="break-all rounded-xl bg-[#111d38] p-3 font-mono text-sm">{url}</p>
-      <div className="flex flex-wrap gap-3"><button onClick={exportPdf} className="px-4 py-2 bg-[#0077b6] rounded-lg">Export report</button></div>
+        <div className="space-y-3"><div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border border-rose-400/30 bg-rose-50 p-4"><p className="text-sm text-rose-800">Risk score</p><p className="text-3xl font-bold mt-2">{summary.risk?.toFixed(1)}<span className="text-sm text-slate-600"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-rose-400" style={{width:`${summary.risk ?? 0}%`}} /></div><p className="text-xs text-slate-600 mt-2">Higher means more detected risk.</p></div>
+          <div className="rounded-xl border border-sky-400/30 bg-slate-50 p-4"><p className="text-sm text-[#24695b]">Assessment confidence</p><p className="text-xl font-bold mt-2">{summary.confidence}</p><p className="text-xs text-slate-700 mt-3">{summary.confidenceReason}</p></div>
+        </div><p className="text-xs text-slate-600">Risk is a warning index, not a probability or ownership verification. Confidence describes the available evidence qualitatively; a validated confidence percentage is not available.</p></div>:
+        <div className="space-y-2"><p className="text-amber-900">{result?.explanation || 'We could not complete this URL check. Please try again.'}</p><p className="text-sm text-slate-600">Risk score: unavailable · Trust score: unavailable · Assessment confidence: {summary.confidence}</p><p className="text-xs text-slate-600">{summary.confidenceReason}</p></div>}
+      <p className="break-all rounded-xl bg-white p-3 font-mono text-sm">{url}</p>
+      <div className="flex flex-wrap gap-3"><button onClick={exportPdf} className="px-4 py-2 bg-[#24695b] rounded-lg">Export report</button></div>
     </div>
     {!legacy && <PhishingAnalysis scan={scan} />}
     {forensic && <div className={panel}><h2 className="font-bold">Live checks and destination</h2>
       <p className="text-sm break-all">Actual hostname: {forensic.hostname || 'No website hostname in this link'}</p><p className="text-sm">Registered domain: {forensic.registered_domain || 'not established'}</p>
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">{['dns','tls','http','html','registration','reputation'].map(name=>{
         const state=String(signals[name]?.status || 'not available').toLowerCase();
-        return <div key={name} className="rounded-xl border border-[#1e3a5f] p-3 text-sm"><p className="font-semibold">{name==='http'?'Page and redirects':name==='html'?'Page forms':name==='registration'?'Domain registration':name==='reputation'?'Threat reputation':name.toUpperCase()}</p><p className={state==='observed'?'text-emerald-300':'text-slate-400'}>{state==='observed'?'Checked':state==='rate_limited'?'Provider limit reached':'Not available'}</p></div>;
+        return <div key={name} className="rounded-xl border border-[#cbd3d7] p-3 text-sm"><p className="font-semibold">{name==='http'?'Page and redirects':name==='html'?'Page forms':name==='registration'?'Domain registration':name==='reputation'?'Threat reputation':name.toUpperCase()}</p><p className={state==='observed'?'text-emerald-800':'text-slate-600'}>{state==='observed'?'Checked':state==='rate_limited'?'Provider limit reached':'Not available'}</p></div>;
       })}</div>
-      <p className="text-xs text-slate-400">Checked does not mean safe. A missing threat-database match is not a clean verdict.</p>
+      <p className="text-xs text-slate-600">Checked does not mean safe. A missing threat-database match is not a clean verdict.</p>
       {forensic.network.domain_age_days!=null && <p className="text-sm">Observed domain age: {forensic.network.domain_age_days} days.</p>}
     </div>}
     {(certificate || hops.length>0 || forensic?.path_analysis?.path) && <div className={panel}>
       <h2 className="font-bold">Certificate and navigation analysis</h2>
-      {certificate && <div className="text-sm space-y-1 break-all"><p>{signals.tls?.validated === false?'TLS certificate verification failed.':signals.tls?.validated === true || (signals.tls?.status?.toLowerCase()==='observed' && signals.tls?.certificate)?'TLS certificate chain and hostname verified.':'TLS verification outcome was not recorded.'}</p><p>Issuer: {certificate.issuer}</p><p>Signature: {certificate.signature_hash || certificate.signature_algorithm_oid} · Key: {certificate.public_key_type} {certificate.public_key_bits || ''}</p><p>Expires: {certificate.not_after}</p><p>Revocation: not checked.</p><p className="text-xs text-slate-400">A valid certificate protects the connection; it does not prove the site is legitimate.</p></div>}
+      {certificate && <div className="text-sm space-y-1 break-all"><p>{signals.tls?.validated === false?'TLS certificate verification failed.':signals.tls?.validated === true || (signals.tls?.status?.toLowerCase()==='observed' && signals.tls?.certificate)?'TLS certificate chain and hostname verified.':'TLS verification outcome was not recorded.'}</p><p>Issuer: {certificate.issuer}</p><p>Signature: {certificate.signature_hash || certificate.signature_algorithm_oid} · Key: {certificate.public_key_type} {certificate.public_key_bits || ''}</p><p>Expires: {certificate.not_after}</p><p>Revocation: not checked.</p><p className="text-xs text-slate-600">A valid certificate protects the connection; it does not prove the site is legitimate.</p></div>}
       {forensic?.path_analysis?.path && <p className="text-sm break-all">Inspected path: {forensic.path_analysis.path} · {forensic.path_analysis.segments} segments. Redirect parameters are inspected without following them.</p>}
       {hops.map((hop:{url:string;status_code:number},i:number)=><p key={i} className="text-sm break-all">{i+1}. HTTP {hop.status_code} — {hop.url}</p>)}
-      <p className="text-xs text-slate-400">Only observed HTTP redirects are followed, with a three-redirect limit and public-address validation at every hop. Page links are not crawled.</p>
+      <p className="text-xs text-slate-600">Only observed HTTP redirects are followed, with a three-redirect limit and public-address validation at every hop. Page links are not crawled.</p>
     </div>}
     <div className={panel}><h2 className="font-bold">Recommended action</h2>{(meta.next_steps || ['Verify unexpected requests independently before entering credentials.']).map((s:string)=><p key={s} className="text-sm">{s}</p>)}</div>
     <details className={panel}><summary className="cursor-pointer font-bold">Technical details and limitations</summary>
@@ -95,9 +96,9 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
       {meta.threshold!=null && <p className="text-sm">Model alert threshold: {(Number(meta.threshold)*100).toFixed(1)}%. {meta.threshold_definition}</p>}
       {Object.entries(meta.branch_probabilities || {}).map(([name,value])=><p key={name} className="text-sm">Diagnostic {name} estimate: {(Number(value)*100).toFixed(1)}%</p>)}
       {(result?.analyzers || []).map((a,i)=><p key={i} className="text-xs">{a.name}: {a.status}. {a.finding || a.reason}</p>)}
-      {(result?.evidence || []).map((e,i)=><p key={i} className="text-xs text-slate-400">{e.human_readable_note}</p>)}
-      {limitations.map((l:string)=><p key={l} className="text-sm text-slate-400">{l}</p>)}
+      {(result?.evidence || []).map((e,i)=><p key={i} className="text-xs text-slate-600">{e.human_readable_note}</p>)}
+      {limitations.map((l:string)=><p key={l} className="text-sm text-slate-600">{l}</p>)}
     </details>
-    <p className="text-xs text-slate-400 break-all">Scan: {scan.id} · {result?.processing_time_ms ?? 0} ms · {result?.timestamp || scan.created_at}</p>
+    <p className="text-xs text-slate-600 break-all">Scan: {scan.id} · {result?.processing_time_ms ?? 0} ms · {result?.timestamp || scan.created_at}</p>
   </section>;
 }

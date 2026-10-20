@@ -1,162 +1,104 @@
 @import "tailwindcss";
+@font-face{font-family:"IBM Plex Sans";src:url('./assets/fonts/IBMPlexSans.ttf') format('truetype');font-weight:100 700;font-display:swap}
+@font-face{font-family:"IBM Plex Mono";src:url('./assets/fonts/IBMPlexMono.ttf') format('truetype');font-weight:400;font-display:swap}
+@theme{
+ --font-sans:"IBM Plex Sans","Segoe UI",sans-serif;
+ --font-serif:"IBM Plex Sans","Segoe UI",sans-serif;
+ --font-mono:"IBM Plex Mono",monospace;
+ --color-background:#f7f6f2;
+ --color-foreground:#252b29;
+ --color-primary:#24695b;
+ --color-border:#d8dcd5;
+ --color-muted-foreground:#53636d;
+}
+:root{font-family:var(--font-sans);color:#252b29;background:#f7f6f2;font-synthesis:none;--accent:#24695b;--line:#d8dcd5;--muted:#53636d}
+*{box-sizing:border-box}
+body{margin:0;min-width:320px}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.55}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #24695b;outline-offset:4px}
+button{transition:background-color .12s}
+h1,h2,h3,h4,h5,p{margin-top:0}
+h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:600;line-height:1.15;letter-spacing:-.035em}
+h2{font-size:1.35rem;font-weight:600;line-height:1.35}
+h3{font-size:1.05rem;font-weight:600}
+small{font-size:.85rem}
+code,.score-value{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.workspace-header{display:flex;align-items:center;gap:3rem;padding:1rem 3.5%;background:#fff;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:.7rem;border:0;background:transparent;text-align:left;color:#252b29}
+.brand svg{color:var(--accent)}
+.brand strong{font-size:1.35rem;font-weight:600;letter-spacing:-.04em}
+.brand small{display:block;color:var(--muted);font-size:.78rem;margin-top:.05rem}
+.workspace-header nav{display:flex;gap:.35rem}
+.workspace-header nav button,.account-controls>button:not(.primary-button){padding:.55rem .85rem;background:transparent;border:0;border-radius:4px;color:var(--muted)}
+.workspace-header nav button[aria-current=page]{background:#edf3f1;color:#174c41;font-weight:600}
+.account-controls{display:flex;align-items:center;gap:1rem;margin-left:auto}
+.account-name{font-size:.85rem;color:var(--muted)}
+.primary-button{border:1px solid #24695b;background:#24695b;color:white;border-radius:5px;padding:.7rem 1.1rem;font-weight:500}
+.primary-button:hover:not(:disabled){background:#1b5045}
+.secondary-button{border:1px solid var(--line);background:#fff;color:#252b29;border-radius:5px;padding:.55rem .85rem}
+.workspace-page{max-width:1200px;margin:0 auto;padding:2.6rem 2rem 4rem}
+.page-intro{max-width:46rem;margin-bottom:1.8rem}
+.page-intro p{color:var(--muted);font-size:1rem;line-height:1.65;max-width:65ch}
+.module-switch{display:flex;gap:.4rem;margin-bottom:1.4rem;border-bottom:1px solid var(--line);padding-bottom:.6rem}
+.module-switch button{display:flex;align-items:center;gap:.55rem;background:transparent;border:1px solid transparent;border-radius:4px;padding:.7rem 1rem;color:var(--muted)}
+.module-switch button[aria-pressed=true]{background:#fff;border-color:var(--line);color:#174c41;font-weight:600}
+.input-workspace{background:#fff;border:1px solid var(--line);border-radius:7px;padding:1.7rem;max-width:100%}
+.input-heading p{color:var(--muted);font-size:.95rem;line-height:1.5}
+.upload-surface{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;min-height:310px;border:1px dashed #96a6ac;border-radius:5px;background:#fafbfb;padding:1.4rem;margin-top:1.5rem;text-align:center}
+.upload-surface>svg{color:#53636d}
+.upload-surface p{margin:0;color:var(--muted);overflow-wrap:anywhere}
+.upload-surface small{color:var(--muted)}
+.upload-preview{max-height:280px;max-width:100%;object-fit:contain;border:1px solid var(--line)}
+.file-picker{position:relative;display:inline-flex;align-items:center;padding:.65rem 1rem;border:1px solid #9daeb5;border-radius:4px;background:#fff;font-weight:500;cursor:pointer}
+.file-picker:focus-within{outline:3px solid var(--accent);outline-offset:3px}
+.file-picker input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.input-actions{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-top:1.5rem}
+.input-actions p{max-width:55ch;color:var(--muted);font-size:.9rem;margin:0}
+.error-message{margin-top:1rem;background:#fff0ef;color:#922b25;border-left:3px solid #b34238;padding:.9rem 1rem;line-height:1.5}
+.loading-message{padding:1rem 0 0;color:var(--accent);font-size:.95rem}
+.assessment-notice{background:#edf3f1;border-left:3px solid #24695b;padding:1rem 1.2rem;line-height:1.65;font-size:.95rem;color:#304b44;margin:1.2rem 0}
+.assessment-notice strong{font-weight:600}
+.report-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1.2rem;margin:1.5rem 0}
+.report-heading h1{font-size:2rem;margin-bottom:.7rem}
+.report-heading p{color:var(--muted);line-height:1.65;max-width:65ch}
+.result-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:1.5rem;align-items:start}
+.image-workbench,.signal-panel{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.viewer-controls{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;border-bottom:1px solid var(--line);padding:.6rem}
+.viewer-controls button{border:0;border-radius:3px;background:transparent;padding:.5rem .65rem;font-size:.85rem}
+.viewer-controls button[aria-pressed=true]{background:#e8f0ed;color:#174c41}
+.viewer-controls label{margin-left:auto;font-size:.85rem;color:var(--muted)}
+.viewer-controls select{padding:.35rem;border:1px solid var(--line);background:#fff;border-radius:3px}
+.image-viewport{height:480px;overflow:auto;display:grid;place-items:center;background:#e9edee;padding:1rem}
+.image-viewport img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:center;display:block}
+.viewer-caption{padding:.9rem 1rem;margin:0;font-size:.85rem;color:var(--muted);line-height:1.5}
+.signal-panel{padding:1.2rem}
+.signal-row{padding:1rem 0;border-bottom:1px solid #e0e5e7}
+.signal-row:last-child{border:0}
+.signal-row h3{margin-bottom:.4rem}
+.signal-row p{color:var(--muted);line-height:1.6;font-size:.9rem;margin-bottom:.3rem}
+.score-value{font-size:1.8rem;letter-spacing:-.04em;color:#252b29}
+.score-value small{font-family:var(--font-sans);font-size:.85rem;color:var(--muted);letter-spacing:0}
+.result-reasons{padding-left:1.2rem;line-height:1.7;color:#33464f}
+.report-details{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1rem 1.2rem;margin-top:1rem}
+.report-details summary{cursor:pointer;font-weight:500}
+.report-details p{font-size:.9rem;line-height:1.65;color:var(--muted);margin-top:.7rem}
+.workspace-footer{max-width:1200px;margin:1rem auto;padding:1.2rem 2rem 2rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+@media(max-width:760px){.workspace-header{gap:1rem;flex-wrap:wrap;padding:.9rem 1rem}.workspace-header nav{order:3;width:100%;border-top:1px solid #e0e5e7;padding-top:.5rem}.account-name{display:none}.workspace-page{padding:1.6rem 1rem 3rem}.input-workspace{padding:1.1rem}.input-actions{align-items:flex-start;flex-direction:column}.input-actions button{width:100%}.result-layout{grid-template-columns:1fr}.image-viewport{height:360px}.report-heading{flex-direction:column}.module-switch{gap:0}.module-switch button{flex:1;justify-content:center;padding:.6rem}.workspace-footer{padding:1rem}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-@theme {
-  --font-serif: "Times New Roman", Times, "Georgia", "Cambria", serif;
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  
-  /* Cybersecurity Theme Colors (Deep Midnight Slate & Electric Accents) */
-  --color-primary: #0077b6;         /* Cyber Electric Blue */
-  --color-primary-hover: #0096c7;
-  --color-primary-dark: #03045e;
-  --color-primary-foreground: #ffffff;
-  
-  --color-background: #0a1128;      /* Deep Midnight Space Navy - Not pure black */
-  --color-foreground: #f8fafc;      /* Crisp ice-white text */
-  
-  --color-card: #111d38;            /* Rich Cyber Card Slate */
-  --color-card-foreground: #f8fafc;
-  
-  --color-border: #1e3a5f;          /* Subtle Cyber Border */
-  --color-border-dark: #334155;
-  
-  --color-muted: #1c2541;           /* Elevated dark surface */
-  --color-muted-foreground: #94a3b8;/* High-contrast silver slate */
-  
-  --color-destructive: #ef4444;     /* Red - Fake / Threat */
-  --color-warning: #f59e0b;         /* Amber - Suspicious */
-  --color-success: #10b981;         /* Emerald - Real / Safe */
-  --color-info: #00b4d8;            /* Cyan - Information */
-}
+.history-filters{display:flex;align-items:end;flex-wrap:wrap;gap:1rem;margin:1.5rem 0}.history-filters label{display:grid;gap:.5rem;font-size:.9rem}.history-filters input,.history-filters select{background:white;border:1px solid var(--line);padding:.65rem .8rem;border-radius:4px}.history-filters p{margin-left:auto;color:var(--muted);font-size:.85rem}.history-list{border:1px solid var(--line);background:white;border-radius:5px}.history-item{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;text-align:left;padding:1.2rem;border-bottom:1px solid var(--line)}.history-item:last-child{border:0}.history-item:hover{background:#f6f8f7}.history-item p,.history-item code{font-size:.8rem;color:var(--muted);line-height:1.8}.history-item>span{font-size:.85rem;color:#38534b}.empty-state{border:1px dashed var(--line);padding:2rem;line-height:1.7}.empty-state p{color:var(--muted)}
 
-:root {
-  --bg-primary: #0a1128;
-  --bg-secondary: #0f1c3f;
-  --bg-card: #111d38;
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  
-  --border-color: #1e3a5f;
-  --border-strong: #2563eb;
-
-  --color-positive: #10b981;
-  --color-attention: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #00b4d8;
-
-  --background: 224 64% 10%;
-  --foreground: 210 40% 98%;
-  --card: 222 53% 15%;
-  --card-foreground: 210 40% 98%;
-  --primary: 199 89% 48%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 222 47% 18%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 222 47% 18%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 52% 25%;
-  --input: 217 52% 25%;
-  --ring: 199 89% 48%;
-  --radius: 0.75rem;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh;
-}
-
-h1, h2, h3, .font-serif {
-  font-family: 'Times New Roman', Times, 'Georgia', 'Cambria', serif;
-}
-
-code, pre, .font-mono {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-/* Cybersecurity Glow & Depth */
-.shadow-3d-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 180, 216, 0.05);
-}
-
-.shadow-3d-md {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 180, 216, 0.08);
-}
-
-.shadow-3d-lg {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 180, 216, 0.12);
-}
-
-.shadow-3d-card {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 1px rgba(30, 58, 95, 0.8);
-}
-
-/* 3D Scanner Keyframe Animations */
-@keyframes scanBeam {
-  0% { top: 0%; opacity: 0.85; }
-  50% { top: 96%; opacity: 1; }
-  100% { top: 0%; opacity: 0.85; }
-}
-
-@keyframes gridPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.7; }
-}
-
-@keyframes float3D {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-}
-
-@keyframes radarSweep {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes nodePing {
-  0% { transform: scale(0.9); opacity: 1; }
-  75%, 100% { transform: scale(2); opacity: 0; }
-}
-
-.animate-scan-beam {
-  animation: scanBeam 3.2s ease-in-out infinite;
-}
-
-.animate-grid-pulse {
-  animation: gridPulse 3.5s ease-in-out infinite;
-}
-
-.animate-float-3d {
-  animation: float3D 5s ease-in-out infinite;
-}
-
-.animate-radar-sweep {
-  animation: radarSweep 5s linear infinite;
-}
-
-.animate-node-ping {
-  animation: nodePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
-}
-::-webkit-scrollbar-track {
-  background: #0a1128;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #0077b6;
-}
+.checker-intro{display:flex;justify-content:space-between;align-items:center;gap:3rem;margin-bottom:2rem}
+.checker-intro .page-intro{margin:0;max-width:42rem}.checker-intro h1{font-size:clamp(2.4rem,5vw,3.5rem);line-height:1.08;letter-spacing:-.045em;margin-bottom:1.1rem}
+.workspace-principle{display:flex;align-items:center;gap:1.4rem;color:#24695b;flex-shrink:0;border-left:1px solid var(--line);padding:1.5rem 0 1.5rem 2rem}
+.workspace-principle p{font-size:.9rem;line-height:1.7;margin:0;color:#53615a}.workspace-principle strong{font-weight:500;color:#252b29}
+.checker-page .input-workspace{box-shadow:0 4px 8px -6px #243e3429,0 22px 50px -35px #243e3438;border-radius:12px;padding:2rem}
+.checker-page .module-switch{border:0;background:#eaece5;width:fit-content;border-radius:9px;padding:5px;margin-bottom:1.2rem;gap:3px}
+.checker-page .module-switch button{border-radius:6px;padding:.65rem 1.35rem}.checker-page .module-switch button[aria-pressed=true]{box-shadow:0 1px 4px #203e3512;border-color:#d8ded3}
+.upload-surface{background:#fafbf7;border-color:#adb9ae;min-height:330px;border-radius:9px}.upload-surface>svg{color:var(--accent);margin-bottom:.4rem}
+.primary-button{box-shadow:inset 0 1px 0 #ffffff20,0 2px 3px #173b2720;border-radius:7px}.secondary-button{border-radius:7px}
+.verdict-heading{display:flex;gap:1rem;align-items:center;margin-bottom:.65rem}.verdict-heading h1{margin:0}.verdict-inconclusive{color:#78551b}.verdict-likely_ai_generated,.verdict-likely_manipulated{color:#9d382f}.verdict-likely_authentic{color:#24695b}
+@media(max-width:900px){.workspace-principle{display:none}.checker-intro{margin-bottom:1.5rem}}
+@media(max-width:760px){.checker-page .input-workspace{padding:1.1rem}.checker-page .module-switch{width:100%}.checker-page .module-switch button{padding:.65rem .8rem}.checker-intro h1{font-size:2.5rem}}

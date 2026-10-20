@@ -15,7 +15,6 @@ export const scanApi = {
    * Direct microservice bypass to ports 8002/8003 has been removed for production security.
    */
   async uploadImageScan(file: File, enableExplanation: boolean = false): Promise<ScanRecord> {
-    const objectUrl = URL.createObjectURL(file);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('modality', 'image');
@@ -31,7 +30,6 @@ export const scanApi = {
     );
 
     const data = json.data;
-    data.image_preview_url = objectUrl;
     return data as ScanRecord;
   },
 

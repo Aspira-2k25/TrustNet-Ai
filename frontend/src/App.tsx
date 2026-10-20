@@ -3,7 +3,6 @@ import { Navbar } from './components/Navbar';
 import { PageSkeleton } from './components/Skeleton';
 
 // Lazy load views for performance
-const LandingView = lazy(() => import('./views/LandingView').then(m => ({ default: m.LandingView })));
 const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })));
 const ScanUploadView = lazy(() => import('./views/ScanUploadView').then(m => ({ default: m.ScanUploadView })));
 const ReportView = lazy(() => import('./views/ReportView').then(m => ({ default: m.ReportView })));
@@ -16,7 +15,7 @@ import { httpClient } from './services/api/client';
 import type { ScanRecord, User } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'landing' | 'dashboard' | 'scan' | 'login' | 'register' | 'report'>('landing');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'scan' | 'login' | 'register' | 'report'>('scan');
   const [user, setUser] = useState<User | null>(null);
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
@@ -64,18 +63,12 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
-        onLogout={() => {httpClient.setToken(null);setUser(null);setScans([]);setSelectedScan(null);setActiveTab('landing');}}
+        onLogout={() => {httpClient.setToken(null);setUser(null);setScans([]);setSelectedScan(null);setActiveTab('scan');}}
       />
 
       <main className="flex-1">
         {historyError && <p role="alert" className="text-amber-300 text-xs px-6 pt-4">{historyError}</p>}
         <Suspense fallback={<PageSkeleton />}>
-          {activeTab === 'landing' && (
-            <LandingView
-              onStartScan={() => setActiveTab('scan')}
-              onExploreDashboard={() => setActiveTab('dashboard')}
-            />
-          )}
 
           {activeTab === 'dashboard' && (
             <DashboardView
@@ -125,23 +118,7 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#1e3a5f] py-8 px-6 bg-[#0b132b] mt-16 shadow-3d-card">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-foreground text-sm">TrustNet AI</span>
-            <span className="text-muted-foreground text-xs font-normal">
-              &bull; Enterprise Forensic Intelligence &amp; Synthetic Media Defense
-            </span>
-          </div>
-
-          <div className="flex items-center gap-5 text-xs text-muted-foreground">
-            <span>TrustNet Vision AI</span>
-            <span>Spectral &amp; Temporal Engines</span>
-            <span>Zero-Trust Verification</span>
-            <span>Enterprise Core</span>
-          </div>
-        </div>
-      </footer>
+      <footer className="workspace-footer">TrustNet records evidence and its limits. Verify important findings independently.</footer>
     </div>
   );
 }

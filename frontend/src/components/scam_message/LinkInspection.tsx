@@ -50,23 +50,23 @@ export function LinkInspection({scanId, index, saved, onUpdated}: {
   return <section className="mt-4 space-y-3 border-t border-slate-700 pt-4" aria-label="Detailed URL inspection">
     {saved?.status !== 'COMPLETED' && <>
       <button type="button" onClick={inspect} disabled={busy} className="rounded-lg bg-sky-700 px-4 py-2 text-white disabled:opacity-50">{busy ? 'Inspecting website...' : 'Inspect this URL'}</button>
-      <p className="text-xs text-slate-400">On request, the backend contacts the URL destination for bounded DNS, HTTPS and static page checks. Scripts are not run and forms are not submitted.</p>
+      <p className="text-xs text-slate-600">On request, the backend contacts the URL destination for bounded DNS, HTTPS and static page checks. Scripts are not run and forms are not submitted.</p>
     </>}
-    {error && <p role="alert" className="text-sm text-amber-200">{error}</p>}
+    {error && <p role="alert" className="text-sm text-amber-900">{error}</p>}
     {saved && <>
       <p className="text-sm">Inspection: {saved.status.replaceAll('_', ' ')}. Snapshot: {new Date(saved.updated_at).toLocaleString()}.</p>
-      {saved.reason && <p className="text-sm text-amber-200">{saved.reason}</p>}
+      {saved.reason && <p className="text-sm text-amber-900">{saved.reason}</p>}
       {summary && <>
-        <p className="text-xs text-slate-400">{summary.scope} {summary.live_checks_observed}/{summary.live_checks_total} live checks returned observations.</p>
+        <p className="text-xs text-slate-600">{summary.scope} {summary.live_checks_observed}/{summary.live_checks_total} live checks returned observations.</p>
         {saved.result && ['SUCCESS', 'PARTIAL_SUCCESS'].includes(saved.result.status || '') && <p className="text-sm">Separate URL inspection: {saved.result.risk_score.toFixed(1)}/100 risk. {saved.result.verdict?.replaceAll('_', ' ')}</p>}
         <h4 className="font-semibold">What we observed and why it matters</h4>
         <div className="grid gap-3 md:grid-cols-2">{summary.observations.map((item, i) => <article key={`${item.title}-${i}`} className={`rounded-lg border p-3 ${item.status === 'warning' ? 'border-amber-600' : 'border-slate-700'}`}>
           <h5 className="font-semibold">{item.title}</h5>
           <p className="mt-1 break-words text-sm">{item.observed}</p>
-          <p className="mt-2 text-xs text-slate-400">Why it matters: {item.why_it_matters}</p>
+          <p className="mt-2 text-xs text-slate-600">Why it matters: {item.why_it_matters}</p>
         </article>)}</div>
         <div className="rounded-lg border border-violet-700 p-3"><h4 className="font-semibold">Model assessment</h4><p className="mt-1 text-sm">{summary.model_assessment}</p></div>
-        <div className="rounded-lg border border-slate-700 p-3"><h4 className="font-semibold">What we could not check</h4>{summary.missing_checks.map(item => <p key={item.check} className="mt-1 text-sm text-slate-300">{item.check.replaceAll('_', ' ')}: {item.reason}</p>)}</div>
+        <div className="rounded-lg border border-slate-700 p-3"><h4 className="font-semibold">What we could not check</h4>{summary.missing_checks.map(item => <p key={item.check} className="mt-1 text-sm text-slate-700">{item.check.replaceAll('_', ' ')}: {item.reason}</p>)}</div>
       </>}
     </>}
   </section>;
