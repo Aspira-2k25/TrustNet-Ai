@@ -6,10 +6,10 @@ import { ScamMessageScanView } from './scam_message/ScamMessageScanView';
 import { PhishingScanView } from './phishing_url/PhishingScanView';
 
 export type ModalityType = 'image' | 'phishing' | 'scam_message';
-interface Props { onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void }
+interface Props { initialModality?: ModalityType; onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void }
 
-export function ScanUploadView({ onScanCompleted, onViewReport }: Props) {
-  const [selected, setSelected] = useState<ModalityType>('image');
+export function ScanUploadView({ onScanCompleted, onViewReport, initialModality = 'image' }: Props) {
+  const [selected, setSelected] = useState<ModalityType>(initialModality);
   const modules = [
     { id: 'image' as const, name: 'Image', icon: Image },
     { id: 'phishing' as const, name: 'URL', icon: Link },

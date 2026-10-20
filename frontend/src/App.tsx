@@ -2,7 +2,10 @@ import { Suspense, lazy, useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { PageSkeleton } from './components/Skeleton';
 
+import type { ModalityType } from './views/ScanUploadView';
+
 // Lazy load views for performance
+const LandingView = lazy(() => import('./views/LandingView').then(m => ({ default: m.LandingView })));
 const DashboardView = lazy(() => import('./views/DashboardView').then(m => ({ default: m.DashboardView })));
 const ScanUploadView = lazy(() => import('./views/ScanUploadView').then(m => ({ default: m.ScanUploadView })));
 const ReportView = lazy(() => import('./views/ReportView').then(m => ({ default: m.ReportView })));
@@ -15,7 +18,8 @@ import { httpClient } from './services/api/client';
 import type { ScanRecord, User } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'scan' | 'login' | 'register' | 'report'>('scan');
+  const [activeTab, setActiveTab] = useState<'home' | 'dashboard' | 'scan' | 'login' | 'register' | 'report'>('home');
+  const [scanModule, setScanModule] = useState<ModalityType>('image');
   const [user, setUser] = useState<User | null>(null);
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
@@ -67,8 +71,9 @@ export function App() {
       />
 
       <main className="flex-1">
-        {historyError && <p role="alert" className="text-amber-300 text-xs px-6 pt-4">{historyError}</p>}
+        {historyError && <p role="alert" className="text-amber-800 text-sm px-6 pt-4">{historyError}</p>}
         <Suspense fallback={<PageSkeleton />}>
+          {activeTab === 'home' && <LandingView onStart={(module = 'image') => {setScanModule(module);setActiveTab('scan');}}/>}
 
           {activeTab === 'dashboard' && (
             <DashboardView
@@ -80,6 +85,8 @@ export function App() {
 
           {activeTab === 'scan' && (
             <ScanUploadView
+              key={scanModule}
+              initialModality={scanModule}
               onScanCompleted={handleScanCompleted}
               onViewReport={handleSelectScanForReport}
             />
