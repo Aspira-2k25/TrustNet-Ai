@@ -2,3 +2,5 @@
 models/scam_message/artifacts/** -text
 # Keep artifact files exact byte-for-byte to protect checksums
 models/scam_message/artifacts/* binary
+models/image_deepfake/vendor/** -text
+models/image_deepfake/artifacts/** -text

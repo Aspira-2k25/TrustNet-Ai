@@ -47,6 +47,10 @@ class ScamDetector:
         self.features=list(self.word.get_feature_names_out())+list(self.char.get_feature_names_out())
 
     def predict(self,text,scan_id):
+        from models.scam_message.coverage import predict_with_coverage
+        return predict_with_coverage(self._predict_model,text,scan_id,self.manifest['model_version'])
+
+    def _predict_model(self,text,scan_id):
         if self.semantic is not None:
             return self.semantic.predict(text,scan_id)
         start=time.perf_counter()

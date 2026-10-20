@@ -1,0 +1,110 @@
+{
+  "version": "evidence-v2-coverage-guard-3",
+  "calibration_ready": true,
+  "ai": {
+    "primary_raw_alert": 0.3546251223812103,
+    "modern_raw_alert": 0.8507126739067924,
+    "kind": "platt_logit",
+    "coef": 0.82947290695383,
+    "intercept": 1.5177482339096773,
+    "raw_alert": 0.5,
+    "coordinate_definition": "Sigmoid of maximum logit excess over validation-real maxima plus an epsilon guard; 0.5 is the derived boundary, not an arbitrary raw-model threshold.",
+    "validation": {
+      "n": 290,
+      "real_families": 64,
+      "positive_alert_recall": 0.7631578947368421,
+      "real_alerts": 0,
+      "roc_auc": 0.9843443080357144,
+      "probability_scope": "Platt calibration on balanced, family-weighted validation collections; deployment prevalence and unseen generators are not calibrated."
+    }
+  },
+  "manipulation": {
+    "x": [
+      0.09471134096384048,
+      0.35727620124816895,
+      0.3814330995082855,
+      0.5247722864151001,
+      0.62172532081604,
+      0.8783273100852966,
+      0.8976513743400574,
+      0.9443824291229248,
+      0.9450929164886475,
+      0.9999978542327881
+    ],
+    "y": [
+      0.0,
+      0.0,
+      0.1111111111111111,
+      0.1111111111111111,
+      0.2857142857142857,
+      0.2857142857142857,
+      0.5,
+      0.5,
+      1.0,
+      1.0
+    ],
+    "raw_alert": 0.9443824291229249,
+    "alert": 0.5000000000000782,
+    "n": 64,
+    "real_families": 32,
+    "roc_auc": 0.96875,
+    "observed_real_alerts": 0,
+    "recall_above_real_max": 0.84375
+  },
+  "pixel_threshold": 0.99,
+  "min_reliability": 0.25,
+  "min_area_fraction": 0.001,
+  "mask_validation": {
+    "passed": true,
+    "mean_iou": 0.575852905303671,
+    "real_images_with_regions": 1
+  },
+  "ai_authentic": 0.0006672262747278258,
+  "manipulation_authentic": 0.3367011530866623,
+  "authenticity_enabled": false,
+  "authenticity_limit": "Inpainting, generative fill, object removal and face swaps are not reliably validated. Low model readings cannot establish that a photo is authentic.",
+  "manipulation_scope": "Native single-frame JPEG validation; tiled scores and unseen edit types are not calibrated.",
+  "limits": [
+    "Small validation set and correlated degradation variants; thresholds do not guarantee a population false-positive rate.",
+    "Synthetic splice and copy-move masks do not represent every real edit.",
+    "Modern feature head trained on 96 matched images from COCO and SafeIMG. Public-safety/document domains may introduce content bias; fresh OpenAI cases are diagnostics, not an independent benchmark."
+  ],
+  "inputs": {
+    "image-candidates-controlled\\community.jsonl": "344bf660b428357334136dc8aedd9edc056a73b4429c8ca1121d7faa3653bcd9",
+    "localizer-native-validation\\predictions.jsonl": "eb1a6a83cdd238e0a8dc26eb05e2cbf48ed443f246a90955cf998c07ee55d860"
+  },
+  "ai_alert": 0.5,
+  "manipulation_alert": 0.5000000000000782,
+  "primary_candidate_validation": {
+    "x": [
+      1.0868944855246809e-07,
+      0.00023893435718491673,
+      0.0003879324358422309,
+      0.010579314082860947,
+      0.010606220923364162,
+      0.05346177890896797,
+      0.12760990858078003,
+      0.9999988079071045
+    ],
+    "y": [
+      0.0,
+      0.0,
+      0.35714285714285715,
+      0.35714285714285715,
+      0.9,
+      0.9,
+      1.0,
+      1.0
+    ],
+    "raw_alert": 0.05346177890896798,
+    "alert": 0.9,
+    "n": 106,
+    "real_families": 32,
+    "roc_auc": 0.9832621082621084,
+    "observed_real_alerts": 0,
+    "recall_above_real_max": 0.7307692307692307
+  },
+  "modern_head_sha256": "aeee1a558f302b0e0a58134eb615676907f4a1955d862bce5d2fa819b9fdc874",
+  "ai_alert_corroboration_required": true,
+  "modern_head_status": "Exploratory only. Failed high-resolution real holdout (4/8 false alerts); cannot trigger a standalone AI verdict."
+}

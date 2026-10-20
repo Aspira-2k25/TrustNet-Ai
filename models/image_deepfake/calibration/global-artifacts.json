@@ -1,0 +1,23 @@
+{
+  "model_id": "buildborderless/CommunityForensics-DeepfakeDet-ViT",
+  "revision": "ac6ee457bea904a373065754107451793b56db00",
+  "license": "MIT",
+  "files": {
+    "config.json": {
+      "sha256": "4b425d089842fecf8f25fc52aa44d09f49607ef89a0e2ff685ced6ec1c70e9b1",
+      "bytes": 524
+    },
+    "preprocessor_config.json": {
+      "sha256": "d5e70eaba99880a52978157cf4e6ee71502fed9479dd7b659854107e131ee8f6",
+      "bytes": 306
+    },
+    "model.safetensors": {
+      "sha256": "275ba982236ddd6afddf7131f8133e89f537574b964cf8fa5825b4956d741692",
+      "bytes": 87270764
+    },
+    "LICENSE": {
+      "sha256": "69a0eab6ca179df33ed80fa378b9458632e14ba9547374e299249e0a4f8076cb",
+      "bytes": 1292
+    }
+  }
+}

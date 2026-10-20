@@ -1,0 +1,428 @@
+{
+  "profile": "evidence-v2-coverage-guard-3",
+  "baseline_commit": "cb34f69",
+  "split_audit": "benchmark/manifests/image-head-splits.json",
+  "runtime32": {
+    "baseline": {
+      "n": 32,
+      "coverage": 0.875,
+      "inconclusive_share": 0.125,
+      "confusion": {
+        "tn": 15,
+        "fp": 0,
+        "fn": 13,
+        "tp": 0
+      },
+      "selective_accuracy": 0.5357142857142857,
+      "correct_fraction_of_all": 0.46875,
+      "precision": null,
+      "recall": 0.0,
+      "conditional_recall_among_decided": 0.0,
+      "f1": 0.0,
+      "selective_f1": 0.0,
+      "abstained_positive": 3,
+      "abstained_negative": 1,
+      "false_positive_rate": 0.0,
+      "roc_auc": 0.619140625,
+      "localization_iou_mean": null
+    },
+    "current": {
+      "n": 32,
+      "coverage": 0.1875,
+      "inconclusive_share": 0.8125,
+      "confusion": {
+        "tn": 0,
+        "fp": 0,
+        "fn": 0,
+        "tp": 6
+      },
+      "selective_accuracy": 1.0,
+      "correct_fraction_of_all": 0.1875,
+      "precision": 1.0,
+      "recall": 0.375,
+      "conditional_recall_among_decided": 1.0,
+      "f1": 0.5454545454545454,
+      "selective_f1": 1.0,
+      "abstained_positive": 10,
+      "abstained_negative": 16,
+      "false_positive_rate": 0.0,
+      "roc_auc": 0.99609375,
+      "localization_iou_mean": null
+    }
+  },
+  "real_photo_guard": {
+    "independent_source_n": 300,
+    "false_alerts": 3,
+    "fpr": 0.01,
+    "wilson_95_ci": [
+      0.003406618437715286,
+      0.02898349336233983
+    ],
+    "inconclusive_rate": 0.99,
+    "original_smartphone_png_rejected_n": 20,
+    "limitations": [
+      "COCO device identities unknown; platform, screenshot, beauty and filter conditions are software proxies.",
+      "All three false alerts occurred in the smoothing proxy stratum (3/43).",
+      "Point estimate under 2%, upper confidence bound above 2%; population guardrail not established."
+    ]
+  },
+  "phone_jpeg_guard": {
+    "independent_coco": {
+      "submitted_n": 0,
+      "n": 0,
+      "rejected_n": 0,
+      "false_alerts": 0,
+      "false_positive_rate": null,
+      "wilson_95_ci": null,
+      "inconclusive_rate": null
+    },
+    "all_descriptive": {
+      "submitted_n": 20,
+      "n": 17,
+      "rejected_n": 3,
+      "false_alerts": 0,
+      "false_positive_rate": 0.0,
+      "wilson_95_ci": [
+        0,
+        0.1843181350088518
+      ],
+      "inconclusive_rate": 1.0
+    },
+    "strata": {
+      "phone_low_light_jpeg95": {
+        "submitted_n": 10,
+        "n": 7,
+        "rejected_n": 3,
+        "false_alerts": 0,
+        "false_positive_rate": 0.0,
+        "wilson_95_ci": [
+          5.551115123125783e-17,
+          0.35433043506668743
+        ],
+        "inconclusive_rate": 1.0
+      },
+      "phone_native_jpeg95": {
+        "submitted_n": 10,
+        "n": 10,
+        "rejected_n": 0,
+        "false_alerts": 0,
+        "false_positive_rate": 0.0,
+        "wilson_95_ci": [
+          0,
+          0.2775327998628892
+        ],
+        "inconclusive_rate": 1.0
+      }
+    },
+    "limits": [
+      "20 smartphone captures rendered from SIDD sRGB PNG to native-size JPEG95.",
+      "Repeated scenes are correlated; no independent-binomial population claim for this small stratum.",
+      "No actual beauty-mode or social-platform capture coverage is established."
+    ],
+    "config_sha256": "f09363dc1ea29acd7e230424f0260d66c55a17117dd5910be02e6990c4490bb1"
+  },
+  "localization_native_jpeg_synthetic": {
+    "n": 96,
+    "real_n": 64,
+    "manipulated_n": 32,
+    "positive_recall": 0.90625,
+    "real_region_false_positives": 1,
+    "real_region_false_positive_rate": 0.015625,
+    "mean_iou_all_manipulated": 0.6978515180329103,
+    "raw_detection_auc": 0.984375,
+    "per_edit": {
+      "copy_move_jpeg70": {
+        "n": 16,
+        "mean_iou": 0.648165857356072
+      },
+      "splice_jpeg70": {
+        "n": 16,
+        "mean_iou": 0.7475371787097485
+      }
+    },
+    "uncalibrated_tiled_images": 1,
+    "limits": [
+      "Synthetic rectangular splice/copy-move only, JPEG quality 70. No independent inpainting, face-swap or object-removal IoU established.",
+      "IoU includes missing/unsupported masks as zero. Real-photo false positives are measured, not guaranteed absent."
+    ]
+  },
+  "localization_edit_challenge": {
+    "types": {
+      "content_aware_removal_proxy": {
+        "n": 12,
+        "detected_regions": 3,
+        "missed_or_unavailable": 9,
+        "production_mean_iou": 0.07369429976851852,
+        "raw_research_mean_iou": 0.07369429976851852,
+        "errors": 0
+      },
+      "face_swap": {
+        "n": 20,
+        "detected_regions": 1,
+        "missed_or_unavailable": 19,
+        "production_mean_iou": null,
+        "raw_research_mean_iou": null,
+        "errors": 0
+      },
+      "glide_inpainting": {
+        "n": 20,
+        "detected_regions": 0,
+        "missed_or_unavailable": 20,
+        "production_mean_iou": 0.0,
+        "raw_research_mean_iou": 0.026339603312370164,
+        "errors": 0
+      }
+    },
+    "limits": [
+      "No headline real-world localization accuracy: small research challenge.",
+      "CocoGlide is an upstream TruFor evaluation benchmark, not a new independently collected modern editor cohort.",
+      "Face-swap source has no pixel masks, therefore IoU is unavailable, not zero.",
+      "Content-aware fill is a proxy, not modern diffusion removal.",
+      "Lossless/tiled production localization is uncalibrated; raw masks reported separately from supported production alerts."
+    ]
+  },
+  "multilingual_diagnostic": {
+    "counts": {
+      "train": {
+        "English:0": 30,
+        "English:1": 30,
+        "Hindi:0": 30,
+        "Hindi:1": 30,
+        "Hinglish:0": 30,
+        "Hinglish:1": 30
+      },
+      "validation": {
+        "English:0": 8,
+        "English:1": 8,
+        "Hindi:0": 8,
+        "Hindi:1": 5,
+        "Hinglish:0": 8,
+        "Hinglish:1": 8
+      },
+      "test": {
+        "English:0": 10,
+        "English:1": 10,
+        "Hindi:0": 10,
+        "Hindi:1": 4,
+        "Hinglish:0": 6,
+        "Hinglish:1": 10
+      }
+    },
+    "limits": [
+      "Small filtered public-source diagnostic; synthetic templates and label noise remain.",
+      "English source may overlap deployed model training. No field accuracy or independently adjudicated ground truth is claimed.",
+      "MuRIL is a frozen language encoder with a newly trained linear head, not an existing scam classifier."
+    ],
+    "models": {
+      "muril_frozen_linear": {
+        "validation_selected_threshold": 0.5,
+        "all": {
+          "n": 50,
+          "tp": 23,
+          "fp": 3,
+          "fn_decided": 1,
+          "inconclusive_n": 0,
+          "inconclusive_rate": 0.0,
+          "precision": 0.8846153846153846,
+          "recall_including_abstentions": 0.9583333333333334,
+          "f1_including_abstentions": 0.92,
+          "accuracy_all": 0.92,
+          "selective_accuracy": 0.92,
+          "roc_auc": 0.9759615384615385
+        },
+        "by_language": {
+          "English": {
+            "n": 20,
+            "tp": 9,
+            "fp": 1,
+            "fn_decided": 1,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 0.9,
+            "recall_including_abstentions": 0.9,
+            "f1_including_abstentions": 0.9,
+            "accuracy_all": 0.9,
+            "selective_accuracy": 0.9,
+            "roc_auc": 0.95
+          },
+          "Hindi": {
+            "n": 14,
+            "tp": 4,
+            "fp": 0,
+            "fn_decided": 0,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 1.0,
+            "recall_including_abstentions": 1.0,
+            "f1_including_abstentions": 1.0,
+            "accuracy_all": 1.0,
+            "selective_accuracy": 1.0,
+            "roc_auc": 1.0
+          },
+          "Hinglish": {
+            "n": 16,
+            "tp": 10,
+            "fp": 2,
+            "fn_decided": 0,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 0.8333333333333334,
+            "recall_including_abstentions": 1.0,
+            "f1_including_abstentions": 0.9090909090909091,
+            "accuracy_all": 0.875,
+            "selective_accuracy": 0.875,
+            "roc_auc": 0.9666666666666667
+          }
+        }
+      },
+      "multilingual_tfidf_logistic": {
+        "validation_selected_threshold": 0.5435017513139039,
+        "all": {
+          "n": 50,
+          "tp": 20,
+          "fp": 4,
+          "fn_decided": 4,
+          "inconclusive_n": 0,
+          "inconclusive_rate": 0.0,
+          "precision": 0.8333333333333334,
+          "recall_including_abstentions": 0.8333333333333334,
+          "f1_including_abstentions": 0.8333333333333334,
+          "accuracy_all": 0.84,
+          "selective_accuracy": 0.84,
+          "roc_auc": 0.9407051282051282
+        },
+        "by_language": {
+          "English": {
+            "n": 20,
+            "tp": 9,
+            "fp": 0,
+            "fn_decided": 1,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 1.0,
+            "recall_including_abstentions": 0.9,
+            "f1_including_abstentions": 0.9473684210526315,
+            "accuracy_all": 0.95,
+            "selective_accuracy": 0.95,
+            "roc_auc": 1.0
+          },
+          "Hindi": {
+            "n": 14,
+            "tp": 1,
+            "fp": 0,
+            "fn_decided": 3,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 1.0,
+            "recall_including_abstentions": 0.25,
+            "f1_including_abstentions": 0.4,
+            "accuracy_all": 0.7857142857142857,
+            "selective_accuracy": 0.7857142857142857,
+            "roc_auc": 1.0
+          },
+          "Hinglish": {
+            "n": 16,
+            "tp": 10,
+            "fp": 4,
+            "fn_decided": 0,
+            "inconclusive_n": 0,
+            "inconclusive_rate": 0.0,
+            "precision": 0.7142857142857143,
+            "recall_including_abstentions": 1.0,
+            "f1_including_abstentions": 0.8333333333333334,
+            "accuracy_all": 0.75,
+            "selective_accuracy": 0.75,
+            "roc_auc": 1.0
+          }
+        }
+      },
+      "deployed_hybrid_with_rules": {
+        "all": {
+          "n": 50,
+          "tp": 5,
+          "fp": 1,
+          "fn_decided": 4,
+          "inconclusive_n": 27,
+          "inconclusive_rate": 0.54,
+          "precision": 0.8333333333333334,
+          "recall_including_abstentions": 0.20833333333333334,
+          "f1_including_abstentions": 0.3333333333333333,
+          "accuracy_all": 0.36,
+          "selective_accuracy": 0.782608695652174,
+          "roc_auc": null
+        },
+        "by_language": {
+          "English": {
+            "n": 20,
+            "tp": 4,
+            "fp": 1,
+            "fn_decided": 3,
+            "inconclusive_n": 3,
+            "inconclusive_rate": 0.15,
+            "precision": 0.8,
+            "recall_including_abstentions": 0.4,
+            "f1_including_abstentions": 0.5333333333333333,
+            "accuracy_all": 0.65,
+            "selective_accuracy": 0.7647058823529411,
+            "roc_auc": null
+          },
+          "Hindi": {
+            "n": 14,
+            "tp": 0,
+            "fp": 0,
+            "fn_decided": 0,
+            "inconclusive_n": 14,
+            "inconclusive_rate": 1.0,
+            "precision": null,
+            "recall_including_abstentions": 0.0,
+            "f1_including_abstentions": 0.0,
+            "accuracy_all": 0.0,
+            "selective_accuracy": null,
+            "roc_auc": null
+          },
+          "Hinglish": {
+            "n": 16,
+            "tp": 1,
+            "fp": 0,
+            "fn_decided": 1,
+            "inconclusive_n": 10,
+            "inconclusive_rate": 0.625,
+            "precision": 1.0,
+            "recall_including_abstentions": 0.1,
+            "f1_including_abstentions": 0.18181818181818182,
+            "accuracy_all": 0.3125,
+            "selective_accuracy": 0.8333333333333334,
+            "roc_auc": null
+          }
+        }
+      }
+    },
+    "promotion": "No automatic promotion from a small noisy diagnostic. Compare per-language false alerts and validate independently before replacing runtime weights."
+  },
+  "failed_candidate_head_holdout": {
+    "adaptation": {
+      "n": 48,
+      "real_alerts": 0,
+      "real_n": 24,
+      "positive_alerts": 24,
+      "positive_n": 24,
+      "roc_auc": 1.0
+    },
+    "real-high-resolution": {
+      "n": 8,
+      "real_alerts": 4,
+      "real_n": 8,
+      "positive_alerts": 0,
+      "positive_n": 0,
+      "roc_auc": null
+    },
+    "scope": "AI classifier stream only. No claim about full detector accuracy or localization. Fixed boundaries; never tune using these scores."
+  },
+  "limits": [
+    "Fresh OpenAI variants are development diagnostics, excluded from headline metrics.",
+    "Global-stream candidate and localization cohorts are different; never combine them as overall accuracy.",
+    "False-positive protection is accompanied by high abstention; abstention is not correct classification.",
+    "Small convenience cohorts, upstream pretraining overlap and unknown generation batches limit independence.",
+    "Face-swap ground-truth masks unavailable; IoU is null. Object removal challenge is OpenCV fill, not verified semantic removal."
+  ]
+}

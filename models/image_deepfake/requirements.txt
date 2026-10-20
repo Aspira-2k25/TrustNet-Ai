@@ -1,10 +1,13 @@
-torch>=2.6.0
-torchvision>=0.20.0
-numpy>=1.26.0
-huggingface-hub>=0.24.0
-opencv-python>=4.10.0
-Pillow>=10.4.0
-scikit-learn>=1.4.0
-scipy>=1.13.0
-transformers>=4.40.0
-pytest>=8.2.2
+# Python 3.11. Install the existing CPU torch wheel before this file.
+torch==2.6.0
+torchvision==0.21.0
+numpy==2.4.6
+huggingface-hub==1.30.0
+opencv-python==4.11.0.86
+Pillow==12.3.0
+transformers==5.16.1
+safetensors==0.8.0
+timm==1.0.22
+yacs==0.1.8
+einops==0.8.2
+c2pa-python==0.38.0

@@ -70,4 +70,17 @@ def enrich(result, request):
     meta['next_steps']=['Use the organisation’s independently known app or contact details to verify requests.','Do not send passwords, OTPs or money based only on this assessment.']
     if not email_evaluated:
         meta['limitations'].append('Previously inspected source benchmark is diagnostic; it is no longer an untouched final test.')
+    if meta.get('language_coverage_limited'):
+        result.verdict='UNABLE_TO_ASSESS'
+        meta['display_verdict']=VERDICTS[result.verdict]
+        meta['coverage'].update(validated_domain=False,abstained=True,evaluation_scope='Explicit Hindi/Hinglish warning patterns only; broad multilingual classification unvalidated')
+        meta['assessment_dimensions']['scam_risk']['status']='LIMITED_LANGUAGE_COVERAGE'
+        meta['assessment_dimensions']['scam_risk']['score']=None
+    if meta.get('rule_findings'):
+        result.verdict='LIKELY_SCAM'
+        meta['display_verdict']='High risk request detected — verify independently'
+        meta['coverage']['abstained']=False
+        meta['assessment_dimensions']['scam_risk'].update(score=result.risk_score,
+            definition='Explicit rule warning index, combined with available model reading. Not a fraud probability.')
+        meta['assessment_dimensions']['message_category'].update(value='phishing/fraud',status='RULE_WARNING',reason='The text contains an explicit risky request; sender intent is not proven.')
     return result

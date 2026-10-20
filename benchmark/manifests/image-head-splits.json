@@ -1,0 +1,1770 @@
+{
+  "source_manifest_sha256": "cbcb89a9e48452d77ef724e00ee73e1d3b74cb2edf13317f11a2a1b4fb973030",
+  "counts": {
+    "train": 96,
+    "validation": 48,
+    "test": 48
+  },
+  "cross_split_collisions": [],
+  "fresh_diagnostic_overlap": [],
+  "fresh_batch": "One locally generated source image, three transformations; no other locally generated batch image was trained.",
+  "upstream_batch_limit": "SafeIMG does not establish independence of generation sessions or upstream pretraining. Different image IDs are not proof of different generator batches.",
+  "diagnostic_interpretation": "Fresh OpenAI results are development diagnostics, excluded from headline metrics because they informed development.",
+  "split_policy": "Head trained on train only; threshold and Platt fitting used validation only. Test must not select thresholds.",
+  "rows": [
+    {
+      "family": "safeimg:0790",
+      "split": "train",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0790.png",
+      "sha256": "43ca54f9c3b49c282ce6a94b432c884583c207adda269b0faa61df2483f0ce57",
+      "source_sha256": "90435f953cb0eb9049579db50378b9649a203a0fab55262c94724cc21b5195b5"
+    },
+    {
+      "family": "safeimg:0794",
+      "split": "train",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0794.png",
+      "sha256": "2ac6917abbe190652d55f2cfad6f65a5b59606aac9346b19b4cabc8d39a65006",
+      "source_sha256": "ca1a690049791f5d521e6a05cf89e436286c992246c29cc4ac24cf938505d65e"
+    },
+    {
+      "family": "safeimg:0816",
+      "split": "train",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0816.png",
+      "sha256": "9bc575dac4613ba20f2a6c0f3e0c469ab53204946b19093a59d9be880b278c60",
+      "source_sha256": "68fb74fab0e09d6eda707f5bec0fcc7dda26937cec63795e68ae4cd6055fe6c2"
+    },
+    {
+      "family": "safeimg:0777",
+      "split": "train",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0777.png",
+      "sha256": "a112a583b3af34f366d273a0831c9c20e4e5908546494e455a826b3869340539",
+      "source_sha256": "2736506be0d9f9d63b19ca46e07841989f689709c90e2bb39a3b2da74f4b6273"
+    },
+    {
+      "family": "safeimg:0853",
+      "split": "validation",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0853.png",
+      "sha256": "83535feabdbdbda6034e8489f492ea05dbff862a5e4eb6993b75adcbe86925f4",
+      "source_sha256": "40a15529800ab737c09210b7dca76737a5af5bdf5507f668830f3d8ebc52de3b"
+    },
+    {
+      "family": "safeimg:0808",
+      "split": "validation",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0808.png",
+      "sha256": "d6751113d9ed16f6c988275697d8b0338d557291382246ee24ae2626fc654a81",
+      "source_sha256": "2adef96aa7a1e32be6eec560e54af0d87b243cd04148d0c42d4bf6408dfe3514"
+    },
+    {
+      "family": "safeimg:0796",
+      "split": "test",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0796.png",
+      "sha256": "4f127bf6304008a2530b4e2bbf31bc7b4c674fcab33dbd841b4b4ac13ea1b8c2",
+      "source_sha256": "17a5543071ff0f16c5d93f537f92a3a3e323cb70ca9ac8aeb5dd1f2e16b81bf9"
+    },
+    {
+      "family": "safeimg:0838",
+      "split": "test",
+      "ai": true,
+      "category": "I1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0838.png",
+      "sha256": "97af1ec7edd45779c7c1d7f6ae775e572b50499e30ba16d9102daaf27f3b20ef",
+      "source_sha256": "395737d97e0587e0e84ab40d9e0c2d2b7d9764debac9f7a826c19c423a5a0a8a"
+    },
+    {
+      "family": "safeimg:0929",
+      "split": "train",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0929.png",
+      "sha256": "ac67f4e6fa6868b36634d86264176954c76d2b6d2ea7b4848cb74764b501c505",
+      "source_sha256": "8d09470bbb899cc49bf48c2d134a5c9d38f97df84dbec591b63628a8b7cf89c9"
+    },
+    {
+      "family": "safeimg:0895",
+      "split": "train",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0895.png",
+      "sha256": "91e4efd010c9c54f9cf4d298f733cdd49d10811a5437e4dbb63c4226272d8e5c",
+      "source_sha256": "e9289a44b74aebc24fc0ab48e922afe268fb69fda31e0f8c211aeb226f7eef59"
+    },
+    {
+      "family": "safeimg:0932",
+      "split": "train",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0932.png",
+      "sha256": "8391507c1044a49e88007c11b6e5ae4f90c6b6fa33f1131e7321060d1e222580",
+      "source_sha256": "27a1032e0674fbb6fc35f9bac5c6c85699a940c52b2c3ed4762a8cc92acd61f2"
+    },
+    {
+      "family": "safeimg:0872",
+      "split": "train",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0872.png",
+      "sha256": "f682197b630f90972a4fa83e3f63469cd643d66a7dab5b1d828ab0939e915bde",
+      "source_sha256": "322aa2c476bf76148b664ab0fb659cbb268f85f2c32abe5c16127936dce620af"
+    },
+    {
+      "family": "safeimg:0887",
+      "split": "validation",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0887.png",
+      "sha256": "e6083496e5a29d8d2b4424187f5b5f1a66866a30b07dc0e1e6b0234c4c17a22e",
+      "source_sha256": "d2bb2364c3fb60d1cde5f88fd194df16d76cc7a02a2e52d5dd0de337625e609e"
+    },
+    {
+      "family": "safeimg:0896",
+      "split": "validation",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0896.png",
+      "sha256": "5c313ec66dd5dbbd12755ca4c2a7e2a833050bcd15b6bd1c3e03557064253bfc",
+      "source_sha256": "7d4b239e2a810046a0c6cd0d4dbc22934e5a5f0b596acf9cf1fb44a4d4346f85"
+    },
+    {
+      "family": "safeimg:0913",
+      "split": "test",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0913.png",
+      "sha256": "d2b33b7e570813aed8474b7a5696f31beb978d743e0cc3faf6a20620576e66b7",
+      "source_sha256": "1d2f381478b818d004ea146410919b5a4bde09ce60a0e405d7dbc3d5580dc9b9"
+    },
+    {
+      "family": "safeimg:0917",
+      "split": "test",
+      "ai": true,
+      "category": "I2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0917.png",
+      "sha256": "3c22ef0f5fa749d8910b3e48e78e5afeed18c878c236442971cf77a8ca416bf4",
+      "source_sha256": "cfc43654ffc4acb46348ae007e62aa8a8bb955468d5582ccc686d84d6c5e90af"
+    },
+    {
+      "family": "safeimg:0992",
+      "split": "train",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0992.png",
+      "sha256": "46ec3159f1d44fbd0cf453d3f8ebd7a24a74265aa1247be7d32b8f529a0b924c",
+      "source_sha256": "18b0363c059225a28c85fdf7ade30396bfead0a4a74a6f85ed3df06b672b1cca"
+    },
+    {
+      "family": "safeimg:0988",
+      "split": "train",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0988.png",
+      "sha256": "68f478357b402a2b4e53a132738115f027ed9e5e1132a10d4025d5f184830fb8",
+      "source_sha256": "931fe4b337608869c3ef8fc4561d7576f62aa7f5e31c44b9b390340f5660ee0b"
+    },
+    {
+      "family": "safeimg:1016",
+      "split": "train",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1016.png",
+      "sha256": "c566982880cdea8744f15291de2e5a28b8fd2acfb840892c83c20ca86603fb0a",
+      "source_sha256": "13144033839fdaeee7b384a75a364d6707c1bdf44cb6499b2ea2e7a0c65dc7fe"
+    },
+    {
+      "family": "safeimg:0981",
+      "split": "train",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0981.png",
+      "sha256": "5af90e6b8ff01895bb40822415254ec6ff091d20706fb44fa673aa139d271656",
+      "source_sha256": "6af26886386091261fae3be8bcc67f681190c8772ae93c1a35e781b3433db53c"
+    },
+    {
+      "family": "safeimg:1035",
+      "split": "validation",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1035.png",
+      "sha256": "57d9e4e0f5292e12d42a296e72e0fb94d46ce3e315eedfdf6dfbeaeb8a724d98",
+      "source_sha256": "5fdbd7fda08f39b83c8d6ce9f57a8cc211065fad883107965067bd64cf51b30d"
+    },
+    {
+      "family": "safeimg:1015",
+      "split": "validation",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1015.png",
+      "sha256": "dfd22a29eb46f1215d06f0a61d066b5b5edcc4ae3c5de1d299b6c6c15e8fed3f",
+      "source_sha256": "24a022a2409b28a8220df017f28d3f2824490b385cc9bb42818cc6b8125b12d4"
+    },
+    {
+      "family": "safeimg:0954",
+      "split": "test",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0954.png",
+      "sha256": "c4a8b533c256f16b4d436491f369d46a0e0fec7cef6daa7e72b44b115b07ab22",
+      "source_sha256": "c8b08832b8bc63bcc754abd66cddab76c901d85ca40c38ea1216e06f6116683b"
+    },
+    {
+      "family": "safeimg:1027",
+      "split": "test",
+      "ai": true,
+      "category": "I3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1027.png",
+      "sha256": "8a64046ee5c465804dcc0dfc55aa473b6b07c792924dedb6b68214d4dbb1bc75",
+      "source_sha256": "ab178811d4faa6003e782e6afc90333fbbecf52671bd71d13fd02ab00a44bd15"
+    },
+    {
+      "family": "safeimg:1095",
+      "split": "train",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1095.png",
+      "sha256": "119c58f811ea80303558e00720acb723b95d529373532974ef7368a22435c0bd",
+      "source_sha256": "8370e5248684cbbe92fadcf7ea9ba21d1a8180dfdb07b76e1246eddb2126e318"
+    },
+    {
+      "family": "safeimg:1090",
+      "split": "train",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1090.png",
+      "sha256": "a0f9a03d24ae9209a6c6c63c241fcb3ba6e5d9aa7e6666d1ad9318792893642f",
+      "source_sha256": "8c5bf1ceeab4414bb3a9f71930c06c429f4b18c1ed2c57c714327b1ead432598"
+    },
+    {
+      "family": "safeimg:1068",
+      "split": "train",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1068.png",
+      "sha256": "86d1b5a6017f019f212322f15e01ed3675de6cf49cb24bdb1d5cb0c13079b228",
+      "source_sha256": "713567c37be9b67da6fb92813ac3ff5caaba3b571f27bca17dd0b987de7a9a50"
+    },
+    {
+      "family": "safeimg:1093",
+      "split": "train",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1093.png",
+      "sha256": "41e76b81d08dcb8149c1f04d00123014684ee7512d7d9f1b5457e146c605da14",
+      "source_sha256": "bbbb276667d9a28743f017944da6b2528ee2b926867fc60cc54d5f0c1d3be6d5"
+    },
+    {
+      "family": "safeimg:1094",
+      "split": "validation",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1094.png",
+      "sha256": "b0876e044348cedb6366419d6c3f7d3cba499776d43c5c400aad943885372227",
+      "source_sha256": "357d0ab641d0ef071a112c579cb23c1c5521a469091f6693b09986e67ae53dad"
+    },
+    {
+      "family": "safeimg:1051",
+      "split": "validation",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1051.png",
+      "sha256": "3a7740800d8a9048154b60bbf2c0b135b10f7f2347c4b49ba7076c3b600bb0ee",
+      "source_sha256": "577c00b9e9a92838abb3047fec1a3ddb62abd0ee845eb49d8f94d63b1681c7ec"
+    },
+    {
+      "family": "safeimg:1125",
+      "split": "test",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1125.png",
+      "sha256": "c02511be55984e1a7a69bb5ef5f61bd31bfcb31dcf32b8dbb21e50062db5dcdf",
+      "source_sha256": "ee20f3a4fc68e4130f0f69baf2e7a5f68ed39407513afa555c7c1cf5a5ec8123"
+    },
+    {
+      "family": "safeimg:1062",
+      "split": "test",
+      "ai": true,
+      "category": "I4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/1062.png",
+      "sha256": "8e20ffc8462b53419a117437ef7782efb7becdb5ee86a60ec961e5b28166258e",
+      "source_sha256": "0b5c2fd8bb82d0939279f38c448635348a5919680a011220aa7968745e4c0c9b"
+    },
+    {
+      "family": "safeimg:0074",
+      "split": "train",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0074.png",
+      "sha256": "df5f06c3d5d38bc59e2859ea1f05882c03226b4c04bf79ca635892eabf1246ff",
+      "source_sha256": "43a9bd98e6ff4d048bea35e6f9f793fc83a1736f9be5dff164c131880074269f"
+    },
+    {
+      "family": "safeimg:0078",
+      "split": "train",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0078.png",
+      "sha256": "b08f03445cdb1cf3519442079234288d4cee6f1b251bbcc38f26f7dd766279d4",
+      "source_sha256": "fff5685f68c2c8d90760f221370fb04d35dba7b42b93e899832b385172211012"
+    },
+    {
+      "family": "safeimg:0048",
+      "split": "train",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0048.png",
+      "sha256": "aa621e1cd0e157d022cc3476011e7b9a41ba659a263932bfc2b4f50b2879ec6d",
+      "source_sha256": "438cc7ff7dff0e815661cc4ebd783aa0fe8ed2f0cb8815fb8246b2ebaf60715d"
+    },
+    {
+      "family": "safeimg:0060",
+      "split": "train",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0060.png",
+      "sha256": "31748ef70866292f4ccf06be470624701921a7b5c71529b4e93228c54b34655d",
+      "source_sha256": "89eaad2debf5d4f82aa13a6c0182bd5562d434b8d2ee123ff5cd4c9605718654"
+    },
+    {
+      "family": "safeimg:0027",
+      "split": "validation",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0027.png",
+      "sha256": "3ea34df36aa41519e39de2cdd9944d03e7aec67102d20efc259e699159fdc4cf",
+      "source_sha256": "7b5946c195a48cfce3c0ed71611f966a4d5ba444a55dde612f709d04737a3e41"
+    },
+    {
+      "family": "safeimg:0030",
+      "split": "validation",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0030.png",
+      "sha256": "2e33f26e5dced05c0cd725b1544f2f2f5977efa82981888db2833e90d1d28d70",
+      "source_sha256": "682ceb038e3b5d085b976b6cb24a1b0984829e1832d77f78eb5ed494bd8064d5"
+    },
+    {
+      "family": "safeimg:0055",
+      "split": "test",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0055.png",
+      "sha256": "201db6703fd5f79218ea8fbffee620fa304d4473a07927a42ba11324849d1df4",
+      "source_sha256": "5cb9c62879fa1bb154de75606f874071c4c5ce8add117c1ac4ce56c787b01fc4"
+    },
+    {
+      "family": "safeimg:0015",
+      "split": "test",
+      "ai": true,
+      "category": "P1",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0015.png",
+      "sha256": "869c28e04714ed4331299e3d6df3746ed0cb41314fb26b991b94d109b848a4b4",
+      "source_sha256": "1cd0bec47f200ec2046292d2e1d3a91f0dcd283773d6f7b611a14b17230ab7f9"
+    },
+    {
+      "family": "safeimg:0165",
+      "split": "train",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0165.png",
+      "sha256": "e1260f1de4dbae6ad90ceb7f663a6d14c31b0decd3149d5cb310e3166825f476",
+      "source_sha256": "092f4192910f2053067b6b0da9b89aaf43090672ee4d355d791ad9bf88c011d2"
+    },
+    {
+      "family": "safeimg:0162",
+      "split": "train",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0162.png",
+      "sha256": "ccaf314ac90569679872a75af265042717ea5d1bc47b21a3142add2ef5541305",
+      "source_sha256": "565a20e74cc4417f99f0ad8a1e0a25a74af61066eff469727c91857c18c19aec"
+    },
+    {
+      "family": "safeimg:0125",
+      "split": "train",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0125.png",
+      "sha256": "bd07a96cd66016872f491427c8ade6d2b07956af89db423ea3ddf5a6e7daab31",
+      "source_sha256": "aaa5c67ebccc85e09a5fc73996c2f5ca194b10776867bd9877d65f2c7cd25c62"
+    },
+    {
+      "family": "safeimg:0206",
+      "split": "train",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0206.png",
+      "sha256": "7d9e01b929a8d04bdcb43bd4b02afb706787eb3a55a3072fbeed437a8598e4ed",
+      "source_sha256": "84a3b9caf517f9a329aa785e6b64379c91307437b6611e27bfa0faba949bb6ae"
+    },
+    {
+      "family": "safeimg:0198",
+      "split": "validation",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0198.png",
+      "sha256": "55ba52a6d441ba5200bb32ea4bd9db6d522114c487b5e6931035f0ba1359a52a",
+      "source_sha256": "c263691f4b8c370ce6860ae3f2b9868562139e3054e5122ba54939137bd24870"
+    },
+    {
+      "family": "safeimg:0211",
+      "split": "validation",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0211.png",
+      "sha256": "500db7533320ad4b2680675b213c4a27275591bdc16b1d03fd2d17434e0ef7a6",
+      "source_sha256": "d760f45cc818da5c4c4a6fa189caf78c7f8c3a39c82d21d8290881acea238118"
+    },
+    {
+      "family": "safeimg:0210",
+      "split": "test",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0210.png",
+      "sha256": "03c1610e1f72f4a6a440aa9cf99d2123c038ef93b2515318b5fc475b3745c0e5",
+      "source_sha256": "684eb4c6e575d01dc9b11ccd11d6984d46c757497515179ca5e291aef6bf07d1"
+    },
+    {
+      "family": "safeimg:0149",
+      "split": "test",
+      "ai": true,
+      "category": "P2",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0149.png",
+      "sha256": "09b333401af1c19acef98d32b84e783887a0d19ec0aaa94824d9d3387aef3359",
+      "source_sha256": "b79f66ea131455ba81c26a1b0649d5e90d0e509ea04e7349d8532237f9f1313c"
+    },
+    {
+      "family": "safeimg:0303",
+      "split": "train",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0303.png",
+      "sha256": "6252dacb94bf6381af84522ed509ff1720fe2e5d503dfe03463de9e5f5558ffe",
+      "source_sha256": "c54425d5890830d1ea6a1660de0c8c4a7265e9bdd4617aba3ebc5d80c03fb1ea"
+    },
+    {
+      "family": "safeimg:0262",
+      "split": "train",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0262.png",
+      "sha256": "f35e3d2e980aac8150a0ab43628e4d145ac68422313554383fe7c976997d7081",
+      "source_sha256": "c3ddf18afff84e9e582150101d17138fb8b75b5e1e88dea9e59b66d7bda6aaa9"
+    },
+    {
+      "family": "safeimg:0234",
+      "split": "train",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0234.png",
+      "sha256": "32c485d37b474c437768e909e395b4189aec11d18491a20aa0fdb0bbb3614aa4",
+      "source_sha256": "97432a2f48c82887274d4472f997b275d61fe87dbb7d72f0f3d4944b94596eba"
+    },
+    {
+      "family": "safeimg:0241",
+      "split": "train",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0241.png",
+      "sha256": "62bc954850ac456132208c835e787c699f497759b5379eb5f0b155f8de6e0e0b",
+      "source_sha256": "020abe54ac211bfa4bb808612c577f4526a96cdc17532e76725ac93ef1135d96"
+    },
+    {
+      "family": "safeimg:0245",
+      "split": "validation",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0245.png",
+      "sha256": "d17b34e9e61c6c5255a61a3011548c0940931c6743e90a0117e4fa7bebe049b6",
+      "source_sha256": "2f631dffb0f734fd3b20eb7314f141d94181ce7eb204ae5058ea09b892fd3234"
+    },
+    {
+      "family": "safeimg:0272",
+      "split": "validation",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0272.png",
+      "sha256": "ce525b333146ff50d3252997c4b31365df079203235c0a9b0b06942103d638bd",
+      "source_sha256": "61c41b60e722fefcb878bc32983928dd2843664386095ce3671b3665ebc3bcb6"
+    },
+    {
+      "family": "safeimg:0242",
+      "split": "test",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0242.png",
+      "sha256": "28b2e41685ed7226e7ec9d537009fbc44bfb2946734626ffcc1c93c898140be0",
+      "source_sha256": "70070d2368253816bdaf682e66e9068da3a5aed5469e8e29591be606a17a147f"
+    },
+    {
+      "family": "safeimg:0269",
+      "split": "test",
+      "ai": true,
+      "category": "P3",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0269.png",
+      "sha256": "880e7335ef9070a834b0f4d23f000931e99f62f1c1fd34cb697afb26679e5852",
+      "source_sha256": "d42496162f3f9412d23a50dca0ace0c089f267e53fb487df456653865013f1d7"
+    },
+    {
+      "family": "safeimg:0327",
+      "split": "train",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0327.png",
+      "sha256": "b535afe8e9edad85f78a4992eaf1e2c4c2745111215d427a82b3930a01747997",
+      "source_sha256": "5cfeb40be605d61b0bf9338be8c780b55c7de0ef6c4116c462e31848019466ba"
+    },
+    {
+      "family": "safeimg:0376",
+      "split": "train",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0376.png",
+      "sha256": "32ebebd1217119ada848f2703d173cdc3e8b7a502f5da146d43474e9f10d8578",
+      "source_sha256": "f6a9190fc2a0c2208f47aa8222017e9b1f40343f6988b76ca5d90ea7162c4a17"
+    },
+    {
+      "family": "safeimg:0392",
+      "split": "train",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0392.png",
+      "sha256": "9d04707f7cbc1abececd195b649800ae5ee435709fc71153b0361bd83e7fef66",
+      "source_sha256": "b8d93bea98c7de7d56c375417a7219be3b1009ab05b393556c862ce0c3b99613"
+    },
+    {
+      "family": "safeimg:0344",
+      "split": "train",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0344.png",
+      "sha256": "f9283889aa3e25fc7cfd5f5577fd855cc638bf31328b879c769c24b6d2a46743",
+      "source_sha256": "8b95d6644a1f51d27d64be773200b0571c95affe6a43344b81cf089ed8b96172"
+    },
+    {
+      "family": "safeimg:0317",
+      "split": "validation",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0317.png",
+      "sha256": "e0ddd790cfb7939d0b840fe568efae350a0558bc8b5a2bfea01fc9ae027b6755",
+      "source_sha256": "8b9ec0a41835b3cc6f33038e3465afc9395e96414f91a58e9e0a546f2712048d"
+    },
+    {
+      "family": "safeimg:0330",
+      "split": "validation",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0330.png",
+      "sha256": "8060a4975f8e6faabbabcc587500c89d4ffff9aad8e3942d63d98a86ecd03551",
+      "source_sha256": "a173bab90984156aee445e20a46d35f78687779e5b1715d54b7b8054d9510038"
+    },
+    {
+      "family": "safeimg:0352",
+      "split": "test",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0352.png",
+      "sha256": "e7ff0b7a84f70d342712de210aeed2f05efea8ad1c40131d2acf73df0c6e5222",
+      "source_sha256": "df43b8eb8e2d7667f3a64b6af54f9a0d12f76b5b4d90b2642b9e597dfad3d610"
+    },
+    {
+      "family": "safeimg:0358",
+      "split": "test",
+      "ai": true,
+      "category": "P4",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0358.png",
+      "sha256": "5f260c106adff2ab436cbbe5f3a03d00b5f39029e8812d2bf7dc5c293a7a0a46",
+      "source_sha256": "04642d33ec66ac23e3ca6d8634138c576a5333513d02ab23016931754d5553fc"
+    },
+    {
+      "family": "safeimg:0416",
+      "split": "train",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0416.png",
+      "sha256": "f0428e256d2b294e369dfbe085effc41e0a8774463a81e76aba72672ebf6d26e",
+      "source_sha256": "2c886ae3c43f1fb7c6e9eeab8f4c930b8ea18778930657d4d78df664785e7204"
+    },
+    {
+      "family": "safeimg:0443",
+      "split": "train",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0443.png",
+      "sha256": "6f56b6d82857c7f23f7e805f17994f6d4c82731cb4d2cf21af36ac0d2a69c0c3",
+      "source_sha256": "847c3404d6c7a70db4734cd6aac46f8419c59b4057c7fab63f32e5f19f4ce828"
+    },
+    {
+      "family": "safeimg:0412",
+      "split": "train",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0412.png",
+      "sha256": "cc0f3d20aa6f341e3e294e47e389b6c04486af8dd33c37475e2ec0747d3940a7",
+      "source_sha256": "66d2103a4ab9cc3071d05e05d6a2f2814e4b5ecf2a18b774a891470350f26227"
+    },
+    {
+      "family": "safeimg:0414",
+      "split": "train",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0414.png",
+      "sha256": "5715afda3ac0dbe885a1f2d2e9c25baef71be38f6539ba5e070ed733722e1964",
+      "source_sha256": "8db3c18fedfe0ff606beec085450e742da08b30ef6272b7be98d53e7768dd37a"
+    },
+    {
+      "family": "safeimg:0396",
+      "split": "validation",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0396.png",
+      "sha256": "17c30381c1513b191fdd370bee104fa10891eecc6dcee6d2d673ba8dcc2dac92",
+      "source_sha256": "dca8fd09b22cc5f8f9673db7ca57a1905a7017b08e681b5c22a8c0550c7cc10b"
+    },
+    {
+      "family": "safeimg:0460",
+      "split": "validation",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0460.png",
+      "sha256": "75ecd00840197ef8ccbdf40f41f5da3e31e126daadcb2aa81ab3630a610f6003",
+      "source_sha256": "bab46fc85a3406cee2d07f4bca7dd328d7adb8d1afaf8e4b8ddccdab6e09c63a"
+    },
+    {
+      "family": "safeimg:0408",
+      "split": "test",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0408.png",
+      "sha256": "da1c03416494baff49c9fd7d43c7dc46bed641504b53f2d9c85a9d3322e582db",
+      "source_sha256": "de780f70083a12f5a4c25f290795d90fa21bcd449e6ca122b449a252aef13da6"
+    },
+    {
+      "family": "safeimg:0484",
+      "split": "test",
+      "ai": true,
+      "category": "P5",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0484.png",
+      "sha256": "00082daecccc71aaa0d6d5264b3e4e22c5d62d699aa47c81d0b242e9f056be2e",
+      "source_sha256": "f735070be81704d45c9b8d20f0cc8a838891852ab77c5d3c8672d845cc405e0f"
+    },
+    {
+      "family": "safeimg:0539",
+      "split": "train",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0539.png",
+      "sha256": "0e97624a87d5c7db6761e8c9ee53792bb4382eb9515e293783ec9c5fe9aa3c96",
+      "source_sha256": "f89cd255eeb80ff0a6a5f1d859296d51fedf10eef6fe32760cb22b5be062f6d7"
+    },
+    {
+      "family": "safeimg:0509",
+      "split": "train",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0509.png",
+      "sha256": "a4c56abc62c663d016438a66a911caaa90e85a7b8c9b5236dde3808c42494397",
+      "source_sha256": "6bb5fdbebe57682898df5d4d948fbd7a85f8a52ca8895fad97d80abe3e0a080e"
+    },
+    {
+      "family": "safeimg:0495",
+      "split": "train",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0495.png",
+      "sha256": "e080b5b8b741ac8ed98ed74ee5acc36c780e3ba1e061bfbcadb35b27099d7c65",
+      "source_sha256": "5918f58dd5984d9663828c5d8e1bccc80c08012d9b99af2449340b373dda47fd"
+    },
+    {
+      "family": "safeimg:0492",
+      "split": "train",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0492.png",
+      "sha256": "9b865516dd0fb6d67e3d71ba0cd01e0fb4944192dbc83bb1f41bf503c5ca53d6",
+      "source_sha256": "371ec0b77eba55845a0856e92acb91c42b9d838fe9b457edd9073f7d6967574c"
+    },
+    {
+      "family": "safeimg:0507",
+      "split": "validation",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0507.png",
+      "sha256": "a3898a77a72c9bcea0534299db343b8b36262d03d89f2699d69a23515dafffd7",
+      "source_sha256": "b10114ca14fa0dd9696dbdbb43c0380f0be2197ad71da5ff5b38269808e384e5"
+    },
+    {
+      "family": "safeimg:0563",
+      "split": "validation",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0563.png",
+      "sha256": "e7c31f0cb1235696c157b3a17c07919ce374af4ba6742779d7d857aa66da908d",
+      "source_sha256": "b1c0da2b6c338df3f1edd402ef1f200d440aefd7cb830d8f323d72869fd2a389"
+    },
+    {
+      "family": "safeimg:0505",
+      "split": "test",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0505.png",
+      "sha256": "89fd21d9d81631e0f4b498b82efb4548de82989a7ce1481a184a93b2304a3856",
+      "source_sha256": "2d36af72748c129db932cec927dc909a0e4d94569e3a34d1c53f47ec154844a6"
+    },
+    {
+      "family": "safeimg:0552",
+      "split": "test",
+      "ai": true,
+      "category": "P6",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0552.png",
+      "sha256": "2bb6294a8e28f5666e46fb06463c56dd441434e202f312566d4b46f5b7e4451a",
+      "source_sha256": "e0fc154d9b3f546f5b61fa8cb92805e40797143b632164d3d5a7ee16677c484d"
+    },
+    {
+      "family": "safeimg:0642",
+      "split": "train",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0642.png",
+      "sha256": "de076495b7286d60818aa5b4bdd2d181b894ac4a77e59d58d086bee181437ae9",
+      "source_sha256": "9f51ef1f7d6a23c464b5638e252229ed168cd06796c55e0423d879d5c1d02041"
+    },
+    {
+      "family": "safeimg:0656",
+      "split": "train",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0656.png",
+      "sha256": "d02f0b41e6161f88aef32a397f24f2cfed84418a173ac7fea791c97c486db2b9",
+      "source_sha256": "96b5cbba334a3b7ddb2f51200f8b6116ffa42724d37c4cc0a37b0af6dd972778"
+    },
+    {
+      "family": "safeimg:0633",
+      "split": "train",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0633.png",
+      "sha256": "051138bc8b96c75a97bf8f420858622b7ba0168c379e141d3f275c624fad2a3e",
+      "source_sha256": "316c2fa985bd0d9243ce43f6590c0e6c9b115f72401733355578cdbd7b95d932"
+    },
+    {
+      "family": "safeimg:0668",
+      "split": "train",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0668.png",
+      "sha256": "366d2871ec5e85a6644337ab4a68e92b9b54bd00d213910c3d2ad529e098f297",
+      "source_sha256": "dcf2c46dbdbdb1df3afbd1eda73c221c15e0b909c785b60de4b163cb814bf1fb"
+    },
+    {
+      "family": "safeimg:0650",
+      "split": "validation",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0650.png",
+      "sha256": "c6833748cb8d23334c7bd829a7705271d7a1e3d178497ed50be7c777c4c123fa",
+      "source_sha256": "d36c86640d05a2ddc4229c988f8b27b715a0d191ed919140b0298e79d27e95ff"
+    },
+    {
+      "family": "safeimg:0632",
+      "split": "validation",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0632.png",
+      "sha256": "c84ab7d5d5a84802cf76b866ac48802ee302229abe08ffb05eb12533e56329d1",
+      "source_sha256": "4bbb83cefab8750ea9035c88acb0345234bf6415cd8fc5da45cfc9c405ac4767"
+    },
+    {
+      "family": "safeimg:0598",
+      "split": "test",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0598.png",
+      "sha256": "36cd35adcc3925a6e8f69dd5a418e27358f82637a6c6752754dec29c49e2423e",
+      "source_sha256": "50d9412795bec3ad243c161ae4e89ff338b850237127c14c60076d3501759c51"
+    },
+    {
+      "family": "safeimg:0676",
+      "split": "test",
+      "ai": true,
+      "category": "P7",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0676.png",
+      "sha256": "e24c787c52dff2759b960fdde50f2be52aac06e33927cf55f53da9b21fd0d278",
+      "source_sha256": "195d1f677642bee0492eff7c9322104334c7675d7d2d80dd36cda0809e903566"
+    },
+    {
+      "family": "safeimg:0688",
+      "split": "train",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0688.png",
+      "sha256": "ece2f7f60616020734a0394b68d35aa8b53e1594d2e6a17461867f062c37ee39",
+      "source_sha256": "219b570c9008843a80387ffd851221e266422ee81c59b60dc0431b2f4cfb2a98"
+    },
+    {
+      "family": "safeimg:0765",
+      "split": "train",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0765.png",
+      "sha256": "2100e3b374d8cdf89faffb724e9cfa91a7763385049dddaf7bc3e8ea2692036f",
+      "source_sha256": "ea9d32bb1a0cf1904ce033c479feeea7c10c17c4cb8db92c966f02a6727f2d5a"
+    },
+    {
+      "family": "safeimg:0725",
+      "split": "train",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0725.png",
+      "sha256": "1b6064a5922ec0c317970daf05813aef3db8a70e1198f1c767cc3252236aee46",
+      "source_sha256": "e9f23ae8cb6fdc4e46c6f4fc81215b802ef8ee4f6ee54a3a610ebe6cf4cd39d3"
+    },
+    {
+      "family": "safeimg:0761",
+      "split": "train",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0761.png",
+      "sha256": "1d485d07795391b80ab5e3c0bdf5c0292d56f81991439b0749e42818c38a1880",
+      "source_sha256": "65dca0e9ded4ebc0a409be095d396797760d822b58e120586fcaedbb7ba69abe"
+    },
+    {
+      "family": "safeimg:0712",
+      "split": "validation",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0712.png",
+      "sha256": "ffc1bf966defd75310a8dddc7fadf3b8375178a6f5b4a19c17d2542fb50a3bec",
+      "source_sha256": "cb3182645889a64544ef29687063f432370755df534be9b9f8e3334f42a6f90f"
+    },
+    {
+      "family": "safeimg:0721",
+      "split": "validation",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0721.png",
+      "sha256": "b33aaaea47cacccf2b356099f64f06e7ba360f3c780c90e1ac3181d7e6b64fc2",
+      "source_sha256": "0bd0dfd17e5b9031bdeb20864c8d8fb04b575b1633adef207dfc5d647c90207f"
+    },
+    {
+      "family": "safeimg:0744",
+      "split": "test",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0744.png",
+      "sha256": "c820e13c9768d76f3976cf323060041aa7d1d5e52c22b2b1686e89c9471fd7da",
+      "source_sha256": "549303fe1b5657697fe31075173767cc78c5e63acaffcc652c586e5be1697c2b"
+    },
+    {
+      "family": "safeimg:0769",
+      "split": "test",
+      "ai": true,
+      "category": "P8",
+      "url": "https://huggingface.co/datasets/Snowstorm1492/SafeIMG/resolve/389a7c555191c9e946727a470500fcd9b045381c/data/test/0769.png",
+      "sha256": "313728ee4d8801fdc04c847e82d6e5a6794325509794e783882725c323f9686b",
+      "source_sha256": "0d09330ce64ab98c39e4ceb6012b0426c893057a04afbaeed39c2109d52d47b1"
+    },
+    {
+      "family": "coco:COCO_val2014_000000108698.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000108698.jpg",
+      "sha256": "2dbfc9c5f5a9063c411d64e589ab0e0b49d041cfa4aa61682a1bc8c85e44aeaa",
+      "source_sha256": "91d89e339203403b5152a6c6540b24f2b8b1b25686764bdddb38d47cbac5d7ce"
+    },
+    {
+      "family": "coco:COCO_val2014_000000107656.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000107656.jpg",
+      "sha256": "e6dfa40bbcc63639973056e2d296b83fdf91a73e6317f45efbf299cad18c9ae6",
+      "source_sha256": "8f0656db90eb1379817f0b4ce5460f589d5f0c8e2cc4ea5e0c20bce9ce3c6f47"
+    },
+    {
+      "family": "coco:COCO_val2014_000000104568.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000104568.jpg",
+      "sha256": "f0895069ffb3336796b66828403634ed56ac07cf60dea3cc4e0edb4024726e6d",
+      "source_sha256": "5a85a0823d6033c2a617fa6925c77b90a1cb6ab2e2ef193c9b97d95eaa4885d6"
+    },
+    {
+      "family": "coco:COCO_val2014_000000028236.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000028236.jpg",
+      "sha256": "31d3e06aa4273fa15e14308d166eea6e531c8a74a52be5e83c47739c6d008323",
+      "source_sha256": "f654025990e89ff849ac05622a7a692439bec59b8df51690f2e8c4500c2b760d"
+    },
+    {
+      "family": "coco:COCO_val2014_000000148792.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000148792.jpg",
+      "sha256": "7313d2dc81dfcb86228879b1cf8104364f9d0f3c55b277267d3224d6ccabdbad",
+      "source_sha256": "5ec9c98de5e1e3c1ca00b3598d8b501aecd53545d22c7eb810331f419efa76d1"
+    },
+    {
+      "family": "coco:COCO_val2014_000000000626.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000000626.jpg",
+      "sha256": "0d58fa8cbe025547e4a3cdcc886ccd85e1ca84548915bc3eb9e09e19ebab0ae6",
+      "source_sha256": "a78ddd34b75482ed12b5a27b9b0ec3ae204e513f1d79507d815f6a50815ef241"
+    },
+    {
+      "family": "coco:COCO_val2014_000000047559.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000047559.jpg",
+      "sha256": "a50bb106ad50262d7db46082a50dc26aaa3dd1382c284862b4bd21a1093d14cc",
+      "source_sha256": "c3a35abcf0ffb99e16069c72457e8bed4852dceb2e4c2f0f0ad41b0e95fa6384"
+    },
+    {
+      "family": "coco:COCO_val2014_000000174902.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000174902.jpg",
+      "sha256": "85243b64311da998467b167d06f6bdc48887030699625c01cdf3bf46092aed09",
+      "source_sha256": "90ee85eb2ed044731e32d30b21a52d3e7f76df5658f0d7e652956b33700de14b"
+    },
+    {
+      "family": "coco:COCO_val2014_000000057433.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000057433.jpg",
+      "sha256": "97f273f79fc86463608c170e7addd8c5a5905c10cbb852f7c9ed881f70a073f8",
+      "source_sha256": "f6d38d0d4887a7bd1b63c6582f1ee33cb08cec57061fc35e69448f5b7fc86065"
+    },
+    {
+      "family": "coco:COCO_val2014_000000038155.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000038155.jpg",
+      "sha256": "e2d88f64c47fd9188f025b14953dcdff05655b5062cd798e2266bcda92c598dc",
+      "source_sha256": "a1b72b037d04e6bf9844849214e89b237842ab2a80f70b6cd5694bcc8d640c39"
+    },
+    {
+      "family": "coco:COCO_val2014_000000057387.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000057387.jpg",
+      "sha256": "22c9ef4d3992cb0bb4e82c53f7f31894aedef424575e7c3e27204961f4ec65b2",
+      "source_sha256": "da112be087bcb0ebb539c5f5e751919690e8c194c8d5b581ea53cc7098e9c173"
+    },
+    {
+      "family": "coco:COCO_val2014_000000071602.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000071602.jpg",
+      "sha256": "6888af8cd736060beefbf38e55b430d8e6f858a85070508645213f389acdecbd",
+      "source_sha256": "21d0969034b8214314b89d6d07525f0c3eeeea51a2f42964b6662bcc88aed3a6"
+    },
+    {
+      "family": "coco:COCO_val2014_000000070744.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000070744.jpg",
+      "sha256": "55d4aeda9c6d5cf389fed5b326d4349cf8fbf5f92f09eba5b9d23d5b9c3d86d6",
+      "source_sha256": "9884bf6573059aa5412fa554868b3c6f13a86b854dde8bdf8091487d269619ad"
+    },
+    {
+      "family": "coco:COCO_val2014_000000123704.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000123704.jpg",
+      "sha256": "1e53bb51b9e343b254f1fbeeeff2d036b64da807a21f112e6da51e9fa2a8e4e4",
+      "source_sha256": "5619c3a11423a915a83c52311689f14bea9c7df4a7669549d8d41a4f2017042f"
+    },
+    {
+      "family": "coco:COCO_val2014_000000012443.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000012443.jpg",
+      "sha256": "573dd96e1a420a26dda5888838b4a2e6d6f7807a06578270f1d6b5829e989a97",
+      "source_sha256": "511d7c72bc6179b849fa5ea111368f3e5f42d72dec29f3e7296dab990f1d8fbf"
+    },
+    {
+      "family": "coco:COCO_val2014_000000090429.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000090429.jpg",
+      "sha256": "c47497f9cb0b5eb66ae7e851c221e988600ab6edc445c2574ede8d68868cf316",
+      "source_sha256": "c100d87dc5f2c8a70534d5430a6667d0f297b23a0b2148ab24fd02e9404a307a"
+    },
+    {
+      "family": "coco:COCO_val2014_000000139721.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000139721.jpg",
+      "sha256": "5f6d62910915ffc300bc65915f133aa893a30eb0e506fbaa1a9d67853f4949a9",
+      "source_sha256": "115a95ab455399f494313af3bb63d72cb9f88203a608082284b9b90f8d1f3feb"
+    },
+    {
+      "family": "coco:COCO_val2014_000000085328.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000085328.jpg",
+      "sha256": "77432bbd9642fe726e29e1d433bebece080b2b61d6eb617ce1c0413d23cd9109",
+      "source_sha256": "f795821ffa0a969b785f7a5131cfaae4401e18df94673f69703f32eebcce94ea"
+    },
+    {
+      "family": "coco:COCO_val2014_000000084442.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000084442.jpg",
+      "sha256": "bb132d4d0598a66f7d6f65f0b0d7d9934755200c06947e12b706e0438159eba9",
+      "source_sha256": "3ac28325e9e74d6cacf72ad103d05998a760b79f07919ee3b2ceea3eefdfeb1a"
+    },
+    {
+      "family": "coco:COCO_val2014_000000048708.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000048708.jpg",
+      "sha256": "76ee06a6e53d68477c0f0e478ec3fce8cc34e6cbe5efa94d6ad9f7a38d33a435",
+      "source_sha256": "fe1c6d2bcd82d1f9d5e75de0d0ccbf3e7c0db1a83abc67876522e976eef76dc3"
+    },
+    {
+      "family": "coco:COCO_val2014_000000036333.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000036333.jpg",
+      "sha256": "f2677c53ab204ec831e7ccaede584c408d5de4dbded2a1318807200543351182",
+      "source_sha256": "4bbcc6f461eecee0b8ebb0b099059183ef4b7e0c80459b9ba8ffb513e6f201d2"
+    },
+    {
+      "family": "coco:COCO_val2014_000000092660.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000092660.jpg",
+      "sha256": "cf08d9a6ded45dc2f980e9da4ed9cc1d3f5ce7e5fc427fadb29a84a6723956f2",
+      "source_sha256": "01fa4f05b6ff9e5076305134e47d78d9843319eeb9b2176ca96a4b51c864cde3"
+    },
+    {
+      "family": "coco:COCO_val2014_000000037382.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000037382.jpg",
+      "sha256": "40aaf5b54f85131499aee9e60059a5afbfec63af4fc1561898749dad4310ff88",
+      "source_sha256": "12ebbbe098aa08b51e881bfdc9f60d5e66104f03e512641accf1af540620af9e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000190776.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000190776.jpg",
+      "sha256": "9153a675336e54d48c53576ff5311fa04aa232342be048e6345135f4137b59ef",
+      "source_sha256": "770ab194610603cff47a420f397f9f7aed5e5b46c028a785601a200c3f37abee"
+    },
+    {
+      "family": "coco:COCO_val2014_000000191845.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000191845.jpg",
+      "sha256": "906519d165cc5a793613072528a1c0390862d457b02e19b7551295360f944a0d",
+      "source_sha256": "2b3697e31367d0698f6edb4bbed5b7fb25db0831bda2406ea7e65c327f3fe4d5"
+    },
+    {
+      "family": "coco:COCO_val2014_000000007726.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000007726.jpg",
+      "sha256": "48efd81b0cc8d6b4a3c8a3217dbdaaa51e57f1eb2b0ad127a54ba3b35c71b7e0",
+      "source_sha256": "d43529e8354a88159f8711dbe0e5f25b5a6c2bff3745a3df7b138318b3e23772"
+    },
+    {
+      "family": "coco:COCO_val2014_000000007519.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000007519.jpg",
+      "sha256": "730327b03243a75e68b3f26867677aef979833c1327ae95cd15377e931d1cbf6",
+      "source_sha256": "01e176f09d5ddcd5e14295eb247fe70e8b95108a04201cc8a08b5ab360262d9b"
+    },
+    {
+      "family": "coco:COCO_val2014_000000207785.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000207785.jpg",
+      "sha256": "d23efcd259cdb5d9a50d8dc1eee7772e24517b744b9a428105aeb9d872cef148",
+      "source_sha256": "c9a0650b588a96504e55037261026081c8fcb4d173f4308b0d1226bb9e240ea4"
+    },
+    {
+      "family": "coco:COCO_val2014_000000094951.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000094951.jpg",
+      "sha256": "484d2ad40da7246a13ba6cbcaf334cfae4fca5afc1b5d9294e80831e5de16d30",
+      "source_sha256": "fa7c4d69ff4cc7b68e04d121761ac46467e8bf6d4b0c2f82c94c83eb71a2176d"
+    },
+    {
+      "family": "coco:COCO_val2014_000000054421.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000054421.jpg",
+      "sha256": "10c00ed64a8991d68a7ceddc8f90354b74706f49c6ca468d39877f62c8049943",
+      "source_sha256": "5db63b22bd9bbe5a82bdff1266f48f6c739a0b8c987a4377aa471f6338c9edbf"
+    },
+    {
+      "family": "coco:COCO_val2014_000000185807.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000185807.jpg",
+      "sha256": "101fc852a209acb7f82728573a68fa1875b66392dec4f95b639f66a93b5938ca",
+      "source_sha256": "147c7e5bfd07ad2e81d07e484c5b2265daeb188feb71694dab7765f3d36c3bdf"
+    },
+    {
+      "family": "coco:COCO_val2014_000000099938.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000099938.jpg",
+      "sha256": "22a08a36f495b6e290371426a667e7b2a6f3107c0ea0f2fed43e45dd7ac76791",
+      "source_sha256": "b44194d76ff57228a6a7fee27fdf1253b25b410e963782e00853be7ba18a2715"
+    },
+    {
+      "family": "coco:COCO_val2014_000000113040.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000113040.jpg",
+      "sha256": "a3afcfd0de1e3d9c6ee3003ec5df63653c11b027ad6e7499f38934ede78a33e8",
+      "source_sha256": "bd5158e388ec7bcd182f4e8042a5a63e19d2d2c7ad981819819bbc9854cab15e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000164883.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000164883.jpg",
+      "sha256": "3dae872ab3b47215976551c6dfa52bd4af5af5d10ea04fe6954916812bd4c8cf",
+      "source_sha256": "c90e3b3090578833550a5807ffde861c1fdf5b668696d663936406ffc73e672d"
+    },
+    {
+      "family": "coco:COCO_val2014_000000092839.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000092839.jpg",
+      "sha256": "b84308021903b506b1b2b6fa4a7330514508032b3c1e42cfe5f7d05dde929636",
+      "source_sha256": "8cef3815ef0704e21f1c9700db528de5159408edf517831c79b7eedab9a07557"
+    },
+    {
+      "family": "coco:COCO_val2014_000000196244.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000196244.jpg",
+      "sha256": "764da67616e57000eae65ae5a26db2459966aa4b6c705f41181e7864608931e9",
+      "source_sha256": "c6aa6ae21e5abe3245bcae637a3c9b78413e714d9e2de29beac1cad5bcb91a58"
+    },
+    {
+      "family": "coco:COCO_val2014_000000115749.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000115749.jpg",
+      "sha256": "589616676464271773a48df9ebf53444d48025e0f8edbaecb3bc6f8a146db088",
+      "source_sha256": "15539ef7ab7cf7cd54401e560b39b16d50de87b3fb34b712e72e3f74709735b1"
+    },
+    {
+      "family": "coco:COCO_val2014_000000185989.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000185989.jpg",
+      "sha256": "721d0d393f985ce92aeffce9902cadf90906055ab61c252db79692df1b3d3bcc",
+      "source_sha256": "40e8282e7e438376fa110356cf0e30fc1ee648928667345fc646d0ca2d5941e9"
+    },
+    {
+      "family": "coco:COCO_val2014_000000113223.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000113223.jpg",
+      "sha256": "babd5d397ecf05656671efd11ce2841109416ffe714adeba8b28f1e72bb3aedf",
+      "source_sha256": "7eff44a1c550327a7fb14d77659f14587e44fd4f3a19c2dcc13e373f2b457337"
+    },
+    {
+      "family": "coco:COCO_val2014_000000114972.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000114972.jpg",
+      "sha256": "8ef6dc3d2b04d7e6e6a196916ea65799fe6f32287171d1d3b62efe1861a0ddbc",
+      "source_sha256": "d579bf277d2c3b0e51fed739329435d5e7dc81ffc90e3352a0138fd16c35bcb2"
+    },
+    {
+      "family": "coco:COCO_val2014_000000131138.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000131138.jpg",
+      "sha256": "7fb509ec7c7229cd206bf7193a5f49de3340a7df2c93b0bf0789349933f2b387",
+      "source_sha256": "2598539292e89180ada7b17491bb6f7d3793dd792897e22ef8bbe21f3eec87cb"
+    },
+    {
+      "family": "coco:COCO_val2014_000000185639.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000185639.jpg",
+      "sha256": "21b06a82cf97433608c250e676adf39344472da2932c4385529b6bbc9a4de6d6",
+      "source_sha256": "255f27baf037496388e1abbdfa3f180e5dff6588cddc1a0622d17680e5bca48e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000031878.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000031878.jpg",
+      "sha256": "4f83b453cdef2427a8655cf47bf3f12d71360978a9ece933c6f89bef9a5cc611",
+      "source_sha256": "68f64ca3b656690b0b8141a1efa2d29f462f436e65a915833f82da75881f4ae8"
+    },
+    {
+      "family": "coco:COCO_val2014_000000034826.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000034826.jpg",
+      "sha256": "4c135ae059a2440dd66d5c290f84fb4890931d3ebbb709dc81d983a3a7ef43c5",
+      "source_sha256": "e5d7779c14b6ad87acbdcb42061d89de24543cff540c511eadb86dac8d28189e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000084643.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000084643.jpg",
+      "sha256": "00a70ab88b696bf3c1ccb06a274466fb5ffc39f8566b522376b69969b8f7db5f",
+      "source_sha256": "7b499848994fc792f5500b70829cf4c2d1d8d540acb83d156d4b7d8fd95c5617"
+    },
+    {
+      "family": "coco:COCO_val2014_000000144715.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000144715.jpg",
+      "sha256": "66da261cc8b5c624df99bb17b5ced5db3be18bf658e20301fb2cf38ae2979ee8",
+      "source_sha256": "473a401c0ddeb1dcaf3b4591e72f514dd614c09e49d01c33f53a8bfce112c64b"
+    },
+    {
+      "family": "coco:COCO_val2014_000000185916.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000185916.jpg",
+      "sha256": "27e3766a3036de7015e2fd5c91cdc39160210f08f2ead03370f7aea63850e6c7",
+      "source_sha256": "513ec9a1cb44906957efbeb5050ae46cf53dd97e85d534d939c3c367d54f8ba9"
+    },
+    {
+      "family": "coco:COCO_val2014_000000172271.jpg",
+      "split": "train",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000172271.jpg",
+      "sha256": "c3f65ec26105cade9c16bbffd30899387afb56eb9ec1180b1bc62c38e5b65efc",
+      "source_sha256": "5ff6e9e5c93ec13de0d5a9a946fbd8f66ed6ec7953abc1b196ee58343015a5cb"
+    },
+    {
+      "family": "coco:COCO_val2014_000000110784.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000110784.jpg",
+      "sha256": "06f1118c17ac7a1d74f985775d43f7dd4ae5f5065b93989004f954f4a354f338",
+      "source_sha256": "a58ae7aa5a2afea886f3dcdb9efab1c2ab2e918df6d0d41d001a493ff859ad23"
+    },
+    {
+      "family": "coco:COCO_val2014_000000190829.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000190829.jpg",
+      "sha256": "1278d3e57cd28a163212bd247a4069acdad8fed0403c2a1ed99bbe9b808c6435",
+      "source_sha256": "58009f93f48717c1441baa80dbf5af8cba188d7bcbc8a218da7bddeda01b32ea"
+    },
+    {
+      "family": "coco:COCO_val2014_000000022208.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000022208.jpg",
+      "sha256": "b4ef37b5692a689caf949c990cddc94870fdbeeafa2fc17bbfdfc2bab961fa6f",
+      "source_sha256": "bfa48e0fc9079db76fe5d58f8977a1b1566654af520b6e01409a037ad3bff147"
+    },
+    {
+      "family": "coco:COCO_val2014_000000145209.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000145209.jpg",
+      "sha256": "8d5e134f82007d4c3ff1657f6b2836b15bb3a351fc26700cd1fe6dc0ecd1f224",
+      "source_sha256": "0eeddd8aa07f9a70e764837a47cbc6e205e5d4f87faac0c64b2d7bb5fdc71121"
+    },
+    {
+      "family": "coco:COCO_val2014_000000189424.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000189424.jpg",
+      "sha256": "e448580e657cb06472178e7a1b256d37ef9bbe5a81917a52df888dd2f1f46177",
+      "source_sha256": "c85d223d90d532971898cb2c183b6893d961fb4adde4e6df3c9c73ade8afec0b"
+    },
+    {
+      "family": "coco:COCO_val2014_000000086408.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000086408.jpg",
+      "sha256": "285366e7a29f558f67da5b8db28f5afa348b93503c8935051b1b35784904d489",
+      "source_sha256": "ea00c9284784e590037543cf1137b98a24d7a3ef57d52a16438a196c4efb561e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000106356.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000106356.jpg",
+      "sha256": "e7cc4aa9993ecbff89435cb7ea44dc85222fc2492e65eb2e037b8178d864560c",
+      "source_sha256": "33f1cdc697b0150fdc41336449804ea8d052e18b70e2580d6b7d399cff9a7b47"
+    },
+    {
+      "family": "coco:COCO_val2014_000000135671.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000135671.jpg",
+      "sha256": "68ab00170ac2c2aaf3186077391830b470e46f0a05ec486b659f23ea7b0688f4",
+      "source_sha256": "edee84c54c40063e8e50dcb5be33ed877735208114eccd163ffa6de3b74f4230"
+    },
+    {
+      "family": "coco:COCO_val2014_000000082835.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000082835.jpg",
+      "sha256": "ee0711de3efe68cdb9692b6332907a609c809655fc8da853cf5337c694fa1b8d",
+      "source_sha256": "6a1e4f7142e0eccd7d5f2905778cede77f625e7bf67592a535e8795f1e2c4097"
+    },
+    {
+      "family": "coco:COCO_val2014_000000096517.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000096517.jpg",
+      "sha256": "7f4f519fb43aeb618422c73b6f17283a6e1f5cb0d84da029e22abb36729443e9",
+      "source_sha256": "c53ad4ae7a787b2cd7accde9fb9027339d505b4dcdd8a3ce9d093fa996d9eb50"
+    },
+    {
+      "family": "coco:COCO_val2014_000000023696.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000023696.jpg",
+      "sha256": "6f27661c0a32b3f315ae9f70b8ca27442c2fcaa89228b554b8e335d2b315ed3a",
+      "source_sha256": "f2ecf06da1c7a627b33c98a0eabc4d0a321f4f98e0702fea850eb4cb68da4691"
+    },
+    {
+      "family": "coco:COCO_val2014_000000135604.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000135604.jpg",
+      "sha256": "8cb8e2a50bd5f70297f73bba080e56a9967c3d836061010483e978b4afb664f2",
+      "source_sha256": "57dbdf8200612aa0667176be3249ed7e4401f8871a3ce5f31a4f60328fc182c3"
+    },
+    {
+      "family": "coco:COCO_val2014_000000163728.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000163728.jpg",
+      "sha256": "463799f3583d0b28aa267bdcfa7252751c35efa6464159cf2c26044b265446d1",
+      "source_sha256": "155122b6b23c7184974d67805fe43c6d12615055b04a0e325cd587790ea1dcc2"
+    },
+    {
+      "family": "coco:COCO_val2014_000000129832.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000129832.jpg",
+      "sha256": "08a062dc1588cbe9fcfdb385fc2db87fe8beba32cf413acdb89c23a66b5f4f63",
+      "source_sha256": "a6856ee8ae62c32f7e73c89eba1118fae5c1c465c956f45fa8e88e52f61c60a1"
+    },
+    {
+      "family": "coco:COCO_val2014_000000127920.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000127920.jpg",
+      "sha256": "318aa6ff4a01b179d6b84510554df82f7fba6fc75a9c3ff3b973f9c74f2bfc2c",
+      "source_sha256": "d4777a4a2cfeed57440e94e7f737d500489bf244199b90d50085e74c5ee6452f"
+    },
+    {
+      "family": "coco:COCO_val2014_000000054671.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000054671.jpg",
+      "sha256": "8bbbbb89f2246cc3f0e1c735e364dc8b1272bff3e13d2efce8ae2f70680751b5",
+      "source_sha256": "9b68acddb32846bfe28b5946b7cc20b5a3855fcce7d580ff38159329ce9b0db8"
+    },
+    {
+      "family": "coco:COCO_val2014_000000176288.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000176288.jpg",
+      "sha256": "b6994c0ec760ae722b463fd1916b49dc2e647c660c5b03a72b9359c9b4663d48",
+      "source_sha256": "f593bdf1185483c2d3cfc3deaeba3710140542d4b4dd351c64eae68fcc425eb1"
+    },
+    {
+      "family": "coco:COCO_val2014_000000159606.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000159606.jpg",
+      "sha256": "8be081a63bd6f1fc3d33873f5ba9d9f610ab042b24d359170df3646c8a9b21f5",
+      "source_sha256": "1915f6b859e05bcba187ba4ecc823f18c1bede99847f5398c00425f56999f006"
+    },
+    {
+      "family": "coco:COCO_val2014_000000052835.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000052835.jpg",
+      "sha256": "af502919a2ec9b4bbe96a46084177ba2e56e7cfedb94348ba7269c9102b2b227",
+      "source_sha256": "f0708632204041b1fd42c2d7642d696dfea2fdc94d816e3ac051024457fc9c46"
+    },
+    {
+      "family": "coco:COCO_val2014_000000162256.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000162256.jpg",
+      "sha256": "d26bf26315a45fb43bafbc66e31f091251d0da6b1f051dc33c3491363005b613",
+      "source_sha256": "381bcefb095fd6e6cacbf5317eb07d9c154c7aa78f961409fba0fdfe959e7140"
+    },
+    {
+      "family": "coco:COCO_val2014_000000109992.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000109992.jpg",
+      "sha256": "6a9e88ef40d9f4b5c32d416ee81eee4327fb283a8d50d9691f80cafa82fe5a06",
+      "source_sha256": "4aafa6196c1802e0eb2e2c39df41ab9f4b69c449c254a9663578b8a7b79c9444"
+    },
+    {
+      "family": "coco:COCO_val2014_000000152702.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000152702.jpg",
+      "sha256": "238744f65fb2af0959f9b738ee8bcb4e8cf6f94e1e66cbb0fc58be9a85a3ea86",
+      "source_sha256": "3f0a173ab26e44aa4f0158557614e1c4bea7e47a6b9582a5471e51c30afd0ce8"
+    },
+    {
+      "family": "coco:COCO_val2014_000000201561.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000201561.jpg",
+      "sha256": "1772663b132ec10d4c50e3b1f473ec6f6467b41150a73a8d4e3300fdc811c1f8",
+      "source_sha256": "4101862ca1a4001e2c249552f09eac658a295abf4a89ce12b37968904e6c3e6d"
+    },
+    {
+      "family": "coco:COCO_val2014_000000184633.jpg",
+      "split": "validation",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000184633.jpg",
+      "sha256": "09c27972629a664e1b8ae8b8a5975b7e1998bebb7b9012fe4e506f66fcf2a94c",
+      "source_sha256": "5c34bee4bbc1dcc4b781c4b83b8732ad64ff14e721c3c88a73b1089f23bb0285"
+    },
+    {
+      "family": "coco:COCO_val2014_000000093607.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000093607.jpg",
+      "sha256": "b69bc5c235f7d6a292a8bf86b2ded64b0be6d7e075f4c640b4dd81c04c61fa5b",
+      "source_sha256": "9e4b1ad658ecc62f49e672a933e659e02f96a20c2d766065ec2320219ecf980a"
+    },
+    {
+      "family": "coco:COCO_val2014_000000023937.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000023937.jpg",
+      "sha256": "5032a9c011af6ff710616fb4d84ed185fadec14760f2f606b25f20271522f0e3",
+      "source_sha256": "7789236aff12bffa0cf4ab954fb68531bea594d42e78cb80bbeac45175c5e144"
+    },
+    {
+      "family": "coco:COCO_val2014_000000035891.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000035891.jpg",
+      "sha256": "cf92a6a0f72257ec3b64bafdec52102eac9a21471f52a45ec401fc7b939492f1",
+      "source_sha256": "e918eac0951d0460e5df918768bd0523a058f5a33e629a047f0f8815e54d7f24"
+    },
+    {
+      "family": "coco:COCO_val2014_000000214671.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000214671.jpg",
+      "sha256": "bc6cfa546b948a41fdd0eac17ad7cee7443c40a726f3d0911215612e4d925ea6",
+      "source_sha256": "9d8e016a816c9b12e99b4f536141103eba832a648d6f0e07f91ffd0732cabeb5"
+    },
+    {
+      "family": "coco:COCO_val2014_000000172877.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000172877.jpg",
+      "sha256": "d1684cc5dd4260194ea910534866c542aa417b325f0fb599283edeea899ef59b",
+      "source_sha256": "079e9dfb3eb9067760e402cb6d52b7d48037dba9ed1f81cd85929ec4b1c43ea5"
+    },
+    {
+      "family": "coco:COCO_val2014_000000114946.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000114946.jpg",
+      "sha256": "ac70e72567ee84d89e607e5c1371b5354779205a44863ff043c1780967d882ae",
+      "source_sha256": "a1b8301697e7901f06676e6ac1ab441f375da53282e70849f476fd3521463def"
+    },
+    {
+      "family": "coco:COCO_val2014_000000118069.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000118069.jpg",
+      "sha256": "c087c81d2eb34d33a595dc7562bb9d163e713e0560d87a8e623e1a67c5facaf5",
+      "source_sha256": "3ddc8cccee05ddb2347a8b04652b5964efc7808350223806c355e940cfcfbd94"
+    },
+    {
+      "family": "coco:COCO_val2014_000000056633.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000056633.jpg",
+      "sha256": "2d334f749d6c7d77727c7278f3d42316db642ec8dffbbf289e411eb457e35309",
+      "source_sha256": "7dafcd74bd32e52d4893e243dc9785a97a3f0ac1b8037fc2e78b4fbe850ec0b8"
+    },
+    {
+      "family": "coco:COCO_val2014_000000116819.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000116819.jpg",
+      "sha256": "917e2d996d475d6f5be231c47b8d925c68f503d911a7b7e3ae112e8a275b3cfb",
+      "source_sha256": "20ef7fe5082496228324ffb5002546fb7ebd889339058621a60031683749b438"
+    },
+    {
+      "family": "coco:COCO_val2014_000000003310.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000003310.jpg",
+      "sha256": "1f19fb626fe77d23e25a2b296ee4bfeb56f9788c16480bb4ef94b238125eb5f7",
+      "source_sha256": "d8441ba339ddcba1dd37d1000c49f678bc0615992c7ff9849992eefe9fe0e6fa"
+    },
+    {
+      "family": "coco:COCO_val2014_000000053267.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000053267.jpg",
+      "sha256": "967a431b758de211ed208681168890cd2c55d90e1a63b065981d6b47d2780265",
+      "source_sha256": "065e7bc13a1b5e8636bd87b4c11df8be2c88a156cd45cd0347a309b573a36394"
+    },
+    {
+      "family": "coco:COCO_val2014_000000122213.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000122213.jpg",
+      "sha256": "cf65be74c4c95457d7088191eae19b8ee262370481713b141f92196c80f3eb29",
+      "source_sha256": "255dafd79e63d84f50c24f74be4d11d84cb8ab006397781427afd6d3f270520d"
+    },
+    {
+      "family": "coco:COCO_val2014_000000008498.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000008498.jpg",
+      "sha256": "ac5f6d69407cbe259cbdf5886556ffa6de007f667a5dcef38b446e4d54e39acd",
+      "source_sha256": "a6dbf9ab90bf65f1868e63bc17744d12b205db1b972111ddf2090c26e55a5b33"
+    },
+    {
+      "family": "coco:COCO_val2014_000000009077.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000009077.jpg",
+      "sha256": "5327404f588ea885913bf763a72cd1e82aabb781654ce3fbd2b6cd82c0127abc",
+      "source_sha256": "bcd2a78fcad75beab5476002ecc57431efa748c271ae143cb7856c54bfd1a547"
+    },
+    {
+      "family": "coco:COCO_val2014_000000030113.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000030113.jpg",
+      "sha256": "2b9601cfc4aa6e372599ec82f694420983644345275377a0a647c6e713ba7751",
+      "source_sha256": "838352e03e7800bbb8d500ddfe80c8917b1a5bd1ea91bfb0bd17e90e4320a4ae"
+    },
+    {
+      "family": "coco:COCO_val2014_000000082576.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000082576.jpg",
+      "sha256": "8a84a416a43680fff8b96933706563329da1964291b06439884eb774fba09d80",
+      "source_sha256": "47d963cfb410ffc04bdfb3157a49077349850d6fb59de0b8340c7ecdcd277db3"
+    },
+    {
+      "family": "coco:COCO_val2014_000000194331.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000194331.jpg",
+      "sha256": "78e30ccb6dfe8bf498366fcce02eb7dc63ea78020c51cd679428e722dc8f03bb",
+      "source_sha256": "f4653239ffe63104c4071b8eee920c30cd83ab8b22c95e1acbfc29328936547e"
+    },
+    {
+      "family": "coco:COCO_val2014_000000182175.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000182175.jpg",
+      "sha256": "b2430311d0e66b91928fadf15f5394d838632713688dce2a0c45f3decf448509",
+      "source_sha256": "2cf512cc9a8a36ccac16b833c9e54e80158aeab3c047f10ad7780b0f69fbb9e6"
+    },
+    {
+      "family": "coco:COCO_val2014_000000053450.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000053450.jpg",
+      "sha256": "9ada058610b704ec15d51b37a45c0bcb5038a48d41c84854638d6975b36d067d",
+      "source_sha256": "ac8a3dcc0751024d3dcb7cacf82b696dc759957ccb4256a0aa2e97b85bf07b41"
+    },
+    {
+      "family": "coco:COCO_val2014_000000091833.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000091833.jpg",
+      "sha256": "c9deedd879956cc5f08db146ad3fd4218d2a7a328c12d821f36db0f0b84d5196",
+      "source_sha256": "4f2a77c7e2c406f256eab7d2f265048dc62ea8bf4d53e6540a2342d89ecd1c8a"
+    },
+    {
+      "family": "coco:COCO_val2014_000000065455.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/FLUX.1-schnell/0_real/COCO_val2014_000000065455.jpg",
+      "sha256": "0b50f81678af02319154037ea93bb5fd2a8a09d647a20b541aacda0567695625",
+      "source_sha256": "ed8e5f059b14f8e97768fbd2bd505c7f4b519f978b3257c3e495c85e5fdb18df"
+    },
+    {
+      "family": "coco:COCO_val2014_000000162363.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000162363.jpg",
+      "sha256": "785d0c52ef0cbe4f7621c7f8fc7dac7fb464e0fd39b0f48b190fc9c5497154cd",
+      "source_sha256": "6050cf2be6c966889ac05cff7a4e9036651f4679bfa606bbcd5829bb6533264a"
+    },
+    {
+      "family": "coco:COCO_val2014_000000213432.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/stable-diffusion-3-medium-diffusers/0_real/COCO_val2014_000000213432.jpg",
+      "sha256": "fd5c9fcd9c21ce819b6aa8b7e7d1bc743e8b7dd9989964802a89f77b678787ec",
+      "source_sha256": "a5aff73a8d490659d51b56e10971f6f2ae77a53a598a2b4be096dd634ba9ca27"
+    },
+    {
+      "family": "coco:COCO_val2014_000000091063.jpg",
+      "split": "test",
+      "ai": false,
+      "category": "real_photo",
+      "url": "https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/ca9ea06c8f926c3a11ca4b657074cc7cbb99e5c7/DiTFake/test/PixArt-Sigma-XL-2-1024-MS/0_real/COCO_val2014_000000091063.jpg",
+      "sha256": "ff14f9109bde41e9d24516345117f724fbd6aa3da3bf5cd20089d2d1ce116b08",
+      "source_sha256": "23d5a465eea688f00e2465d90e36feaf25c3c20c03561c39cd39488f30c334e5"
+    }
+  ],
+  "diagnostics": [
+    {
+      "path": "fresh-openai-jpeg70.jpg",
+      "sha256": "04d92e8a3c3503a7a8385d1ffcd767284dbeac9cb8e2493baae0ed83f7f5f567",
+      "ai": true,
+      "generator": "OpenAI image-generation tool, exact deployed model not supplied",
+      "family": "fresh-openai-20261020",
+      "split": "diagnostic-only"
+    },
+    {
+      "path": "fresh-openai-light-edit.png",
+      "sha256": "4c53978ca11f0f514abc152973870f8c6d329b865a7d0e7eb30390322ff18a13",
+      "ai": true,
+      "generator": "OpenAI image-generation tool, exact deployed model not supplied",
+      "family": "fresh-openai-20261020",
+      "split": "diagnostic-only"
+    },
+    {
+      "path": "fresh-openai-original.png",
+      "sha256": "017a8fe80cc9984d7f2b7b041a44859d3b3278c0d9279e998835296cf4419b85",
+      "ai": true,
+      "generator": "OpenAI image-generation tool, exact deployed model not supplied",
+      "family": "fresh-openai-20261020",
+      "split": "diagnostic-only"
+    }
+  ]
+}

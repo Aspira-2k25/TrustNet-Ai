@@ -47,6 +47,8 @@ htmlcov/
 # ML & Models
 *.pt
 *.pth
+*.pth.tar
+*.safetensors
 *.ckpt
 *.onnx
 *.pb

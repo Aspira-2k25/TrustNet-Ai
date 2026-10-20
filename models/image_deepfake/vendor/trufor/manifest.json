@@ -1,0 +1,21 @@
+{
+  "upstream": "https://github.com/grip-unina/TruFor",
+  "revision": "ae54475df6f41a491d7615100feb19263dec13f7",
+  "license": "Informational and nonprofit purposes only. See upstream licence.",
+  "weights_url": "https://www.grip.unina.it/download/prog/TruFor/TruFor_weights.zip",
+  "archive_md5": "7bee48f3476c75616c3c5721ab256ff8",
+  "weights_sha256": "ac1d90e329a72e0d66e8665e123a19e94bfae3209c3ef8a4f9ca3b91578c7844",
+  "source_sha256": {
+    "models/DnCNN.py": "9ddce60210c5eebaf7b7fed31070509874b4c8d41a559e483d99f272079e4f0f",
+    "models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "models/cmx/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "models/cmx/builder_np_conf.py": "ead6b63701969433720fef586553bab9adda3cfb6bb0f27757497ea12a412450",
+    "models/cmx/decoders/MLPDecoder.py": "9a368b341698f00c6a9fd46fd4a3cdeb388f7528836bdf013f9c686bef876052",
+    "models/cmx/encoders/dual_segformer.py": "546111a36c3090f408776c3b99d7cbfa0b938a0ac78abd9dd5014821b897d18e",
+    "models/cmx/init_func.py": "eb46a66c897d175939b4a5b35df06d10281256f1045e42ac5a39b3af539c6cec",
+    "models/cmx/layer_utils.py": "9ffaa0b142d886ba750df0f80beb8f9f467099e75f9009a72d0a449cd3238524",
+    "models/cmx/net_utils.py": "5ea7e40d892cfeac52f3651dbedb3f072fcf51b77e266cf790cac226af42c6e1",
+    "config/default.py": "af4c43fc9b1cabc32b2b342da7c92d6d5c4bcf139e781e9313c38f5b14ced9aa",
+    "config/trufor_ph3.yaml": "489562a23f4baf8fd7c7b5453008994b1342de4d30ba98985e96ccec62a1c0fc"
+  }
+}
