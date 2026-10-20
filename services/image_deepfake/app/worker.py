@@ -13,14 +13,19 @@ from shared.constants.status import StatusEnum
 from shared.constants.native_score_semantics import NativeScoreSemanticsEnum
 from shared.constants.topics import Topics
 from shared.logging.logger_setup import get_logger
-from models.image_deepfake.inference.efficientnet_detector import EfficientNetDetector
+from models.image_deepfake.inference.forensic_detector import ForensicDetector
 from services.image_deepfake.app.config.settings import settings
 
 logger = get_logger(settings.SERVICE_NAME)
 
 class ImageDeepfakeWorker:
     def __init__(self):
-        self.detector = EfficientNetDetector()
+        self.detector = None
+        self.error = None
+        try:self.detector = ForensicDetector()
+        except Exception as exc:
+            self.error = type(exc).__name__
+            logger.exception("Image model failed to load")
         self.storage_dir = settings.STORAGE_DIR
         self.bootstrap_servers = settings.KAFKA_BOOTSTRAP_SERVERS
         self._producer: Optional[AIOKafkaProducer] = None
@@ -39,21 +44,18 @@ class ImageDeepfakeWorker:
         if ".." in norm_parts:
             return None, "Invalid storage key: directory traversal detected"
 
-        # Check direct path (e.g. absolute test path or existing filesystem path)
-        if os.path.isabs(storage_key) and os.path.exists(storage_key) and os.path.isfile(storage_key):
-            with open(storage_key, "rb") as f:
-                return f.read(), None
-
-        abs_storage_dir = os.path.abspath(self.storage_dir)
-        clean_key = os.path.normpath(storage_key.replace("/", os.sep)).lstrip(os.sep)
-        local_path = os.path.abspath(os.path.join(abs_storage_dir, clean_key))
-
-        if not local_path.startswith(abs_storage_dir):
-            return None, "Access denied: path traverses outside authorized storage directory"
+        from pathlib import Path
+        abs_storage_dir=Path(self.storage_dir).resolve()
+        local_path=(abs_storage_dir/storage_key).resolve()
+        if not local_path.is_relative_to(abs_storage_dir):
+            return None,"Image storage key is outside the configured storage directory"
 
         if os.path.exists(local_path) and os.path.isfile(local_path):
             with open(local_path, "rb") as f:
-                return f.read(), None
+                data=f.read(settings.MAX_IMAGE_SIZE_MB*1024*1024+1)
+            if len(data)>settings.MAX_IMAGE_SIZE_MB*1024*1024:
+                return None,'Image storage object exceeds the upload byte limit'
+            return data,None
 
         return None, f"Image file not found for key: {storage_key}"
 
@@ -68,16 +70,17 @@ class ImageDeepfakeWorker:
         logger.info(f"Processing image deepfake detection for scan {scan_id}", extra={"scan_id": scan_id, "request_id": ""})
 
         image_bytes, error_err = self.resolve_image_bytes(storage_key)
+        if self.detector is None:error_err="Image model unavailable; run the image artifact installer"
         if error_err:
             processing_time_ms = int((time.time() - start_time) * 1000)
             result = DetectionResult(
                 scan_id=scan_id,
                 module=ModuleEnum.image_deepfake,
-                detector_id="image_deepfake.efficientnet_b0.v1",
+                detector_id="image_deepfake.evidence.v2",
                 model_version="v1",
                 preprocessing_version="v1",
                 native_score=0.0,
-                native_score_semantics=NativeScoreSemanticsEnum.probability_of_negative_class,
+                native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
                 risk_score=0.0,
                 confidence=0.0,
                 label="error",
@@ -85,7 +88,7 @@ class ImageDeepfakeWorker:
                 evidence=[],
                 processing_time_ms=processing_time_ms,
                 timestamp=datetime.now(timezone.utc).isoformat(),
-                error_code="MEDIA_NOT_FOUND",
+                error_code="MODEL_UNAVAILABLE" if self.detector is None else "MEDIA_NOT_FOUND",
                 error_message=error_err
             )
         else:
@@ -107,6 +110,21 @@ class ImageDeepfakeWorker:
                 enable_explanation=enable_explanation
             )
 
+        encoded=result.metadata.pop('image_assets_base64',{})
+        if result.status==StatusEnum.SUCCESS and result.metadata.get('image_analysis'):
+            from shared.utils.image_assets import persist,directory,KINDS
+            import hashlib
+            target=directory(self.storage_dir,scan_id)
+            if target.exists():
+                # Idempotent retry: a completed artifact directory is reused only
+                # for exactly the same original source. Never overwrite another scan.
+                if hashlib.sha256((target/KINDS['original']).read_bytes()).digest()!=hashlib.sha256(image_bytes).digest():
+                    raise ValueError('Image evidence identity collision')
+                urls={kind:f'/api/v1/scans/{scan_id}/image/{kind}' for kind in encoded if (target/KINDS[kind]).is_file()}
+            else:
+                _,urls=persist(self.storage_dir,scan_id,image_bytes,encoded)
+            result.metadata['image_analysis']['assets']=urls
+            result.metadata['image_analysis']['original_url']=f'/api/v1/scans/{scan_id}/image/original'
         completed_event = DetectorCompletedEvent(
             payload=result
         )

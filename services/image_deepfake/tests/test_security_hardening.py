@@ -45,9 +45,9 @@ async def test_invalid_image_bytes_rejected(client):
     body = response.json()
     assert body["error"]["code"] == "INVALID_IMAGE_BYTES"
 
-def test_path_traversal_detection_in_worker(tmp_path):
+def test_path_traversal_detection_in_worker(tmp_path,monkeypatch):
     # Attempting to resolve a path outside the storage root should be rejected safely
-    worker.storage_dir = str(tmp_path / "storage")
+    monkeypatch.setattr(worker,'storage_dir',str(tmp_path/'storage'))
     Path(worker.storage_dir).mkdir(parents=True, exist_ok=True)
     
     malicious_key = "../../etc/passwd"
@@ -55,3 +55,11 @@ def test_path_traversal_detection_in_worker(tmp_path):
     assert bytes_out is None
     assert err is not None
     assert "directory traversal detected" in err.lower() or "traverses outside" in err.lower()
+
+
+def test_absolute_existing_file_outside_storage_is_rejected(tmp_path,monkeypatch):
+    storage=tmp_path/'storage';storage.mkdir()
+    outside=tmp_path/'private.jpg';outside.write_bytes(b'private file')
+    monkeypatch.setattr(worker,'storage_dir',str(storage))
+    data,error=worker.resolve_image_bytes(str(outside))
+    assert data is None and 'outside' in error

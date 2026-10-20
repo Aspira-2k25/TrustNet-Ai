@@ -18,6 +18,7 @@ class ImageDeepfakeSettings(BaseSettings):
         description="Local storage directory fallback"
     )
     MAX_IMAGE_SIZE_MB: int = 10
-    ENABLE_KAFKA_CONSUMER: bool = Field(default=True)
+    ENABLE_KAFKA_CONSUMER: bool = Field(default=False)
+    KAFKA_ENABLED: bool = False
 
 settings = ImageDeepfakeSettings()

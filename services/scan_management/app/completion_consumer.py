@@ -25,6 +25,13 @@ async def persist_completion(event,session):
     if result.module.value == 'phishing' and result.status.value == 'PARTIAL_SUCCESS':
         trust['module_scores']['phishing'] = result.risk_score
     assessment = {'result':result.model_dump(mode='json'),'trust_score':trust}
+    if result.module.value=='image_deepfake':
+        image=result.metadata.get('image_analysis',{})
+        dimensions=image.get('source',{}).get('oriented_dimensions')
+        if dimensions:assessment['dimensions']=dict(zip(('width','height'),dimensions))
+        if result.verdict=='INCONCLUSIVE':trust['risk_level']='INCONCLUSIVE'
+        trust['confidence']=None
+        trust['score_semantics']=result.metadata.get('score_semantics')
     if saved:
         saved.assessment = {**saved.assessment, **assessment}
     else:

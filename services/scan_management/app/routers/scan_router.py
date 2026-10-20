@@ -27,18 +27,6 @@ from shared.auth.verify_token import verify_token, TokenVerificationError
 from services.scan_management.app.config.settings import settings
 
 router = APIRouter(prefix="/scans", tags=["Scans"])
-detector_instance = None
-
-def image_detector():
-    global detector_instance
-    if detector_instance is None:
-        try:
-            from models.image_deepfake.inference.efficientnet_detector import EfficientNetDetector
-        except ImportError:
-            raise HTTPException(503, 'Image inference dependencies are unavailable in this scam-only runtime')
-        detector_instance = EfficientNetDetector()
-    return detector_instance
-
 def get_current_user_id(
     authorization: Optional[str] = Header(None),
     x_user_id: Optional[str] = Header(None)
@@ -74,125 +62,74 @@ async def scan_limits(user_id: str = Depends(get_current_user_id)):
     return APIResponse(data={"image_mb": settings.MAX_IMAGE_SIZE_MB, "audio_mb": settings.MAX_AUDIO_SIZE_MB, "video_mb": settings.MAX_VIDEO_SIZE_MB, "message_characters": 10000}, meta=ResponseMeta(request_id=generate_request_id()))
 
 @router.post("/analyze", response_model=APIResponse[Dict[str, Any]])
-async def analyze_image_direct(
-    file: UploadFile = File(...),
-    enable_explanation: bool = Form(False),
-    user_id: str = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Direct synchronous deepfake forensic analysis endpoint.
-    Executes actual EfficientNet-B0 convolutional inference, 2D Fourier (FFT) spectrum analysis,
-    Error Level Analysis (ELA), and sensor noise evaluation on the uploaded image.
-    """
-    request_id = generate_request_id()
-    scan_id = f"scan-{uuid.uuid4().hex[:10]}"
-    file_bytes = await file.read()
-
-    if len(file_bytes) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "EMPTY_FILE", "message": "Uploaded file is empty"}
-        )
-    max_size = settings.MAX_IMAGE_SIZE_MB * 1024 * 1024
-    if len(file_bytes) > max_size:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
-        )
-    try:
-        img_check = PILImage.open(io.BytesIO(file_bytes))
-        img_check.verify()
-    except Exception as e:
-        logger.error(f"[SCAN ROUTER] Image verification failed: {type(e).__name__}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
-        )
-
-    safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
-
-    # Run real forensic model detector
-    detection_res = await run_in_threadpool(
-        image_detector().predict,
-        file_bytes,
-        scan_id=scan_id,
-        filename=safe_filename,
-        enable_explanation=enable_explanation
-    )
-
-    if getattr(detection_res.status, "value", str(detection_res.status)) not in ("SUCCESS", "PARTIAL_SUCCESS"):
-        logger.error(f"[SCAN ROUTER] Forensic detection failed for scan {scan_id}: {detection_res.error_code} - {detection_res.error_message}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "code": detection_res.error_code or "INFERENCE_FAILED",
-                "message": detection_res.error_message or "Deepfake detection failed during analysis."
-            }
-        )
-    
-    risk_score = detection_res.risk_score
-    risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))
-
-    is_contradiction = bool(detection_res.metadata.get("is_contradiction", False)) if detection_res.metadata else False
-
-    vision_data = getattr(detection_res, "vision_analysis", None) or (detection_res.metadata.get("vision_analysis") if detection_res.metadata else None)
-
-    # Extract true image dimensions if decodable
-    width, height = 1024, 1024
-    try:
-        with PILImage.open(io.BytesIO(file_bytes)) as img:
-            width, height = img.size
-    except Exception:
-        pass
-
-    trust_score_data = {
-        "scan_id": scan_id,
-        "trust_risk_score": risk_score,
-        "risk_level": risk_level,
-        "reporting_modules": ["image_deepfake"],
-        "module_scores": {"image_deepfake": risk_score},
-        "confidence": detection_res.confidence,
-        "contradiction_detected": is_contradiction,
-        "contradiction_flag": is_contradiction,
-        "contradiction_details": "Conflicting evidence detected between model and forensic engines." if is_contradiction else None,
-        "evidence": [item.model_dump() for item in detection_res.evidence],
-        "explanation": detection_res.explanation,
-        "vision_analysis": vision_data,
-        "metadata": {"vision_analysis": vision_data} if vision_data else {},
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-
-    scan_record = {
-        "id": scan_id,
-        "user_id": user_id,
-        "status": "SUCCESS",
-        "content_type": "image",
-        "filename": file.filename or "uploaded_media.jpg",
-        "file_size_bytes": len(file_bytes),
-        "mime_type": file.content_type or "image/jpeg",
-        "dimensions": {"width": width, "height": height},
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "result": detection_res.model_dump(),
-        "vision_analysis": vision_data,
-        "trust_score": trust_score_data
-    }
-
+async def analyze_image_direct(file: UploadFile = File(...), enable_explanation: bool = Form(False),
+    user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
+    import httpx
+    from shared.schemas.detection_result import DetectionResult
+    from models.image_deepfake.forensics.source_evidence import inspect_source
+    from shared.utils.image_assets import persist
     from services.scan_management.app.db_models.scan import Scan, ScanAssessment
-    db.add(Scan(id=scan_id, user_id=user_id, status="SUCCESS", content_type="image",
-                filename=safe_filename, file_size_bytes=len(file_bytes), mime_type=file.content_type))
-    db.add(ScanAssessment(scan_id=scan_id, assessment={"result": detection_res.model_dump(mode="json"), "trust_score": trust_score_data, "dimensions": {"width": width, "height": height}}))
+    scan_id=f"scan-{uuid.uuid4().hex[:10]}"
+    file_bytes=await file.read(settings.MAX_IMAGE_SIZE_MB*1024*1024+1)
+    if len(file_bytes)>settings.MAX_IMAGE_SIZE_MB*1024*1024:
+        raise HTTPException(413,'Image exceeds upload size limit')
+    try: source=inspect_source(file_bytes)
+    except (ValueError,OSError) as exc:raise HTTPException(422,str(exc))
+    safe_filename=os.path.basename((file.filename or 'image').replace('\\','/'))
     try:
-        await db.commit()
+        async with httpx.AsyncClient(timeout=settings.IMAGE_SERVICE_TIMEOUT_SECONDS) as client:
+            response=await client.post(settings.IMAGE_SERVICE_URL.rstrip('/')+'/detect/file',
+                files={'file':(safe_filename,file_bytes,source['mime_type'])},data={'scan_id':scan_id})
+        if response.status_code!=200:
+            raise HTTPException(response.status_code,'Image inference unavailable; retry or check image service readiness')
+        detection=DetectionResult.model_validate(response.json()['data'])
+    except httpx.TimeoutException:raise HTTPException(504,'Image analysis timed out; retry later')
+    except httpx.HTTPError:raise HTTPException(503,'Image service is unavailable')
+    if detection.scan_id!=scan_id or detection.module!=ModuleEnum.image_deepfake:
+        raise HTTPException(503,'Invalid image service response')
+    encoded=detection.metadata.pop('image_assets_base64',{})
+    image=detection.metadata.get('image_analysis',{})
+    if image.get('source_sha256')!=source['sha256']:
+        raise HTTPException(503,'Image service source integrity check failed')
+    from starlette.concurrency import run_in_threadpool
+    try: target,urls=await run_in_threadpool(persist,settings.STORAGE_DIR,scan_id,file_bytes,encoded)
+    except (ValueError,OSError):raise HTTPException(503,'Image evidence could not be saved')
+    image['assets']=urls
+    image['original_url']=f'/api/v1/scans/{scan_id}/image/original'
+    dimensions=dict(zip(('width','height'),source['oriented_dimensions']))
+    trust={'scan_id':scan_id,'trust_risk_score':detection.risk_score,
+        'risk_level':'INCONCLUSIVE' if detection.verdict=='INCONCLUSIVE' else 'HIGH' if detection.verdict!='LIKELY_AUTHENTIC' else 'LOW',
+        'reporting_modules':['image_deepfake'],'module_scores':{'image_deepfake':detection.risk_score},
+        'confidence':None,'explanation':detection.explanation,'score_semantics':detection.metadata['score_semantics']}
+    assessment={'result':detection.model_dump(mode='json'),'trust_score':trust,'dimensions':dimensions}
+    key=target.relative_to(__import__('pathlib').Path(settings.STORAGE_DIR).resolve()).as_posix()+'/original.bin'
+    scan=Scan(id=scan_id,user_id=user_id,status='SUCCESS',content_type='image',filename=safe_filename,
+        file_size_bytes=len(file_bytes),mime_type=source['mime_type'],media_storage_key=key)
+    db.add(scan);db.add(ScanAssessment(scan_id=scan_id,assessment=assessment))
+    try:await db.commit()
     except Exception:
         await db.rollback()
-        logger.error("Image persistence failed scan=%s", scan_id)
-        raise HTTPException(503, "Analysis completed but could not be saved; retry later")
+        import shutil
+        await run_in_threadpool(shutil.rmtree,target)
+        raise HTTPException(503,'Image analysis could not be saved; retry later')
+    return APIResponse(data={'id':scan_id,'user_id':user_id,'status':'SUCCESS','content_type':'image',
+        'filename':safe_filename,'file_size_bytes':len(file_bytes),'mime_type':source['mime_type'],
+        'created_at':datetime.now(timezone.utc).isoformat(),**assessment},meta=ResponseMeta(request_id=generate_request_id()))
 
-    return APIResponse(
-        data=scan_record,
-        meta=ResponseMeta(request_id=request_id)
-    )
+
+@router.get('/{scan_id}/image/{kind}')
+async def image_asset(scan_id:str,kind:str,user_id:str=Depends(get_current_user_id),db:AsyncSession=Depends(get_db)):
+    from fastapi.responses import FileResponse
+    from services.scan_management.app.db_models.scan import Scan
+    from shared.utils.image_assets import asset_path
+    scan=await db.get(Scan,scan_id)
+    if scan is None or scan.user_id!=user_id or scan.content_type!='image':raise HTTPException(404,'Image not found')
+    try:path=asset_path(settings.STORAGE_DIR,scan_id,kind)
+    except ValueError:raise HTTPException(404,'Image layer not found')
+    if not path.is_file():raise HTTPException(404,'Image layer unavailable for this assessment')
+    mime=scan.mime_type if kind=='original' else 'application/octet-stream' if kind=='raw_heatmap' else 'image/png'
+    return FileResponse(path,media_type=mime,headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'})
+
 
 @router.post("/scam/analyze", response_model=APIResponse[Dict[str, Any]])
 async def analyze_scam(req: ScanCreateTextRequest, user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):

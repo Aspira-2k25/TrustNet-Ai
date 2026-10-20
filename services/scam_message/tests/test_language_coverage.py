@@ -19,3 +19,5 @@ def test_limited_languages_keep_warnings_and_never_invent_class_probabilities(te
     assert result.metadata['model_risk_score'] is None
     assert result.confidence==0
     assert result.metadata['coverage']['validated_domain'] is False
+    assert result.metadata['coverage']['characters_processed']==len(text)
+    assert result.metadata['coverage']['truncated'] is False

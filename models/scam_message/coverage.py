@@ -32,6 +32,7 @@ def predict_with_coverage(predictor,text,scan_id,model_version):
                 'threshold':.4,'confidence_available':False,'evaluated_domains':[],
                 'confidence_definition':'No calibrated classifier probability is available for this language.'})
     meta=result.metadata
+    meta.setdefault('coverage',{}).update(characters_processed=len(text),truncated=False)
     meta['rule_findings']=findings
     meta['language_coverage_limited']=unsupported
     meta['model_risk_score']=None if unsupported else result.risk_score

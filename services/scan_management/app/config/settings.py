@@ -21,6 +21,8 @@ class ScanSettings(BaseSettings):
     SCAM_SERVICE_URL: str = "http://localhost:8005"
     SCAM_SERVICE_TIMEOUT_SECONDS: float = 35
     PHISHING_SERVICE_URL: str = 'http://127.0.0.1:8007'
+    IMAGE_SERVICE_URL: str = "http://127.0.0.1:8003"
+    IMAGE_SERVICE_TIMEOUT_SECONDS: float = 130
     MAX_IMAGE_SIZE_MB: int = Field(default=10)
     MAX_AUDIO_SIZE_MB: int = Field(default=25)
     MAX_VIDEO_SIZE_MB: int = Field(default=200)

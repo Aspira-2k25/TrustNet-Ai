@@ -100,15 +100,17 @@ def combine(result, links):
     review = any(link.get('verdict') == 'REVIEW_RECOMMENDED' for link in assessed)
     has_failed_check = any(l.get('status') == 'UNAVAILABLE' and l.get('reason') != 'URL assessment limit reached; not analysed' for l in links[:MAX_LINKS])
     no_links_assessed = len(assessed) == 0 and len(links) > 0
-    needs_attention = review or no_links_assessed or has_failed_check
+    needs_attention = review or incomplete or no_links_assessed or has_failed_check
     combined = max(text_score, url_score if url_score is not None else text_score)
-    meta['message_model'] = dict(risk_score=text_score, verdict=text_verdict, confidence=result.confidence,
+    meta['message_model'] = dict(risk_score=meta.get('model_risk_score',text_score),
+                                verdict=meta.get('model_verdict',text_verdict),
+                                confidence=meta.get('model_confidence',result.confidence),
                                 model_version=result.model_version, confidence_definition=meta.get('confidence_definition'))
     meta['links'] = links
     meta['fusion'] = dict(policy=POLICY, message_score=text_score, url_score=url_score,
         combined_score=combined, calibrated=False, links_found=len(links), links_assessed=len(assessed),
         status='NO_LINKS' if not links else 'PARTIAL' if incomplete else 'ASSESSED',
-        definition='Maximum of message-model risk and assessed URL risk indices. A conservative warning index, not a calibrated fraud probability. Missing URL results never count as safe.',
+        definition='Maximum of message-branch warnings and assessed URL risk indices. A conservative warning index, not a calibrated fraud probability. Missing URL results never count as safe.',
         message_verdict=text_verdict)
     result.risk_score = combined
     if flagged:

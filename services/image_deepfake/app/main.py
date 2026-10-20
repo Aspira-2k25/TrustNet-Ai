@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     global consumer_thread
     logger.info("Initializing Image Deepfake Service...")
     
-    if settings.ENABLE_KAFKA_CONSUMER:
+    if settings.ENABLE_KAFKA_CONSUMER or settings.KAFKA_ENABLED:
         consumer_thread = ImageConsumerThread()
         consumer_thread.start()
         
@@ -27,6 +27,8 @@ async def lifespan(app: FastAPI):
     if consumer_thread:
         consumer_thread.stop()
         consumer_thread.join(timeout=2.0)
+    from services.image_deepfake.app.router import pool
+    pool.shutdown(wait=True)
     logger.info("Image Deepfake Service shutdown complete.")
 
 app = FastAPI(
