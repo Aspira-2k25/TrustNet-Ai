@@ -54,7 +54,7 @@ def main() -> None:
     with zipfile.ZipFile(output, "x", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in files:
             archive.write(path, path.relative_to(ROOT).as_posix())
-        archive.write(ROOT / "docs/TEAM_SETUP.md", "TEAM_SETUP.md")
+        archive.write(ROOT / "README.md", "README.md")
     with checksum.open("x", encoding="ascii") as stream:
         stream.write(f"{digest(output)}  {output.name}\n")
     print(f"Created: {output}\nChecksum: {checksum}\nContains model + guide only; no secrets or datasets.")

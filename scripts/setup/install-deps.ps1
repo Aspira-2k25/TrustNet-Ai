@@ -34,12 +34,6 @@ Write-Host "[INSTALL] PyTorch CPU (official wheel)" -ForegroundColor Cyan
 & $python -m pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
 if ($LASTEXITCODE -ne 0) { throw 'CPU PyTorch installation failed.' }
 
-Install-Requirements -WorkingDirectory $repoRoot -Arguments @('-e', 'shared/') -Label 'shared editable package'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\auth') -Arguments @('-r', 'requirements.txt') -Label 'services/auth'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\scan_management') -Arguments @('-r', 'requirements.txt') -Label 'services/scan_management'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'models\image_deepfake') -Arguments @('-r', 'requirements.txt') -Label 'models/image_deepfake'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\image_deepfake') -Arguments @('-r', 'requirements.txt') -Label 'services/image_deepfake'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'services\trust_engine') -Arguments @('-r', 'requirements.txt') -Label 'services/trust_engine'
-Install-Requirements -WorkingDirectory (Join-Path $repoRoot 'gateway') -Arguments @('-r', 'requirements.txt') -Label 'gateway'
-
-Write-Host '[DONE] All dependency installs completed.' -ForegroundColor Green
+Install-Requirements -WorkingDirectory $repoRoot -Arguments @('-e','shared/') -Label 'shared package'
+Install-Requirements -WorkingDirectory $repoRoot -Arguments @('-r','requirements/runtime.txt') -Label 'pinned main runtime'
+Write-Host '[DONE] Main dependencies installed. Scam and phishing use separate environments.' -ForegroundColor Green

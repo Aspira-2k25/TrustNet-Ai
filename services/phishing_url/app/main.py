@@ -89,6 +89,13 @@ def health():
 def ready():
     from fastapi.responses import JSONResponse
     loaded = app.state.detector.model is not None
-    if os.getenv("PHISHING_KAFKA_ENABLED", "false").lower() == "true":
-        loaded = loaded and app.state.worker_state["broker_ready"]
-    return JSONResponse({"ready": loaded}, status_code=200 if loaded else 503)
+    kafka=os.getenv("PHISHING_KAFKA_ENABLED", "false").lower()=="true"
+    return JSONResponse({"ready":loaded,"model_ready":loaded,"kafka_enabled":kafka,
+        "worker_ready":bool(loaded and app.state.worker_state['broker_ready']) if kafka else None},status_code=200 if loaded else 503)
+
+
+@app.get('/ready/worker')
+def worker_ready():
+    from fastapi.responses import JSONResponse
+    ready=bool(app.state.detector.model is not None and app.state.worker_state['broker_ready'])
+    return JSONResponse({'ready':ready},status_code=200 if ready else 503)

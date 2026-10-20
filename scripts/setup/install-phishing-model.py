@@ -27,7 +27,7 @@ def install(package):
             if Path(name).name != name or '/' in name or '\\' in name:
                 raise ValueError('Invalid component filename')
             expected[prefix + name] = component['sha256']
-        allowed_extras = {'docs/phishing/TEAM_SETUP.md', 'PHISHING_TEAM_SETUP.md', 'TEAM_SETUP.md'}
+        allowed_extras = {'docs/phishing/TEAM_SETUP.md', 'PHISHING_TEAM_SETUP.md', 'TEAM_SETUP.md','README.md'}
         if set(names) - set(expected) - allowed_extras:
             raise ValueError('Unexpected archive contents')
         checked = []

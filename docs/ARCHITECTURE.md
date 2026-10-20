@@ -1,94 +1,40 @@
-# TrustNet AI — System Architecture Specification
+# Runtime architecture
 
-## 1. System Overview
-
-**TrustNet AI** is a multimodal synthetic media verification platform designed to defend information integrity by detecting deepfakes, manipulated artifacts, and AI-generated content.
-
-In Phase 1, the platform implements a high-precision **Image Deepfake Detection** architecture featuring:
-- Physics-informed forensic heuristics (FFT, CFA demosaicing, Gabor texture, ELA, PRNU noise).
-- Neural Vision Transformers (ViT) & EfficientNet-B0 convolutional backbones.
-- LM Studio local vision AI reasoning.
-- Visual explainability via Grad-CAM saliency heatmaps.
-- Calibrated evidential risk scoring ($0-100$).
-- Strict perimeter security via a centralized API Gateway.
-
----
-
-## 2. Global Architecture Flow
+The React website and Chromium Gmail extension send authenticated requests through the FastAPI gateway. Auth issues JWTs. Scan Management owns scan records, original uploads and private evidence files. Owner checks apply to history and evidence retrieval.
 
 ```mermaid
-graph TD
-    Client[React 19 Frontend :5173] -->|HTTP / VITE_API_GATEWAY_URL| Gateway[API Gateway :8000]
-    Gateway -->|JWT Guard & Reverse Proxy| Auth[Auth Service :8001]
-    Gateway -->|Forward with X-User-Id| ScanService[Scan Management Service :8002]
-    Gateway -->|Forward Detection Requests| ImageService[Image Deepfake Service :8003]
-    Gateway -->|Forward Trust Scoring Queries| TrustEngine[Trust Engine Service :8004]
-
-    subgraph Internal Processing
-        ScanService -->|Quarantine File| Storage[(Quarantine Storage)]
-        ScanService -->|Offload Sync CPU Model| ThreadPool[Async Worker ThreadPool]
-        ThreadPool -->|Inference & Saliency| Detector[15 Forensic Analyzers + ViT + EfficientNet]
-        Detector -->|Return Evidential Result| ScanService
-        ScanService -->|Publish detection.requested| Kafka{Apache Kafka 3.7 KRaft}
-        Kafka -->|Consume Task| ImageWorker[Kafka Worker Process]
-        ImageWorker -->|Publish detector.completed| Kafka
-        Kafka -->|Consume Results| TrustEngine
-        TrustEngine -->|Evidential Fusion| TrustEngine
-    end
+flowchart TD
+  Web[React checker and history] --> Gateway[Authenticated API gateway]
+  Mail[Gmail extension] --> Gateway
+  Gateway --> Auth[Authentication]
+  Gateway --> Scans[Scan management and private evidence]
+  Scans --> Text[Scam inference]
+  Text --> URL[Phishing inference]
+  Scans --> URL
+  Scans --> Image[Image evidence service]
+  URL --> Collector[Optional isolated website collector]
+  Scans --> SQL[(SQLite scan records)]
+  Scans --> Files[(Original bytes and evidence files)]
+  Scans --> UI[Results and PDF export in browser]
+  Kafka[Optional Kafka worker transport] -.-> URL
 ```
 
----
+Synchronous scans use HTTP. The optional phishing worker uses Kafka and MongoDB. Model HTTP readiness is separate from worker readiness. The supported Windows launcher uses local Python processes plus optional Docker infrastructure. A full containerised production deployment is not established by this diagram.
 
-## 3. Communication & Gateway Boundary Principle
+## Image evidence
 
-### Architectural Invariant: Single Ingress Point
-- The browser **never** communicates directly with internal microservices on ports 8001, 8002, 8003, or 8004.
-- All client network traffic flows strictly to the **API Gateway** on port `8000` via the configurable `VITE_API_GATEWAY_URL`.
-- The Gateway validates JWT tokens via [`shared/auth/verify_token.py`](file:///c:/Users/Alok/Desktop/MY_PROEJCT/TrustNetAi/TrustNet-Ai/shared/auth/verify_token.py) and decorates forwarded requests with authenticated internal context (`X-User-Id` and `X-User-Role`).
+The image service loads one pinned CommunityForensics ViT and an experimental frozen-feature head. The latter failed a real high-resolution guard and cannot trigger a standalone AI verdict. A localizer interface currently wraps research-only TruFor. It can be disabled without pretending editing was ruled out. Original bytes remain intact; the classifier's documented tensor view is separate from native or tiled pixel localization.
 
----
+Evidence includes AI readings, source SHA-256, editable metadata observations, C2PA validation status, image quality and calibrated localization coverage. Missing metadata is neutral. Untrusted credentials never become verified origin. Region alerts require a genuine pixel map, reliability/area filters and the validated image boundary. Native JPEG calibration does not silently extend to lossless or tiled modes.
 
-## 4. Communication Protocol: Dual Sync/Async Pipelines
+Authenticity verdicts are disabled because generative fill, inpainting, object removal and face swaps are not reliably validated. Other weak or conflicting results are Inconclusive. Conservative abstention reduces assertions; it is not detector accuracy. TruFor and the SafeIMG-derived head impose research/noncommercial restrictions; consult the retained licences before distribution.
 
-TrustNet AI supports two distinct execution paths:
+## Messages, URLs and reporting
 
-### 1. Synchronous Evidential Deepfake Analysis
-- Endpoint: `POST /api/v1/scans/analyze`
-- Best for interactive analyst workstations requiring instant reports.
-- Dispatched through Gateway to Scan Management.
-- CPU-intensive neural transforms and Gabor/FFT filters are offloaded to worker threads via `run_in_threadpool`, ensuring FastAPI's async event loop remains fully responsive.
-- Results are saved to the scan database and returned immediately with complete forensic analyzer telemetry.
+Message inference retains the selected English DistilBERT/TF-IDF mixture. Explicit high-risk request rules can raise a warning without inventing classifier probabilities. Hindi/Hinglish outside validated model coverage receives a warning or an explicit inability to assess. Model confidence, rule warning index and URL branch results are separate.
 
-### 2. Asynchronous Kafka-First Pipeline
-- Endpoint: `POST /api/v1/scans/upload`
-- Best for bulk media ingestion, automated queues, and distributed workers.
-- Uses **Apache Kafka 3.7 (KRaft mode)**:
-  - `detection.requested.image_deepfake`: Emitted by Scan Management upon file quarantine.
-  - `detector.image_deepfake.completed`: Emitted by Image Deepfake Service when inference and explainability processing complete.
-- Trust Engine consumes completed detector events, applies the cross-service evidential fusion algorithm, and finalizes the Trust Score.
+Message and email links use the same phishing service as standalone URL scans. Maximum-branch fusion is a warning index, not a calibrated joint probability. Missing link checks remain explicit. Optional live inspection checks public destinations with bounded redirects, body limits, timeouts, TLS verification and SSRF controls, without JavaScript execution. Collection failure is not safety evidence. Optional Groq ordering cannot change predictions.
 
----
+Scan results and private evidence are persisted before browser rendering. PDF export uses genuine saved evidence and source hashes, with a visible probabilistic-results notice. The extension scans only the selected email after the user action; automated tests do not establish live Gmail compatibility.
 
-## 5. Security & Ingestion Defense
-
-Every file upload is validated through defense-in-depth:
-1. **Size Enforcement**: Strict 15MB ceiling (`HTTP 413 Content Too Large`).
-2. **Magic Byte Verification**: Verified using PIL/Pillow header inspection (`HTTP 400 Invalid Image Bytes`).
-3. **Path Traversal Protection**: Storage keys are sanitized using `os.path.basename` and checked for `..` directory traversal sequences.
-4. **CORS Hardening**: Strict origin whitelist configured via `CORS_ALLOWED_ORIGINS` (wildcard `*` is automatically stripped in production).
-5. **No Production Auth Bypass**: Mock/developer tokens are rejected unconditionally in production (`MOCK_AUTH_DISABLED`).
-
----
-
-## 6. Frontend Architecture (React 19 + TypeScript + Vite)
-
-The UI is organized as a specialized forensic security workstation:
-- **Modular API Suite** (`frontend/src/services/api/`):
-  - `client.ts`: Central HTTP client routing strictly to `VITE_API_GATEWAY_URL`.
-  - `auth.api.ts`, `scan.api.ts`, `trust.api.ts`, `detection.api.ts`: Specialized domain APIs.
-- **Interactive Forensic Labs**:
-  - Spatial Saliency / Grad-CAM heatmap viewer with adjustable opacity and zoom.
-  - Sub-Pixel Bayer CFA demosaicing & Laplacian edge micro-structure canvas.
-  - Error Level Analysis (ELA) compression surface analyzer.
-- **Native Offline Speech**: Report debrief readouts generated using the browser's native `window.speechSynthesis` API without external cloud audio dependencies.
-- **Client-Side PDF Exporter**: High-resolution forensic audit dossiers generated via `jspdf`.
+Audio, video and fake-review detection are not implemented by the documented current checker. Redis, MinIO/S3, Grafana, ELK and Kubernetes are not runtime dependencies for this local flow. No external research folder or personal Windows path is required. Setup, artifact manifests and verification commands are in the repository README.

@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $taskChecks = @{
     phishing = 'http://127.0.0.1:8007/ready'
-    image = 'http://127.0.0.1:8003/health'
+    image = 'http://127.0.0.1:8003/ready'
     trust = 'http://127.0.0.1:8004/health'
     frontend = 'http://localhost:5173/'
 }
@@ -30,5 +30,6 @@ if ($taskPending.Count -gt 0) {
 & (Join-Path $taskRoot '.venv-scam\Scripts\python.exe') (Join-Path $taskRoot 'scripts/checks/smoke-message-url.py')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Write-Host 'Local service HTTP checks and real scam/URL inference passed. Website: http://localhost:5173'
-Write-Host 'Image health does not certify Hugging Face inference; check analyzer availability in an actual image result.'
+& (Join-Path $taskRoot '.venv\Scripts\python.exe') (Join-Path $taskRoot 'scripts/checks/diagnose-image-runtime.py')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

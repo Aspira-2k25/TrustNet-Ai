@@ -16,6 +16,8 @@ GROQ_MODEL=openai/gpt-oss-20b
 "@ | Set-Content -LiteralPath (Join-Path $taskRoot '.env') -Encoding utf8
 }
 $env:PYTHONPATH = $taskRoot
+& $taskPython (Join-Path $taskRoot 'scripts/setup/init-env.py')
+if ($LASTEXITCODE -ne 0) { throw 'Local configuration initialization failed.' }
 $env:PYTHONUTF8 = '1'
 $env:KAFKA_ENABLED = 'false'
 if ($Portable) { $env:DATABASE_URL = 'sqlite+aiosqlite:///' + (Join-Path $taskRoot 'portable-state.sqlite').Replace('\','/') }
@@ -33,7 +35,7 @@ foreach ($taskService in @(
     @('scan','services.scan_management.app.main:app',8002),
     @('gateway','gateway.app.main:app',8000))) {
     $taskPort = [int]$taskService[2]
-    $env:KAFKA_ENABLED = if ($taskService[0] -eq 'scan' -and $PhishingKafka -and !$Portable) {'true'} else {'false'}
+    $env:KAFKA_ENABLED = if ($taskService[0] -in @('scan','scam') -and $PhishingKafka -and !$Portable) {'true'} else {'false'}
     if (Get-NetTCPConnection -LocalPort $taskPort -State Listen -ErrorAction SilentlyContinue) { throw "Port $taskPort is already in use. Use the existing services or stop their own launcher first." }
     $taskServicePython = $taskPython
     if ($taskService[0] -eq 'scan' -and !$Portable) {

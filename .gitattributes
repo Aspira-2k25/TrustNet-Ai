@@ -4,3 +4,4 @@ models/scam_message/artifacts/** -text
 models/scam_message/artifacts/* binary
 models/image_deepfake/vendor/** -text
 models/image_deepfake/artifacts/** -text
+models/image_deepfake/calibration/** -text

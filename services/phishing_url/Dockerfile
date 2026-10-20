@@ -16,5 +16,5 @@ RUN useradd --uid 10001 --create-home worker && mkdir -p /var/cache/trustnet && 
 USER 10001
 ENV HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONUNBUFFERED=1
 EXPOSE 8007
-HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8007/health',timeout=3)"
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8007/ready',timeout=3)"
 CMD ["uvicorn", "services.phishing_url.app.main:app", "--host", "0.0.0.0", "--port", "8007"]

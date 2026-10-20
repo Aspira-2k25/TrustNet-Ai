@@ -10,7 +10,7 @@ with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive
  for file in files:archive.write(assets/file,'artifacts/'+file)
  archive.write(root/'models/scam_message/README.md','MODEL_CARD.md')
  for file in ['APACHE-2.0.txt','CC-BY-4.0.txt','THIRD-PARTY-NOTICES.md']:
-  archive.write(root/'docs/scam-portable'/file,file)
+  archive.write(root/'licenses/scam'/file,file)
 metadata={'model_version':version,'filename':name,
           'sha256':hashlib.sha256(target.read_bytes()).hexdigest(),'bytes':target.stat().st_size,'files':files,
           'distribution':'Share this archive separately; no remote upload or Git LFS configured.'}

@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--kafka', action='store_true')
     parser.add_argument('--inspect', action='store_true', help='Request and persist one live website inspection')
     parser.add_argument('--require-live', action='store_true', help='Require live observations, rather than an explicit unavailable result')
+    parser.add_argument('--image', action='store_true',help='Verify real image service, saved original/evidence and owner access')
     args = parser.parse_args()
     for port in (18000, 18001, 18002):
         with socket.socket() as probe:
@@ -41,8 +42,9 @@ def main():
         'STORAGE_DIR': str(state / 'uploads'),
         'SCAN_SERVICE_URL': 'http://127.0.0.1:18002',
         'AUTH_SERVICE_URL': 'http://127.0.0.1:18001',
-        'SCAM_SERVICE_URL': 'http://127.0.0.1:8005',
-        'PHISHING_SERVICE_URL': 'http://127.0.0.1:8007', 'PYTHONPATH': str(ROOT),
+        'SCAM_SERVICE_URL': os.getenv('SCAM_SERVICE_URL','http://127.0.0.1:8005'),
+        'PHISHING_SERVICE_URL': os.getenv('PHISHING_SERVICE_URL','http://127.0.0.1:8007'),
+        'IMAGE_SERVICE_URL':os.getenv('IMAGE_SERVICE_URL','http://127.0.0.1:8003'), 'PYTHONPATH': str(ROOT),
     }
     processes, logs = [], []
     try:
@@ -72,11 +74,11 @@ def main():
                     if time.monotonic() >= deadline:
                         raise TimeoutError('QA service readiness failed')
                     time.sleep(.25)
-            ready = client.get('http://127.0.0.1:8007/ready')
+            ready = client.get(environment['PHISHING_SERVICE_URL']+'/ready')
             ready.raise_for_status()
             assert ready.json()['ready'] is True
             expected_model = os.getenv('PHISHING_EXPECTED_MODEL_VERSION', 'regional-recall-v1')
-            client.get('http://127.0.0.1:8005/ready').raise_for_status()
+            client.get(environment['SCAM_SERVICE_URL']+'/ready').raise_for_status()
             base = 'http://127.0.0.1:18000/api/v1'
             assert client.get(base + '/scans').status_code == 401
 
@@ -119,6 +121,27 @@ def main():
                 assert client.get(base + '/scans/' + scan['id'], headers=other).status_code == 403
                 scans.append(scan['id'])
             inspection_state = 'not requested'
+            if args.image:
+                import io,hashlib
+                from PIL import Image
+                buffer=io.BytesIO();Image.new('RGB',(300,300),(85,120,145)).save(buffer,'JPEG',quality=90)
+                original=buffer.getvalue()
+                image_response=client.post(base+'/scans/analyze',headers=owner,
+                    files={'file':('qa-photo-fixture.jpg',original,'image/jpeg')},timeout=140)
+                assert image_response.status_code==200,image_response.text
+                image_scan=image_response.json()['data'];identifier=image_scan['id']
+                analysis=image_scan['result']['metadata']['image_analysis']
+                assert image_scan['result']['status']=='SUCCESS'
+                assert analysis['source_sha256']==hashlib.sha256(original).hexdigest()
+                for kind in ['original',*analysis['assets']]:
+                    path=base+'/scans/'+identifier+'/image/'+kind
+                    asset=client.get(path,headers=owner);assert asset.status_code==200
+                    if kind=='original':assert asset.content==original
+                    assert client.get(path,headers=other).status_code in [403,404]
+                    assert client.get(path).status_code==401
+                saved=client.get(base+'/scans/'+identifier,headers=owner)
+                assert saved.status_code==200 and saved.json()['data']['result']==image_scan['result']
+                scans.append(identifier)
             if args.inspect or args.require_live:
                 inspection_path = base + '/scans/' + scans[1] + '/links/0/inspection'
                 assert client.post(inspection_path, headers=other, json={}).status_code == 403
@@ -160,6 +183,7 @@ def main():
                 'standalone_url_path': 'Kafka worker' if args.kafka else 'HTTP fallback',
                 'phishing_model': expected_model, 'user_databases_used': False,
                 'website_inspection': inspection_state,
+                'real_image_private_evidence':args.image,
                 'scope': 'Integration smoke, not accuracy or live Gmail verification',
             }
             (state / 'result.json').write_text(json.dumps(report, indent=2), encoding='utf-8')

@@ -62,7 +62,17 @@ if "%INSTALL_MAIN_DEPS%"=="true" (
     echo [INFO] Preserving the existing main/image environment. No dependency upgrade requested.
 )
 
+echo Installing pinned image runtime additions and verified model artifacts...
+"%~dp0.venv\Scripts\python.exe" -m pip install -r "%~dp0models\image_deepfake\requirements.txt"
+if errorlevel 1 exit /b 1
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\setup\install-image.py"
+if errorlevel 1 exit /b 1
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\setup\install-image-localizer.py"
+if errorlevel 1 exit /b 1
+
 echo [3/5] Setting up scam detection environment (.venv-scam)...
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\setup\init-env.py"
+if errorlevel 1 exit /b 1
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\install-scam.ps1"
 if errorlevel 1 (
     echo [ERROR] Scam environment setup failed.
@@ -107,14 +117,18 @@ echo =======================================================
 exit /b 0
 
 :setup_phishing_only
-call "%~dp0setup-phishing.bat" %2 %3 %4 %5
+call "%~dp0scripts\setup\setup-phishing.bat" %2 %3 %4 %5
 exit /b %errorlevel%
 
 :setup_scam_only
-call "%~dp0setup-scam.bat" %2 %3 %4 %5
+call "%~dp0scripts\setup\setup-scam.bat" %2 %3 %4 %5
 exit /b %errorlevel%
 
 :verify_all_only
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\setup\install-image.py" --verify-only
+if errorlevel 1 exit /b 1
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\setup\install-image-localizer.py" --verify-only
+if errorlevel 1 exit /b 1
 echo [VERIFICATION] Verifying scam model...
 "%~dp0.venv-scam\Scripts\python.exe" "%~dp0scripts\checks\verify-scam.py"
 if errorlevel 1 exit /b 1

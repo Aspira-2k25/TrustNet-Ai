@@ -16,7 +16,7 @@ foreach ($taskService in @(
     @('frontend','vite',5173))) {
     $taskName = $taskService[0]
     $taskPort = [int]$taskService[2]
-    $taskUrl = if ($taskName -eq 'frontend') {'http://localhost:5173/'} else {"http://127.0.0.1:$taskPort/health"}
+    $taskUrl = if ($taskName -eq 'image') {"http://127.0.0.1:$taskPort/ready"} elseif ($taskName -eq 'frontend') {'http://localhost:5173/'} else {"http://127.0.0.1:$taskPort/health"}
     $taskHealthy = $false
     try { Invoke-WebRequest -UseBasicParsing -Uri $taskUrl -TimeoutSec 2 | Out-Null; $taskHealthy = $true } catch {}
     if ($taskHealthy) { Write-Host "$taskName already responds; preserving its process."; continue }

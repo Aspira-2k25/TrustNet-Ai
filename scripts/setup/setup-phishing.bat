@@ -1,13 +1,14 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+set "TASK_ROOT=%~dp0..\..\"
+cd /d "%TASK_ROOT%"
 
 echo =======================================================
 echo     TrustNet AI - Phishing URL Isolated Setup
 echo =======================================================
 echo.
 echo Setting up isolated phishing runtime (.venv-phishing) and model artifacts...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\install-phishing.ps1" %*
+powershell -NoProfile -ExecutionPolicy Bypass -File "%TASK_ROOT%scripts\setup\install-phishing.ps1" %*
 if errorlevel 1 (
     echo.
     echo [ERROR] Phishing environment setup failed. See errors above.
