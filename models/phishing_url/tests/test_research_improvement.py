@@ -1,12 +1,8 @@
 """Guard statistical operating-point selection; no network or model fitting."""
-import importlib.util
-from pathlib import Path
 import unittest
 import numpy as np
 
-path=Path(__file__).resolve().parents[3]/'scripts/research/improve-phishing-model.py'
-spec=importlib.util.spec_from_file_location('phishing_research_improvement',path)
-research=importlib.util.module_from_spec(spec);spec.loader.exec_module(research)
+from models.phishing_url.training import selection as research
 
 
 class ResearchSelectionTests(unittest.TestCase):

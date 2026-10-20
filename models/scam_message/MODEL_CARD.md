@@ -1,5 +1,7 @@
 # Selected model: message-distilbert-lexical-links-hybrid-4
 
+Current runtime adds explicit rule warnings and language coverage handling. The accuracy figures below are historical selected-weight results, not a measurement of the changed runtime. The small multilingual comparison and current limitations are recorded in `benchmark/results/reference-evaluation.json`. Live Gmail and the browser download action remain unverified.
+
 Local three-class English SMS/email screening: ham, phishing/smishing/fraud (legacy class name `smishing`), and unsolicited spam. Sender verification and AI authorship are not implemented. Contemporary inbox reliability and multilingual/Hinglish performance are not established.
 
 Selected mixture: 50% refined DistilBERT and 50% word/character TF-IDF logistic regression with 14 literal URL features. Training-fitted vocabulary/IDF/scales; no external URL requests. Semantic temperature 1.391455493, lexical temperature 0.811629986, mixture temperature 0.789818328; validation-selected fraud alert threshold 0.450. Threshold alerts and class argmax are different measures.
@@ -16,4 +18,4 @@ Remaining quality limits: the older PhishNet diagnostic macro-F1 is 0.5561 versu
 
 Accepted input bounds: 10,000 canonical Unicode characters; all 384-token windows with stride overlap 64, mean logits. Size/extraction exclusions narrow corpus coverage. Signed occlusion recomputes the full deployed probability, including the lexical/link mixture, within a partial 3-second budget. No human utility or causal explanation claim. Model CPU/GPU equivalence, numerical explanation fidelity, actual authenticated API/persistence, browser report/PDF and Kafka completion/replay/failure flow were verified with this selection. Extension fixtures and actual worker/API communication are verified; live Gmail remains pending user setup.
 
-Install the separately shared selected model archive using `scripts/setup/install-scam-model.py`; `model-package.json` records the exact archive and per-file checksums. No undeclared Hugging Face cache, external `scam/` folder, Git LFS or Groq key is needed. See `README.md`, research evidence and third-party notices.
+Install the separately shared selected model archive using `scripts/setup/install-scam-model.py`; `model-package.json` records the exact archive and per-file checksums. No undeclared Hugging Face cache, external `scam/` folder, Git LFS or Groq key is needed. See the root `README.md` and `licenses/scam/THIRD-PARTY-NOTICES.md`.

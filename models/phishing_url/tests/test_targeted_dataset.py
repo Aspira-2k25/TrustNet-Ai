@@ -46,7 +46,7 @@ class TargetedDataTests(unittest.TestCase):
         self.assertEqual(a.find('b'),b.find('b'))
 
     def test_build_reserves_unseen_domains_and_keeps_provenance(self):
-        spec=importlib.util.spec_from_file_location('targeted_builder',ROOT/'scripts/research/build-targeted-phishing-dataset.py')
+        spec=importlib.util.spec_from_file_location('targeted_builder',ROOT/'models/phishing_url/training/prepare_targeted.py')
         builder=importlib.util.module_from_spec(spec);spec.loader.exec_module(builder)
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);out=root/'new';old=root/'old';out.mkdir();old.mkdir()

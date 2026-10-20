@@ -31,4 +31,4 @@ Earlier historical hybrid/test reports remain selected evidence for that earlier
 
 Web URLs use local text and structural features. Other link schemes receive limited offline checks and no website-model score. Evidence includes literal URL structure, navigation parameters and lookalike findings. Absence of a finding does not verify ownership or safety. An isolated optional collector can record public DNS/TLS/static HTTP and reputation observations for standalone scans; it does not train the URL model on current observations.
 
-Install and verify through [docs/TEAM_SETUP.md](../../docs/TEAM_SETUP.md). Models are distributed separately from Git and must pass the pinned manifest/component hashes before joblib loading.
+Install and verify through [the root setup guide](../../README.md). Models are distributed separately from Git and must pass the pinned manifest/component hashes before joblib loading.

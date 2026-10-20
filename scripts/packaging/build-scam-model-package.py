@@ -8,7 +8,7 @@ target=root/'exports'/name;target.parent.mkdir(exist_ok=True)
 files={p.name:{'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'bytes':p.stat().st_size} for p in sorted(assets.iterdir()) if p.is_file()}
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as archive:
  for file in files:archive.write(assets/file,'artifacts/'+file)
- archive.write(root/'models/scam_message/README.md','MODEL_CARD.md')
+ archive.write(root/'models/scam_message/MODEL_CARD.md','MODEL_CARD.md')
  for file in ['APACHE-2.0.txt','CC-BY-4.0.txt','THIRD-PARTY-NOTICES.md']:
   archive.write(root/'licenses/scam'/file,file)
 metadata={'model_version':version,'filename':name,
