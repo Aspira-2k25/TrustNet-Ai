@@ -18,12 +18,14 @@ def decide(ai, manipulation, provenance, quality, regions, config):
         return 'INCONCLUSIVE',['Image quality or supported pixel coverage limits the available evidence.']+quality.get('limits',[])
     if not config.get('calibration_ready'):
         return 'INCONCLUSIVE',['Decision boundaries have not passed the required validation checks. Raw model scores remain available as evidence.']
-    if finite_probability(ai) and ai>=config['ai_alert']:
-        if config.get('ai_alert_corroboration_required') and not config.get('ai_alert_corroborated',False):
-            return 'INCONCLUSIVE',['The experimental modern-generator head raises a warning, but the primary classifier does not corroborate it. This head failed an independent real-photo guard and cannot issue a standalone AI verdict.']
+    ai_alert=finite_probability(ai) and ai>=config['ai_alert']
+    uncorroborated=ai_alert and config.get('ai_alert_corroboration_required') and not config.get('ai_alert_corroborated',False)
+    if ai_alert and not uncorroborated:
         return 'LIKELY_AI_GENERATED',['The AI image classifier exceeds its validation-selected alert boundary. Generator coverage remains limited.']
     if finite_probability(manipulation) and manipulation>=config['manipulation_alert'] and regions:
         return 'LIKELY_MANIPULATED',['The manipulation model exceeds its validation-selected boundary and produced a supported pixel region.']
+    if uncorroborated:
+        return 'INCONCLUSIVE',['The experimental modern-generator head raises a warning, but the primary classifier does not corroborate it. This head failed an independent real-photo guard and cannot issue a standalone AI verdict.']
     if not finite_probability(ai):reasons.append('No usable AI generation model probability is available.')
     if not finite_probability(manipulation):reasons.append('No usable manipulation probability is available; a low AI score cannot establish authenticity.')
     if provenance.get('ai_markers'):reasons.append('Editable metadata mentions a generative tool and prevents an authenticity conclusion.')

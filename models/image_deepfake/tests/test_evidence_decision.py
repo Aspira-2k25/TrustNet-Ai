@@ -53,3 +53,9 @@ def test_research_localizer_can_be_disabled_without_importing_vendor():
     from models.image_deepfake.inference.localizer_backend import create_localizer
     assert create_localizer('none') is None
     with pytest.raises(ValueError):create_localizer('unknown')
+
+
+def test_uncorroborated_ai_head_does_not_hide_supported_localization():
+    config={**CONFIG,'ai_alert_corroboration_required':True,'ai_alert_corroborated':False}
+    verdict,_=decide(.999,.99,{}, {'adequate':True},[{'area':200}],config)
+    assert verdict=='LIKELY_MANIPULATED'
