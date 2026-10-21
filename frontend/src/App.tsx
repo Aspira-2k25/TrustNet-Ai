@@ -51,6 +51,17 @@ export function App() {
     return () => {cancelled = true;};
   }, [user]);
 
+  useEffect(()=>{
+    const id=new URLSearchParams(window.location.search).get('scan');
+    if(!id||!/^[A-Za-z0-9_-]{1,100}$/.test(id))return;
+    if(!user){setActiveTab('login');return;}
+    let cancelled=false;
+    httpClient.request<{data:ScanRecord}>(`/api/v1/scans/${encodeURIComponent(id)}`).then(response=>{
+      if(!cancelled){setSelectedScan(response.data);setActiveTab('report');}
+    }).catch(()=>{if(!cancelled){setHistoryError('This saved report could not be opened. Sign in with the account that ran the check, or find it in History.');setActiveTab('dashboard');}});
+    return()=>{cancelled=true;};
+  },[user]);
+
   const handleScanCompleted = (newScan: ScanRecord) => {
     setScans((prev) => [newScan, ...prev]);
     setSelectedScan(newScan);

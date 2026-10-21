@@ -3,7 +3,7 @@ const ALLOWED = new Set(['http://localhost:8000','http://127.0.0.1:8000']);
 const inflight = new Map();
 const selectedScans = new Map();
 chrome.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
-const mailSender = sender => !!sender.tab && /^https:\/\/mail\.google\.com\//.test(sender.url || '');
+const mailSender = sender => sender.id===chrome.runtime.id && !!sender.tab && /^https:\/\/mail\.google\.com\//.test(sender.url || '');
 const trustedSender = sender => sender.id===chrome.runtime.id && (sender.url || '').startsWith(chrome.runtime.getURL(''));
 function validMessage(m) {
   if (!m || m.message_type!=='email' || typeof m.text!=='string' || !m.text.trim() || Array.from(m.text).length>10000 || m.optional_analysis!==false) return false;
@@ -15,6 +15,11 @@ async function handle(req,sender) {
   if (!req || typeof req.action!=='string') throw new Error('Invalid extension message');
   const trusted=trustedSender(sender), mail=mailSender(sender);
   if (!trusted && !mail) throw new Error('Unsupported sender');
+  if(req.action==='GET_LANGUAGE')return {language:(await chrome.storage.local.get('language')).language==='hi'?'hi':'en'};
+  if(req.action==='SET_LANGUAGE'){
+    if(!['en','hi'].includes(req.language))throw new Error('Unsupported language');
+    await chrome.storage.local.set({language:req.language});return {language:req.language};
+  }
   const saved=await chrome.storage.session.get(['origin','token']);
   const origin=ALLOWED.has(saved.origin)?saved.origin:'http://localhost:8000';
   if(req.action==='CONNECT') {
@@ -29,7 +34,10 @@ async function handle(req,sender) {
   if(req.action==='DISCONNECT') {if(!trusted) throw new Error('Invalid disconnect');await chrome.storage.session.clear();selectedScans.clear();return {connected:false};}
   if(req.action==='STATUS') {
     const response=await fetch(origin+'/health',{signal:AbortSignal.timeout(3000)});
-    return {connected:response.ok && !!saved.token,backend:response.ok,login_required:!saved.token};
+    if(!response.ok||!saved.token)return {connected:false,backend:response.ok,login_required:!saved.token};
+    const auth=await fetch(origin+'/api/v1/auth/me',{headers:{Authorization:'Bearer '+saved.token},signal:AbortSignal.timeout(3000)});
+    if(auth.status===401){await chrome.storage.session.remove('token');selectedScans.clear();}
+    return {connected:auth.ok,backend:true,login_required:auth.status===401};
   }
   if(req.action==='CANCEL') {
     if(!mail || typeof req.id!=='string') throw new Error('Invalid cancellation');
@@ -49,7 +57,7 @@ async function handle(req,sender) {
     if(response.status===401) {await chrome.storage.session.remove('token');throw new Error('Session expired. Sign in again in extension settings.');}
     if(!response.ok) throw new Error(response.status===409?'This URL inspection is already running. Try again shortly.':response.status===429?'Backend is busy; retry later.':response.status===422?'Unsupported input. Use manual paste and check language/length.':`Local request failed (${response.status}); no new verdict is available.`);
     const data=(await response.json()).data;
-    if(data?.status!=='SUCCESS'||data?.result?.module!=='scam_message'||data?.result?.status!=='SUCCESS'||!Number.isFinite(data.result.risk_score)) throw new Error('Invalid backend assessment; no verdict is available.');
+    if(!['SUCCESS','PARTIAL_SUCCESS'].includes(data?.status)||data?.result?.module!=='scam_message'||!['SUCCESS','PARTIAL_SUCCESS'].includes(data?.result?.status)||!Number.isFinite(data.result.risk_score)||data.result.risk_score<0||data.result.risk_score>100||typeof data.id!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(data.id)) throw new Error('Invalid backend assessment; no verdict is available.');
     if(inspect && data.id!==req.scanId) throw new Error('Mismatched inspection response');
     if(!inspect)selectedScans.set(sender.tab.id,{id:data.id,links:(data.result.metadata?.links || []).length});
     return {id:req.id,scan:{id:data.id,result:data.result}};

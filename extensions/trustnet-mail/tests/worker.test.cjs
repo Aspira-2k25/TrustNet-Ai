@@ -21,7 +21,7 @@ function worker() {
         }]}}}})};
     },
     chrome:{runtime:{id:'fixture',getURL:p=>'chrome-extension://fixture/'+p,onMessage:{addListener(){}}},
-      storage:{session:{async setAccessLevel(){},async get(){return store;},async set(value){Object.assign(store,value);},
+      storage:{local:{async get(){return {language:'hi'};},async set(){}},session:{async setAccessLevel(){},async get(){return store;},async set(value){Object.assign(store,value);},
         async remove(key){delete store[key];},async clear(){for(const key of Object.keys(store))delete store[key];}}}},
   };
   vm.createContext(context);
@@ -68,4 +68,23 @@ test('an expired session is cleared and is not shown as a safe inspection',async
   context.fetch=async()=>({ok:false,status:401});
   await assert.rejects(()=>context.handle({action:'INSPECT_LINK',id:'inspect-1',scanId:'saved-scan',linkIndex:0},sender),/Session expired/);
   assert.equal(store.token,undefined);
+});
+
+
+test('foreign extension senders are rejected without a network request',async()=>{
+ const {context,calls}=worker();
+ await assert.rejects(()=>context.handle({action:'SCAN',id:'scan-1',message},{...sender,id:'foreign'}));assert.equal(calls.length,0);
+});
+test('language settings do not require or expose the login token',async()=>{
+ const {context,calls}=worker();const result=await context.handle({action:'GET_LANGUAGE'},sender);
+ assert.equal(result.language,'hi');assert.equal(calls.length,0);assert(!JSON.stringify(result).includes('token'));
+ await assert.rejects(()=>context.handle({action:'SET_LANGUAGE',language:'xx'},sender));
+});
+test('status checks expire a stale login instead of showing connected',async()=>{
+ const {context,store}=worker();context.fetch=async url=>({ok:url.endsWith('/health'),status:url.endsWith('/health')?200:401});
+ const result=await context.handle({action:'STATUS'},{id:'fixture',url:'chrome-extension://fixture/options.html'});
+ assert.equal(result.connected,false);assert.equal(result.login_required,true);assert.equal(store.token,undefined);
+});
+test('malformed and out-of-range results are rejected',async()=>{
+ for(const score of [-1,101,NaN]){const {context}=worker();context.fetch=async()=>({ok:true,status:200,json:async()=>({data:{id:'saved-scan',status:'SUCCESS',result:{module:'scam_message',status:'SUCCESS',risk_score:score}}})});await assert.rejects(()=>context.handle({action:'SCAN',id:'scan-1',message},sender),/Invalid backend/);}
 });
