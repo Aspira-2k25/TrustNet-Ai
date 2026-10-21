@@ -85,6 +85,31 @@ test('status checks expire a stale login instead of showing connected',async()=>
  const result=await context.handle({action:'STATUS'},{id:'fixture',url:'chrome-extension://fixture/options.html'});
  assert.equal(result.connected,false);assert.equal(result.login_required,true);assert.equal(store.token,undefined);
 });
+
+test('a late expired-status response cannot erase a newer login',async()=>{
+ const {context,store}=worker();let release,requested=false;
+ const pending=new Promise(resolve=>release=resolve);
+ context.fetch=async url=>{if(url.endsWith('/health'))return {ok:true,status:200};requested=true;return pending;};
+ const status=context.handle({action:'STATUS'},{id:'fixture',url:'chrome-extension://fixture/options.html'});
+ for(let i=0;i<10&&!requested;i++)await Promise.resolve();assert(requested);
+ store.token='new-session-token';
+ release({ok:false,status:401});
+ await assert.rejects(()=>status,/Connection changed/);
+ assert.equal(store.token,'new-session-token');
+});
 test('malformed and out-of-range results are rejected',async()=>{
  for(const score of [-1,101,NaN]){const {context}=worker();context.fetch=async()=>({ok:true,status:200,json:async()=>({data:{id:'saved-scan',status:'SUCCESS',result:{module:'scam_message',status:'SUCCESS',risk_score:score}}})});await assert.rejects(()=>context.handle({action:'SCAN',id:'scan-1',message},sender),/Invalid backend/);}
+});
+
+
+test('disconnect cancels an in-flight request and discards a late result',async()=>{
+ const {context,store}=worker();let release,signal;
+ const pending=new Promise(resolve=>release=resolve);
+ context.fetch=async(url,options)=>{signal=options.signal;return pending;};
+ const scan=context.handle({action:'SCAN',id:'scan-late',message},sender);
+ for(let i=0;i<5&&!signal;i++)await Promise.resolve();assert(signal);
+ await context.handle({action:'DISCONNECT'},{id:'fixture',url:'chrome-extension://fixture/options.html'});
+ assert(signal.aborted);assert.equal(store.token,undefined);
+ release({ok:true,status:200,json:async()=>({data:{id:'saved-scan',status:'SUCCESS',result:{module:'scam_message',status:'SUCCESS',risk_score:10}}})});
+ await assert.rejects(()=>scan,/Session changed/);
 });

@@ -15,7 +15,7 @@
     const header=el('header'),brand=el('strong','TrustNet'),actions=el('div','','actions');
     const languageSelect=el('select');languageSelect.setAttribute('aria-label','Result language');
     for(const [value,label] of [['en','English'],['hi','Hindi / Hinglish']]){const option=el('option',label);option.value=value;languageSelect.append(option);}languageSelect.value=language;
-    const scanButton=el('button','','primary'),cancelButton=el('button'),settings=el('a');settings.href=chrome.runtime.getURL('options.html');settings.target='_blank';settings.rel='noopener noreferrer';
+    const scanButton=el('button','','primary'),cancelButton=el('button'),settings=el('button');settings.onclick=()=>rpc({action:'OPEN_SETTINGS'}).catch(()=>{status.textContent=t('Open the TrustNet extension icon to connect.','Connect karne ke liye TrustNet extension icon kholein.');});
     const status=el('p','','status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     const results=el('div'),notice=el('p','','notice');cancelButton.hidden=true;
     actions.append(languageSelect,scanButton,cancelButton);header.append(brand,actions);box.append(header,status,settings,results,notice);shadow.append(style,box);
@@ -44,7 +44,7 @@
             if(state.busy)return;const identity=state.identity;if(E.fingerprint(E.extract(message))!==identity){state.scan=null;state.identity='';render();status.textContent=t('Message changed. Check it again.','Message badal gaya. Dobara check karein.');return;}const id=crypto.randomUUID();
             state.busy=true;state.id=id;inspect.disabled=true;scanButton.disabled=true;cancelButton.hidden=false;box.setAttribute('aria-busy','true');outcome.textContent=t('Checking website...','Website check ho rahi hai...');
             try{const response=await rpc({action:'INSPECT_LINK',id,scanId:state.scan.id,linkIndex:index});if(!stillCurrent(id,identity)){if(state.id===id)status.textContent=t('Message changed. Check it again.','Message badal gaya. Dobara check karein.');return;}if(!response.ok)throw new Error(response.error);const snapshot=response.scan.result.metadata?.links?.[index]?.inspection;state.scan=response.scan;render();status.textContent=snapshot?.status==='COMPLETED'?t('Website check saved. Missing checks remain listed in the full report.','Website check save hua. Jo check nahi hue woh full report mein hain.'):t('Could not check this link','Yeh link check nahi hua');}
-            catch(error){if(state.id===id){outcome.textContent=t('Could not check this link','Yeh link check nahi hua');status.textContent=error.message;}}
+            catch(error){if(state.id===id){outcome.textContent=t('Could not check this link','Yeh link check nahi hua');status.textContent=P.errorMessage(error,language);}}
             finally{if(state.id===id)cancel();inspect.disabled=false;}
           };
         }
@@ -59,10 +59,10 @@
     }
     state.render=render;
     scanButton.onclick=async()=>{
-      if(state.busy)return;let input;try{input=E.extract(message);}catch(error){status.textContent=error.message;return;}
+      if(state.busy)return;let input;try{input=E.extract(message);}catch(error){status.textContent=P.errorMessage(error,language);return;}
       const id=crypto.randomUUID(),identity=E.fingerprint(input);state.id=id;state.identity=identity;state.busy=true;state.scan=null;results.replaceChildren();scanButton.disabled=true;cancelButton.hidden=false;box.setAttribute('aria-busy','true');status.textContent=t('Checking message and links...','Message aur links check ho rahe hain...');
       try{const response=await rpc({action:'SCAN',id,message:input});if(!stillCurrent(id,identity)){if(state.id===id)status.textContent=t('Message changed. Check it again.','Message badal gaya. Dobara check karein.');return;}if(!response.ok)throw new Error(response.error);if(response.id!==id)throw new Error('Mismatched response; try again.');state.scan=response.scan;render();status.textContent=t('Check saved.','Check save ho gaya.');}
-      catch(error){if(state.id===id){results.replaceChildren();status.textContent=t('Check failed. This does not mean it is safe. ','Check fail hua. Iska matlab safe nahi hai. ')+(error.message||'Try again.');}}
+      catch(error){if(state.id===id){results.replaceChildren();status.textContent=t('Check failed. This does not mean it is safe. ','Check fail hua. Iska matlab safe nahi hai. ')+P.errorMessage(error,language);}}
       finally{if(state.id===id)cancel();}
     };
   }
