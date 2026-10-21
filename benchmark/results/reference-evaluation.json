@@ -874,5 +874,37 @@
       "TruFor research licence; no model or threshold fitting on these cases.",
       "Raw diagnostic detection does not promote PNG or tiled localization into supported production coverage."
     ]
+  },
+  "url_source_diagnostic_600_20261021": {
+    "source_manifest_sha256": "2040b9fdf5faa8771b104c19a4dd7aaf2c74a0504234d50e8b22b9a25a77cecc",
+    "metrics": {
+      "n": 600,
+      "scam_n": 300,
+      "normal_n": 300,
+      "tp": 263,
+      "fp": 9,
+      "tn_decided": 239,
+      "missed_scams_including_abstentions": 37,
+      "precision": 0.9669117647058824,
+      "recall": 0.8766666666666667,
+      "f1_including_abstentions": 0.9195804195804196,
+      "inconclusive_rate": 0.12666666666666668,
+      "selective_accuracy": 0.9580152671755725,
+      "service_errors": 0,
+      "p50_seconds": 0.3119999999762513,
+      "p95_seconds": 0.8287999999796731,
+      "reference_false_warning_rate": 0.03
+    },
+    "models": [
+      "regional-recall-v1"
+    ],
+    "source_host_count": 282,
+    "limits": [
+      "Tranco popularity is a weak negative reference, not independently verified legitimacy.",
+      "Phishing full URLs versus reference root domains create a URL-shape confound. These are diagnostic source labels, not field accuracy.",
+      "Campaign/hostname correlation and unknown upstream training overlap remain.",
+      "Offline address/model checks only. No evaluated destination was fetched; TLS/DNS/HTML/JS signals are not measured."
+    ],
+    "promotion": "Diagnostic only. No model or decision threshold changed."
   }
 }

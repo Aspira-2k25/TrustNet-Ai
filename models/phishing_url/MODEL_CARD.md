@@ -32,3 +32,12 @@ Earlier historical hybrid/test reports remain selected evidence for that earlier
 Web URLs use local text and structural features. Other link schemes receive limited offline checks and no website-model score. Evidence includes literal URL structure, navigation parameters and lookalike findings. Absence of a finding does not verify ownership or safety. An isolated optional collector can record public DNS/TLS/static HTTP and reputation observations for standalone scans; it does not train the URL model on current observations.
 
 Install and verify through [the root setup guide](../../README.md). Models are distributed separately from Git and must pass the pinned manifest/component hashes before joblib loading.
+
+
+## Offline source diagnostic, 21 October 2026
+
+The unchanged selected model was checked through its running inference API on 300 OpenPhish feed URLs and 300 Tranco root-domain references. It flagged 263/300 feed-labelled URLs and 9/300 references: recall 87.67%, precision 96.69%, F1 including abstentions 91.96%, and uncertain share 12.67%. Selective accuracy among decided examples was 95.80%; this excludes uncertain outputs. There were zero service errors. Request p50/p95 were 0.312/0.829 seconds under concurrent developer CPU load.
+
+This is a diagnostic, not a verified-benign or field-accuracy benchmark. Tranco is a popularity ranking, so the 3% reference warning rate is not certified real-world FPR. Full phishing URLs versus reference root domains create a URL-shape confound. The 300 phishing URLs span 282 distinct hostnames; campaign correlation and unknown training overlap remain. These results cannot be compared directly with the earlier 313-row test as a before/after improvement. No weights or thresholds changed, and evaluated destinations were never opened; DNS, TLS, HTML and JavaScript inspection were not measured by this offline run.
+
+Source data and complete outputs remain external. OpenPhish personal/academic research terms and raw-data redistribution restrictions apply: https://openphish.com/terms.html. Tranco provider attribution and licences: https://tranco-list.eu/. Compact aggregate evidence is retained in the existing reference-evaluation JSON, without raw feed URLs.
