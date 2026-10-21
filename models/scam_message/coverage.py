@@ -2,7 +2,7 @@
 import re
 from datetime import datetime,timezone
 from shared.schemas.detection_result import DetectionResult
-from models.scam_message.rules import analyze
+from models.scam_message.rules import analyze, RULE_POLICY_VERSION
 
 HINGLISH=re.compile(r'\b(?:aap(?:ka|ki|ko)?|tum(?:hara)?|hai|hain|karo|karna|paisa|paise|bhej\w*|turant|abhi|jayega|nahi|nahin|mat|mera|mujhe)\b',re.I)
 
@@ -34,6 +34,7 @@ def predict_with_coverage(predictor,text,scan_id,model_version):
     meta=result.metadata
     meta.setdefault('coverage',{}).update(characters_processed=len(text),truncated=False)
     meta['rule_findings']=findings
+    meta['rule_policy_version']=RULE_POLICY_VERSION
     meta['language_coverage_limited']=unsupported
     meta['model_risk_score']=None if unsupported else result.risk_score
     meta['model_confidence']=None if unsupported else result.confidence
