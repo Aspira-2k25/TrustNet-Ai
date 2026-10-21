@@ -17,7 +17,7 @@ export function level(value:unknown,language:ResultLanguage='en') {
 export function imageAiLevel(scan:ScanRecord,language:ResultLanguage='en') {
   const image=scan.result?.metadata?.image_analysis||{};
   if(image.quality?.adequate===false)return language==='hi'?'Reading bharosemand nahi hai':'Reading not reliable';
-  if((image.reasons||[]).some((reason:string)=>reason.includes('does not corroborate')))
+  if(image.ai_checks_disagree===true||(image.reasons||[]).some((reason:string)=>reason.includes('does not corroborate')))
     return language==='hi'?'Checks aapas mein sehmat nahi hain':'Checks disagree';
   return level(image.ai_generated_prob,language);
 }
@@ -42,6 +42,9 @@ export function simpleResult(scan:ScanRecord,language:ResultLanguage='en') {
       why=hi?'Poore hue checks mein AI ya editing ke strong sanket nahi mile.':'The completed checks found no strong signs of AI generation or editing.';
     }else if(image.quality?.adequate===false){
       why=hi?'Image ki quality se bharosemand jawab nahi mila. Compression se zaroori details kho sakti hain.':'Image quality limits a reliable answer. Compression can remove useful details.';
+      if(image.analysis_complete===false||image.manipulation_prob==null)why+=hi?' Editing ka check bhi poora nahi hua.':' The edit check also did not finish or give a reliable reading.';
+    }else if(image.ai_checks_disagree===true){
+      why=hi?'AI checks aapas mein sehmat nahi hain. Zyada reading se photo fake prove nahi hoti.':'The AI checks disagree. A high reading does not establish that this photo is fake.';
       if(image.analysis_complete===false||image.manipulation_prob==null)why+=hi?' Editing ka check bhi poora nahi hua.':' The edit check also did not finish or give a reliable reading.';
     }else if(image.analysis_complete===false||image.manipulation_prob==null){
       why=hi?'Editing ka check poora ya bharosemand nahi tha. Chhote edits miss ho sakte hain.':'The edit check was incomplete or could not give a reliable reading. Small edits can be missed.';

@@ -31,7 +31,9 @@ def _serve(connection):
 
 
 class BoundedLocalizer:
-    def __init__(self,startup_timeout=30,request_timeout=20,worker=_serve):
+    def __init__(self,startup_timeout=90,request_timeout=20,worker=_serve):
+        # Cold weight loading under CPU/memory pressure is separate from the
+        # per-image budget. Do not permanently disable editing after a slow boot.
         self.startup_timeout=startup_timeout;self.request_timeout=request_timeout
         self.worker=worker;self.lock=threading.Lock();self.process=None;self.connection=None
         self._start();atexit.register(self.close)

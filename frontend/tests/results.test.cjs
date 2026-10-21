@@ -21,6 +21,11 @@ test('a high score on a quality-limited real-photo report is not a reliable AI w
  assert.match(simpleResult(record).why,/quality.*edit check/is);
  assert(html.includes('93.5%')); // Preserve the original numerical evidence in expert details.
 });
+
+test('an unsupported experimental head warning is shown as disagreement, not a confirmed high AI result',()=>{
+ const record=scan('INCONCLUSIVE',{ai_generated_prob:.935,ai_checks_disagree:true,quality:{adequate:true},analysis_complete:false});
+ assert(render(record).includes('Checks disagree'));assert.match(simpleResult(record).why,/AI checks disagree/);
+});
 test('zero supported regions do not offer an identical edited-area overlay',()=>{
  const html=render(scan());assert(html.includes('No edited area found (edits can still be missed)'));
  assert(!html.includes('>Edited areas</button>'));assert(html.includes('Details for experts'));assert(!/<details[^>]*open/.test(html));

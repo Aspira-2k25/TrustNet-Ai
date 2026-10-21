@@ -97,6 +97,9 @@ class ForensicDetector:
                 'manipulation_alert':self.config['manipulation']['raw_alert'],
                 'ai_alert_corroborated':global_result['ai_score']>=self.config['ai']['primary_raw_alert']}
         verdict,reasons=decide(ai_raw,manipulation_raw,provenance,quality,regions,config)
+        head_only_warning=bool(ai_raw>=config['ai_alert'] and self.config.get('ai_alert_corroboration_required') and not config['ai_alert_corroborated'])
+        if head_only_warning and not any('does not corroborate' in reason for reason in reasons):
+            reasons.append('The experimental feature head raises a warning, but the primary classifier does not corroborate it. The mapped AI reading is not a supported AI verdict or a probability that this photo is fake.')
         if provenance.get('asserts_ai_generation') and not provenance.get('signature_trusted'):
             reasons.append('A Content Credential declares AI generation, but its signature or certificate trust could not be validated. This is an unverified origin claim, not proof from the pixels.')
         if manipulation_raw is None:reasons.append(local_note)
@@ -114,6 +117,8 @@ class ForensicDetector:
             localization_mode=local['inference_mode'] if local else None,
             calibration_version=self.config['version'])
         analysis['analysis_complete']=local is not None and manipulation_raw is not None
+        analysis['ai_checks_disagree']=head_only_warning
+        analysis['ai_reading_status']='quality_limited' if not quality.get('adequate') else 'conflicting_models' if head_only_warning else 'available'
         analysis['edit_coverage']={
             'evaluated':['Synthetic splicing','Synthetic copy-move','Small TGIF SD2 and Photoshop/Firefly partial-edit sample'],
             'not_established':['Generative fill / inpainting','Object removal','Face swap'],
