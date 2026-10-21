@@ -35,10 +35,30 @@ Authenticity verdicts are disabled because generative fill, inpainting, object r
 
 ## Messages, URLs and reporting
 
-Message inference retains the selected English DistilBERT/TF-IDF mixture. Explicit high-risk request rules can raise a warning without inventing classifier probabilities. Hindi/Hinglish outside validated model coverage receives a warning or an explicit inability to assess. Model confidence, rule warning index and URL branch results are separate.
+Message inference uses the selected English/Hinglish word/character TF-IDF logistic model. DistilBERT is an optional rollback. Explicit high-risk request rules can raise a warning without inventing classifier probabilities. Hindi standalone classification failed the normal-message release gate; explicit rules can warn while other cases remain uncertain. Model confidence, rule warning index and URL branch results are separate.
 
 Message and email links use the same phishing service as standalone URL scans. Maximum-branch fusion is a warning index, not a calibrated joint probability. Missing link checks remain explicit. Optional live inspection checks public destinations with bounded redirects, body limits, timeouts, TLS verification and SSRF controls, without JavaScript execution. Collection failure is not safety evidence. Optional Groq ordering cannot change predictions.
 
 Scan results and private evidence are persisted before browser rendering. PDF export uses genuine saved evidence and source hashes, with a visible probabilistic-results notice. The extension scans only the selected email after the user action; automated tests do not establish live Gmail compatibility.
 
 Audio, video and fake-review detection are not implemented by the documented current checker. Redis, MinIO/S3, Grafana, ELK and Kubernetes are not runtime dependencies for this local flow. No external research folder or personal Windows path is required. Setup, artifact manifests and verification commands are in the repository README.
+
+## Shared presentation boundary
+
+`DetectionResult.presentation` is computed at serialization so late link fusion cannot leave stale labels. The shared API wrapper also maps historical dictionary records. Reasons carry JSON pointers to their supporting detector record. One bilingual catalogue and token stylesheet feed the website and generated extension assets. Module viewers show actual saved evidence; they do not supply a second verdict. Numerical readings remain inside expert details. PDF exports start with the same public view.
+
+## Questions evaluators may ask
+
+**Why these models?** The selected message lexical model was faster and improved measured warnings on the stated public cohorts. Hindi and MuRIL candidates failed false-alert checks. The image refresh failed its promotion gate, so its weights were not substituted. The URL experts were retained; a policy bug that suppressed scores for popularity, academic domains or unsubscribe paths was removed.
+
+**Why can the answer be uncertain or incomplete?** A model disagreement is uncertainty. A missing or failed required check is incomplete. Neither means safe. Replacing missing evidence with a low score would give false reassurance. A warning from a completed branch can remain in the reasons beside an incomplete headline.
+
+**What is not reliably detected?** Image generative fill, object removal, face swaps, unseen modern generators, broad standalone Hindi classification and new phishing campaigns remain limited. No audio, video or fake-review detector is deployed in this checker. No headline claims universal accuracy.
+
+**How are false positives controlled?** Thresholds are selected on validation, not test. Normal-message checks include OTP/delivery notifications and security advice. Rejected candidates stay out of the default. Real-image FPR intervals refer to the stated AI-stream cohort, not all images or full edit detection. Missing evidence never becomes an authenticity claim.
+
+**Is this independent evaluation?** The manifests record sources, exclusions and hashes. Reused tests are called consumed diagnostics. Unknown upstream overlap, source templates, campaign correlation and noisy public labels remain. The reported numbers are not a prospective field study.
+
+**How is privacy handled?** Local classifiers need no paid provider. Original uploads and scan history are retained on this machine behind owner checks; this is not a claim of automatic deletion or encryption at rest. The Gmail adapter sends only the selected message after a click. Website inspection contacts public destinations and third-party RDAP/reputation sources when requested. Optional Groq is disabled by default and requires explicit configuration/consent. Do not scan sensitive material on an untrusted deployment.
+
+**Can it be used commercially?** TruFor is research/nonprofit restricted. Other dataset and artifact licences also apply. A commercially deployable localizer and rights review are still needed; do not present the current research stack as unrestricted commercial software.

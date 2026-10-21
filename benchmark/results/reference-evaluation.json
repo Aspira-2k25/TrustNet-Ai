@@ -1251,5 +1251,758 @@
       "Hindi/Hinglish scam positives are scarce. Aggregate results do not establish language-specific field accuracy."
     ],
     "promotion": "Diagnostic only. No weights or thresholds changed."
+  },
+  "message_candidate_v1_diagnostic": {
+    "manifest_sha256": "054d8d42aa621394739f5e980b5faf52b887358ad15b769cb06815ac300b53ac",
+    "thresholds": {
+      "English": 0.7586042074934926,
+      "Hindi": 0.09149918975500666,
+      "Hinglish": 0.8509314052426264
+    },
+    "validation": {
+      "English": {
+        "n": 235,
+        "tp": 126,
+        "fp": 2,
+        "fn": 2,
+        "normal_n": 107,
+        "precision": 0.984375,
+        "recall": 0.984375,
+        "f1": 0.984375,
+        "false_positive_rate": 0.018691588785046728,
+        "fpr_95_ci": [
+          0.005140964836175373,
+          0.06560385306972287
+        ],
+        "inconclusive_rate": null
+      },
+      "Hindi": {
+        "n": 136,
+        "tp": 56,
+        "fp": 1,
+        "fn": 0,
+        "normal_n": 80,
+        "precision": 0.9824561403508771,
+        "recall": 1.0,
+        "f1": 0.9911504424778761,
+        "false_positive_rate": 0.0125,
+        "fpr_95_ci": [
+          0.0022099755204522745,
+          0.06746270077668665
+        ],
+        "inconclusive_rate": null
+      },
+      "Hinglish": {
+        "n": 41,
+        "tp": 32,
+        "fp": 0,
+        "fn": 0,
+        "normal_n": 9,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "fpr_95_ci": [
+          0,
+          0.2991450484195441
+        ],
+        "inconclusive_rate": null
+      }
+    },
+    "baseline": {
+      "n": 492,
+      "tp": 125,
+      "fp": 18,
+      "fn": 131,
+      "normal_n": 236,
+      "precision": 0.8741258741258742,
+      "recall": 0.48828125,
+      "f1": 0.6265664160401002,
+      "false_positive_rate": 0.07627118644067797,
+      "fpr_95_ci": [
+        0.04878699256843312,
+        0.11732882000457025
+      ],
+      "inconclusive_rate": 0.42276422764227645
+    },
+    "candidate": {
+      "n": 492,
+      "tp": 251,
+      "fp": 3,
+      "fn": 5,
+      "normal_n": 236,
+      "precision": 0.9881889763779528,
+      "recall": 0.98046875,
+      "f1": 0.984313725490196,
+      "false_positive_rate": 0.012711864406779662,
+      "fpr_95_ci": [
+        0.004332426638143875,
+        0.036700757820809976
+      ],
+      "inconclusive_rate": null
+    },
+    "by_language": {
+      "English": {
+        "baseline": {
+          "n": 200,
+          "tp": 66,
+          "fp": 3,
+          "fn": 34,
+          "normal_n": 100,
+          "precision": 0.9565217391304348,
+          "recall": 0.66,
+          "f1": 0.7810650887573966,
+          "false_positive_rate": 0.03,
+          "fpr_95_ci": [
+            0.010254524024038925,
+            0.0845193642905276
+          ],
+          "inconclusive_rate": 0.085
+        },
+        "candidate": {
+          "n": 200,
+          "tp": 96,
+          "fp": 0,
+          "fn": 4,
+          "normal_n": 100,
+          "precision": 1.0,
+          "recall": 0.96,
+          "f1": 0.9795918367346939,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            3.469446951953614e-18,
+            0.03699349820698568
+          ],
+          "inconclusive_rate": null
+        }
+      },
+      "Hindi": {
+        "baseline": {
+          "n": 156,
+          "tp": 17,
+          "fp": 0,
+          "fn": 39,
+          "normal_n": 100,
+          "precision": 1.0,
+          "recall": 0.30357142857142855,
+          "f1": 0.4657534246575342,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            3.469446951953614e-18,
+            0.03699349820698568
+          ],
+          "inconclusive_rate": 0.8910256410256411
+        },
+        "candidate": {
+          "n": 156,
+          "tp": 56,
+          "fp": 3,
+          "fn": 0,
+          "normal_n": 100,
+          "precision": 0.9491525423728814,
+          "recall": 1.0,
+          "f1": 0.9739130434782608,
+          "false_positive_rate": 0.03,
+          "fpr_95_ci": [
+            0.010254524024038925,
+            0.0845193642905276
+          ],
+          "inconclusive_rate": null
+        }
+      },
+      "Hinglish": {
+        "baseline": {
+          "n": 136,
+          "tp": 42,
+          "fp": 15,
+          "fn": 58,
+          "normal_n": 36,
+          "precision": 0.7368421052631579,
+          "recall": 0.42,
+          "f1": 0.535031847133758,
+          "false_positive_rate": 0.4166666666666667,
+          "fpr_95_ci": [
+            0.2714056205144606,
+            0.5779974842512834
+          ],
+          "inconclusive_rate": 0.38235294117647056
+        },
+        "candidate": {
+          "n": 136,
+          "tp": 99,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 36,
+          "precision": 1.0,
+          "recall": 0.99,
+          "f1": 0.9949748743718593,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            0,
+            0.09641862859446367
+          ],
+          "inconclusive_rate": null
+        }
+      }
+    },
+    "limits": [
+      "Synthetic templates and noisy public labels remain. Normalizing numbers/URLs does not eliminate every paraphrase.",
+      "Unknown upstream English classifier training overlap. This is not independently adjudicated ground truth.",
+      "Language routing uses message text, not source language annotations. Some public language annotations describe English bank messages as Hinglish.",
+      "An initial offline comparison used annotated-language routing and was invalid for runtime. Corrected routing/threshold selection uses validation only; this test has now been consumed."
+    ],
+    "promotion": "Not automatic. Inspect language-specific false positives and source labels before runtime promotion."
+  },
+  "message_release_492": {
+    "manifest_sha256": "054d8d42aa621394739f5e980b5faf52b887358ad15b769cb06815ac300b53ac",
+    "model": {
+      "status": "ready",
+      "model_version": "message-multilingual-lexical-v1"
+    },
+    "available_branch_warnings": {
+      "n": 492,
+      "tp": 212,
+      "fp": 0,
+      "fn": 44,
+      "normal_n": 236,
+      "precision": 1.0,
+      "recall": 0.828125,
+      "f1": 0.905982905982906,
+      "false_positive_rate": 0.0,
+      "fpr_95_ci": [
+        0,
+        0.01601665883614395
+      ],
+      "inconclusive_rate": null
+    },
+    "final_public_contract": {
+      "n": 492,
+      "tp": 119,
+      "fp": 0,
+      "fn": 137,
+      "normal_n": 236,
+      "precision": 1.0,
+      "recall": 0.46484375,
+      "f1": 0.6346666666666667,
+      "false_positive_rate": 0.0,
+      "fpr_95_ci": [
+        0,
+        0.01601665883614395
+      ],
+      "inconclusive_rate": 0.4715447154471545
+    },
+    "public_verdict_counts": {
+      "no_clear_signs": 141,
+      "incomplete": 101,
+      "scam": 119,
+      "not_sure": 131
+    },
+    "p50_seconds": 0.031000000017229468,
+    "p95_seconds": 0.9059999999590218,
+    "error_analysis": {
+      "language": {
+        "English": {
+          "n": 200,
+          "tp": 96,
+          "fp": 0,
+          "fn": 4,
+          "normal_n": 100,
+          "precision": 1.0,
+          "recall": 0.96,
+          "f1": 0.9795918367346939,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            3.469446951953614e-18,
+            0.03699349820698568
+          ],
+          "inconclusive_rate": 0.175
+        },
+        "Hindi": {
+          "n": 156,
+          "tp": 17,
+          "fp": 0,
+          "fn": 39,
+          "normal_n": 100,
+          "precision": 1.0,
+          "recall": 0.30357142857142855,
+          "f1": 0.4657534246575342,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            3.469446951953614e-18,
+            0.03699349820698568
+          ],
+          "inconclusive_rate": 1.0
+        },
+        "Hinglish": {
+          "n": 136,
+          "tp": 99,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 36,
+          "precision": 1.0,
+          "recall": 0.99,
+          "f1": 0.9949748743718593,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            0,
+            0.09641862859446367
+          ],
+          "inconclusive_rate": 0.3014705882352941
+        }
+      },
+      "head2_scam_intent": {
+        "Bank Account Freeze": {
+          "n": 23,
+          "tp": 22,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9565217391304348,
+          "f1": 0.9777777777777777,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.0
+        },
+        "Courier Scam": {
+          "n": 31,
+          "tp": 29,
+          "fp": 0,
+          "fn": 2,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9354838709677419,
+          "f1": 0.9666666666666666,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.6129032258064516
+        },
+        "Electricity Disconnection": {
+          "n": 29,
+          "tp": 21,
+          "fp": 0,
+          "fn": 8,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.7241379310344828,
+          "f1": 0.8400000000000001,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.6551724137931034
+        },
+        "Fake KYC": {
+          "n": 58,
+          "tp": 48,
+          "fp": 0,
+          "fn": 10,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.8275862068965517,
+          "f1": 0.9056603773584906,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.5344827586206896
+        },
+        "Legitimate / Benign": {
+          "n": 236,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "normal_n": 236,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            0,
+            0.01601665883614395
+          ],
+          "inconclusive_rate": 0.423728813559322
+        },
+        "Loan Scam": {
+          "n": 9,
+          "tp": 8,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.8888888888888888,
+          "f1": 0.9411764705882353,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.5555555555555556
+        },
+        "Lottery / Prize": {
+          "n": 25,
+          "tp": 21,
+          "fp": 0,
+          "fn": 4,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.84,
+          "f1": 0.9130434782608696,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.48
+        },
+        "Telegram Job": {
+          "n": 9,
+          "tp": 7,
+          "fp": 0,
+          "fn": 2,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.7777777777777778,
+          "f1": 0.8750000000000001,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.4444444444444444
+        },
+        "Traffic e-Challan": {
+          "n": 35,
+          "tp": 21,
+          "fp": 0,
+          "fn": 14,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.6,
+          "f1": 0.7499999999999999,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.9142857142857143
+        },
+        "UPI Fraud": {
+          "n": 37,
+          "tp": 35,
+          "fp": 0,
+          "fn": 2,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9459459459459459,
+          "f1": 0.9722222222222222,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.2702702702702703
+        }
+      }
+    },
+    "limits": [
+      "Synthetic templates and noisy public labels remain. Normalizing numbers/URLs does not eliminate every paraphrase.",
+      "Unknown upstream English classifier training overlap. This is not independently adjudicated ground truth.",
+      "This frozen set has already been consumed during candidate comparison. No test threshold tuning is performed here.",
+      "Available-branch warning recall is not final UI recall: incomplete link checks retain reasons but force an incomplete headline.",
+      "Source language/category annotations can be noisy; synthetic templates and unknown upstream overlap remain."
+    ]
+  },
+  "message_release_800": {
+    "manifest_sha256": "ae1a27c104589a1dc87f8d5a8d59dc7c5fa4681e2cfe432c61f85c6ab419977a",
+    "model": {
+      "status": "ready",
+      "model_version": "message-multilingual-lexical-v1"
+    },
+    "available_branch_warnings": {
+      "n": 800,
+      "tp": 378,
+      "fp": 6,
+      "fn": 22,
+      "normal_n": 400,
+      "precision": 0.984375,
+      "recall": 0.945,
+      "f1": 0.9642857142857143,
+      "false_positive_rate": 0.015,
+      "fpr_95_ci": [
+        0.006892291919440893,
+        0.03233463358482672
+      ],
+      "inconclusive_rate": null
+    },
+    "final_public_contract": {
+      "n": 800,
+      "tp": 266,
+      "fp": 2,
+      "fn": 134,
+      "normal_n": 400,
+      "precision": 0.9925373134328358,
+      "recall": 0.665,
+      "f1": 0.7964071856287427,
+      "false_positive_rate": 0.005,
+      "fpr_95_ci": [
+        0.0013722529547103846,
+        0.018044918436243156
+      ],
+      "inconclusive_rate": 0.28
+    },
+    "public_verdict_counts": {
+      "not_sure": 104,
+      "no_clear_signs": 308,
+      "scam": 268,
+      "incomplete": 120
+    },
+    "p50_seconds": 0.01600000000325963,
+    "p95_seconds": 0.7030000000377186,
+    "error_analysis": {
+      "language": {
+        "English": {
+          "n": 659,
+          "tp": 354,
+          "fp": 6,
+          "fn": 17,
+          "normal_n": 288,
+          "precision": 0.9833333333333333,
+          "recall": 0.954177897574124,
+          "f1": 0.9685362517099863,
+          "false_positive_rate": 0.020833333333333332,
+          "fpr_95_ci": [
+            0.009582242431984241,
+            0.044698800723118104
+          ],
+          "inconclusive_rate": 0.18057663125948406
+        },
+        "Hindi": {
+          "n": 104,
+          "tp": 0,
+          "fp": 0,
+          "fn": 4,
+          "normal_n": 100,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            3.469446951953614e-18,
+            0.03699349820698568
+          ],
+          "inconclusive_rate": 1.0
+        },
+        "Hinglish": {
+          "n": 37,
+          "tp": 24,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 12,
+          "precision": 1.0,
+          "recall": 0.96,
+          "f1": 0.9795918367346939,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": [
+            2.7755575615628914e-17,
+            0.24249400665524085
+          ],
+          "inconclusive_rate": 0.02702702702702703
+        }
+      },
+      "head2_scam_intent": {
+        "Bank Account Freeze": {
+          "n": 17,
+          "tp": 16,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9411764705882353,
+          "f1": 0.9696969696969697,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.058823529411764705
+        },
+        "Courier Scam": {
+          "n": 59,
+          "tp": 56,
+          "fp": 0,
+          "fn": 3,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9491525423728814,
+          "f1": 0.9739130434782608,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.4915254237288136
+        },
+        "Electricity Disconnection": {
+          "n": 14,
+          "tp": 14,
+          "fp": 0,
+          "fn": 0,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.0
+        },
+        "Fake KYC": {
+          "n": 83,
+          "tp": 83,
+          "fp": 0,
+          "fn": 0,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.5301204819277109
+        },
+        "Legitimate / Benign": {
+          "n": 400,
+          "tp": 0,
+          "fp": 6,
+          "fn": 0,
+          "normal_n": 400,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "false_positive_rate": 0.015,
+          "fpr_95_ci": [
+            0.006892291919440893,
+            0.03233463358482672
+          ],
+          "inconclusive_rate": 0.265
+        },
+        "Loan Scam": {
+          "n": 35,
+          "tp": 32,
+          "fp": 0,
+          "fn": 3,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9142857142857143,
+          "f1": 0.955223880597015,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.22857142857142856
+        },
+        "Lottery / Prize": {
+          "n": 62,
+          "tp": 53,
+          "fp": 0,
+          "fn": 9,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.8548387096774194,
+          "f1": 0.9217391304347826,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.24193548387096775
+        },
+        "OTP / Credential Theft": {
+          "n": 8,
+          "tp": 5,
+          "fp": 0,
+          "fn": 3,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.625,
+          "f1": 0.7692307692307693,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.125
+        },
+        "Telegram Job": {
+          "n": 16,
+          "tp": 15,
+          "fp": 0,
+          "fn": 1,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9375,
+          "f1": 0.967741935483871,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.3125
+        },
+        "Traffic e-Challan": {
+          "n": 1,
+          "tp": 1,
+          "fp": 0,
+          "fn": 0,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 1.0
+        },
+        "UPI Fraud": {
+          "n": 105,
+          "tp": 103,
+          "fp": 0,
+          "fn": 2,
+          "normal_n": 0,
+          "precision": 1.0,
+          "recall": 0.9809523809523809,
+          "f1": 0.9903846153846153,
+          "false_positive_rate": 0.0,
+          "fpr_95_ci": null,
+          "inconclusive_rate": 0.13333333333333333
+        }
+      }
+    },
+    "limits": [
+      "Not an untouched independent test: some examples were previously used in the small multilingual comparison.",
+      "Upstream English training overlap, synthetic templates and noisy public annotations are not excluded.",
+      "Hindi/Hinglish scam positives are scarce. Aggregate results do not establish language-specific field accuracy.",
+      "This frozen set has already been consumed during candidate comparison. No test threshold tuning is performed here.",
+      "Available-branch warning recall is not final UI recall: incomplete link checks retain reasons but force an incomplete headline.",
+      "Source language/category annotations can be noisy; synthetic templates and unknown upstream overlap remain."
+    ]
+  },
+  "url_phiusiil_600_before": {
+    "manifest_sha256": "9364905eb42cc28cc8fa9aab68be5c23e04392b6043a7da1fb0f3005f093db19",
+    "metrics": {
+      "n": 600,
+      "tp": 185,
+      "fp": 2,
+      "fn": 115,
+      "normal_n": 300,
+      "precision": 0.9893048128342246,
+      "recall": 0.6166666666666667,
+      "f1": 0.7597535934291582,
+      "false_positive_rate": 0.006666666666666667,
+      "fpr_95_ci": [
+        0.0018301483579117855,
+        0.023977583250306973
+      ],
+      "inconclusive_rate": 0.16
+    },
+    "p50_seconds": 0.03200000000651926,
+    "p95_seconds": 0.0779999999795109,
+    "limits": [
+      "Historical source-labelled legitimate/phishing URLs, not independently re-adjudicated current status.",
+      "Hostname deduplication does not eliminate registered-domain/campaign correlation.",
+      "No known use of this snapshot in current local training; upstream URL corpus overlap cannot be excluded.",
+      "Offline URL model only; no live DNS, TLS or HTML coverage is asserted."
+    ],
+    "model_change": "None. Frozen source diagnostic; not a claim of improvement."
+  },
+  "url_phiusiil_600_after_policy_correction": {
+    "manifest_sha256": "9364905eb42cc28cc8fa9aab68be5c23e04392b6043a7da1fb0f3005f093db19",
+    "metrics": {
+      "n": 600,
+      "tp": 195,
+      "fp": 2,
+      "fn": 105,
+      "normal_n": 300,
+      "precision": 0.9898477157360406,
+      "recall": 0.65,
+      "f1": 0.7847082494969818,
+      "false_positive_rate": 0.006666666666666667,
+      "fpr_95_ci": [
+        0.0018301483579117855,
+        0.023977583250306973
+      ],
+      "inconclusive_rate": 0.165
+    },
+    "p50_seconds": 0.01600000000325963,
+    "p95_seconds": 0.03200000000651926,
+    "limits": [
+      "Historical source-labelled legitimate/phishing URLs, not independently re-adjudicated current status.",
+      "Hostname deduplication does not eliminate registered-domain/campaign correlation.",
+      "No known use of this snapshot in current local training; upstream URL corpus overlap cannot be excluded.",
+      "Offline URL model only; no live DNS, TLS or HTML coverage is asserted."
+    ],
+    "model_change": "Weights and thresholds retained; removed unmeasured popularity/accreditation/unsubscribe score clamps."
   }
 }
