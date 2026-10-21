@@ -16,10 +16,11 @@ foreach ($taskEntry in $taskEntries) {
     }
     $taskProcess = Get-CimInstance Win32_Process -Filter "ProcessId=$taskProcessId"
     if ($taskProcess -and $taskProcess.ExecutablePath -eq $taskEntry.python -and $taskProcess.CommandLine.Contains($taskEntry.module)) {
-        foreach ($taskChild in (Get-CimInstance Win32_Process -Filter "ParentProcessId=$($taskEntry.id)")) {
-            if ($taskChild.CommandLine -and $taskChild.CommandLine.Contains($taskEntry.module)) { Stop-Process -Id $taskChild.ProcessId }
+        # Stop the verified launcher-owned tree, including spawned CPU localizer workers.
+        & taskkill.exe /PID $taskProcessId /T /F | Out-Null
+        if ($LASTEXITCODE -ne 0 -and (Get-Process -Id $taskProcessId -ErrorAction SilentlyContinue)) {
+            throw "Could not stop owned process $taskProcessId"
         }
-        Stop-Process -Id $taskEntry.id -ErrorAction SilentlyContinue
     }
 }
 Write-Host 'Stopped only matching processes from this launcher. Databases and logs preserved.'

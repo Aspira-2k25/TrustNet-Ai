@@ -24,6 +24,11 @@ export function App() {
   const [scans, setScans] = useState<ScanRecord[]>([]);
   const [selectedScan, setSelectedScan] = useState<ScanRecord | null>(null);
   const [historyError, setHistoryError] = useState('');
+  useEffect(()=>{
+    const expired=()=>{setUser(null);setScans([]);setSelectedScan(null);setActiveTab('login');};
+    window.addEventListener('trustnet-session-expired',expired);
+    return()=>window.removeEventListener('trustnet-session-expired',expired);
+  },[]);
   useEffect(() => {
     const sessionToken = httpClient.getToken();
     if (sessionToken) authApi.getMe().then(current => {

@@ -57,7 +57,7 @@ def validate_and_sanitize_upload(
     max_size = MAX_FILE_SIZES.get(expected_modality, 15 * 1024 * 1024)
     if file_size > max_size:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {max_size // (1024*1024)}MB"}
         )
 

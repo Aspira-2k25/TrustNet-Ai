@@ -28,7 +28,7 @@ REM Preserve .env, databases and the original image environment.
 set KAFKA_ENABLED=false
 set PHISHING_START_ARGS=
 set ENABLE_KAFKA_CONSUMER=false
-REM Phishing requires Kafka/Mongo; synchronous image/message routes stay available.
+REM Docker enables queued URL scans and isolated website inspection.
 docker info >nul 2>&1
 if not errorlevel 1 (
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ops\start-phishing-infrastructure.ps1"

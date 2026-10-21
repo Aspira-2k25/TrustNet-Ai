@@ -66,7 +66,7 @@ async def detect_image_file(
         )
     if len(image_bytes) > settings.MAX_IMAGE_SIZE_MB * 1024 * 1024:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
         )
     from models.image_deepfake.forensics.source_evidence import inspect_source

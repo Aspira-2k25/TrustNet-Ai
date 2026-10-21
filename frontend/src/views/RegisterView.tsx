@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, AlertCircle, ArrowRight, Shield, User as UserIcon } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowRight, Shield } from 'lucide-react';
 import { api } from '../services/api';
 import type { User } from '../types';
 
@@ -9,7 +9,6 @@ interface RegisterViewProps {
 }
 
 export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, onGoToLogin }) => {
-  const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -54,23 +53,6 @@ export const RegisterView: React.FC<RegisterViewProps> = ({ onRegisterSuccess, o
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-bold text-[#53636d] mb-1.5">
-              Full Name
-            </label>
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white border border-[#cbd3d7] focus-within:border-[#24695b] transition-all">
-              <UserIcon size={16} className="text-[#53636d]" />
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Alex Johnson"
-                className="bg-transparent border-none outline-none text-xs text-[#202b31] w-full placeholder:text-[#53636d]"
-              />
-            </div>
-          </div>
-
           <div>
             <label className="block text-xs font-bold text-[#53636d] mb-1.5">
               Email Address

@@ -22,7 +22,7 @@ export const PhishingScanView: React.FC<Props> = ({onScanCompleted, onViewReport
     setProcessing(true); setError(''); setScan(null);
     try {
       const accepted = await submitPhishing(target, controller.signal); setScan(accepted);
-      for (let attempt = 0; attempt < 120; attempt++) {
+      for (let attempt = 0; attempt < 20; attempt++) {
         const current = await retrievePhishing(accepted.id, controller.signal); setScan(current);
         if (!['QUEUED', 'PROCESSING', 'PENDING'].includes(current.status)) {
           if (current.result?.module !== 'phishing' || current.result.scan_id !== current.id) throw new Error('Phishing result missing or mismatched.');

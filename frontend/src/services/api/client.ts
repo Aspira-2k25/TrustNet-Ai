@@ -40,10 +40,22 @@ class HttpClient {
       requiresAuth
     );
 
-    const response = await fetch(url, {
+    const requestToken=this.token;
+    const controller=new AbortController();
+    const abort=()=>controller.abort();
+    if(options.signal?.aborted)controller.abort();
+    else options.signal?.addEventListener('abort',abort,{once:true});
+    const timer=setTimeout(()=>controller.abort(),40000);
+    let response:Response;
+    try {response = await fetch(url, {
       ...options,
       headers,
-    });
+      signal:controller.signal,
+    });} finally {clearTimeout(timer);options.signal?.removeEventListener('abort',abort);}
+    if(response.status===401&&requiresAuth&&requestToken&&this.token===requestToken){
+      this.setToken(null);
+      window.dispatchEvent(new Event('trustnet-session-expired'));
+    }
 
     if (!response.ok) {
       let errorMessage = `API request failed with status ${response.status}`;
