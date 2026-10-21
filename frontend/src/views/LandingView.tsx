@@ -43,7 +43,7 @@ export function LandingView({ onStart }: Props) {
       <div className="process-steps">
         <div><span className="step-marker">1</span><h3>Bring what looks off</h3><p>Upload an original image, paste a message or enter a link. Sign in to run and save your scan.</p></div>
         <div><span className="step-marker">2</span><h3>See the reasons</h3><p>Review the available signals, highlighted evidence and checks that could not be completed.</p></div>
-        <div><span className="step-marker">3</span><h3>Keep the context</h3><p>Return to saved scans and export a PDF. An Inconclusive result means more evidence is needed.</p></div>
+        <div><span className="step-marker">3</span><h3>Keep the context</h3><p>Return to saved scans and export a PDF. If we are not sure, check another trusted source.</p></div>
       </div>
     </section>
 

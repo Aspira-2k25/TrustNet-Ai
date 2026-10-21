@@ -1,3 +1,4 @@
+import { simpleResult,storedLanguage,notice } from './resultLanguage.ts';
 import { assessmentVerdict } from './verdict';
 import { jsPDF } from 'jspdf';
 import type { ScanRecord } from '../types';
@@ -12,7 +13,9 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
   };
   doc.setFontSize(16);line('TrustNet image evidence report');doc.setFontSize(10);
   line(`Scan: ${scan.id}. Recorded: ${scan.created_at}`);
-  line('This tool can make mistakes. Results are probabilistic indicators, not proof. Verify important decisions independently.');
+  const language=storedLanguage(),plain=simpleResult(scan,language);
+  line(notice(language));line(plain.title);line((language==='hi'?'Kyun: ':'Why: ')+plain.why);line((language==='hi'?'Ab kya karein: ':'What to do next: ')+plain.next);
+  doc.addPage();y=18;line(language==='hi'?'Experts ke liye details (English)':'Details for experts');
   const result=scan.result;
   if(result?.detector_id!=='image_deepfake.evidence.v2'){
     line('Inconclusive. Historical detector output requires a new assessment.');
@@ -39,7 +42,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
     if(supporting.noise)line(`Noise residual: ${supporting.noise.residual_rms} luminance levels RMS. ${supporting.noise.note}`);
     if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} consistent feature matches. ${supporting.copy_move.note}`);
   }
-  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.assets?.overlay],['Grad-CAM classifier attention, not an edit mask',image.assets?.attention]]){
+  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.regions?.length?image.assets?.overlay:undefined],['Where the model looked (not where the edit is)',image.assets?.attention]]){
     if(typeof url!=='string'||!url.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))continue;
     try{
       const response=await fetch(API_BASE_URL+url,{headers:httpClient.getHeaders()});
@@ -69,7 +72,7 @@ function exportMessagePDF(scan: ScanRecord, download: boolean): Uint8Array {
     lines.forEach(t=>{if(y>275){doc.addPage();y=18;}doc.text(t,15,y);y+=5;}); y+=3;
   };
   doc.setFontSize(14);line('TrustNet message assessment');doc.setFontSize(10);
-  line('This tool can make mistakes. Results are indicators, not proof. Verify important decisions independently.');line(`Scan: ${scan.id} | ${scan.created_at}`);line(`Verdict: ${assessmentVerdict(scan)}`);
+  const language=storedLanguage(),plain=simpleResult(scan,language);line(notice(language));line(plain.title);line((language==='hi'?'Kyun: ':'Why: ')+plain.why);line((language==='hi'?'Ab kya karein: ':'What to do next: ')+plain.next);doc.addPage();y=18;line(language==='hi'?'Experts ke liye details (English)':'Details for experts');line(`Scan: ${scan.id} | ${scan.created_at}`);line(`Verdict: ${assessmentVerdict(scan)}`);
   const r=scan.result;
   if(r && ['SUCCESS','PARTIAL_SUCCESS'].includes(r.status) && ['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status)) {
     const riskLabel=r.metadata?.rule_findings?.length?'Rule/model warning index (not probability)':r.metadata?.evaluated_domains?.includes('English email') ? 'Message-model fraud estimate (limited coverage)' : `SMS-model smishing estimate${r.metadata?.message_type==='email'?' (email calibration unavailable)':''}`;

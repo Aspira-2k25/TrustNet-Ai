@@ -1,3 +1,4 @@
+import { useResultLanguage,simpleResult,level,notice } from '../../services/resultLanguage.ts';
 import { AssessmentNotice } from '../AssessmentNotice';
 import type { ScanRecord } from '../../types';
 import { jsPDF } from 'jspdf';
@@ -5,6 +6,8 @@ import { PhishingAnalysis } from './PhishingAnalysis';
 import { domainDifference, reportOpinion, urlReportSummary } from './reportInsights';
 
 export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
+  const {language,t}=useResultLanguage();
+  const plain=simpleResult(scan,language);
   const result=scan.result, meta=result?.metadata || {}, forensic=meta.forensics;
   const legacy=!!result && (meta.assessment_policy!=='dynamic-v2' || meta.link_analysis_version!=='links-v1');
   const assessed=!!result && !legacy && ['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
@@ -19,7 +22,7 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
   const opinion=reportOpinion(scan);
   const summary=urlReportSummary(scan);
   const domainMatch=forensic?.visual_domain_match;
-  const rows=['This tool can make mistakes. Results are indicators, not proof. Verify important decisions independently.',title,`Scan ID: ${scan.id}`,`URL: ${url}`,
+  const rows=[notice(language),plain.title,(language==='hi'?'Kyun: ':'Why: ')+plain.why,(language==='hi'?'Ab kya karein: ':'What to do next: ')+plain.next,'Details for experts (English)',title,`Scan ID: ${scan.id}`,`URL: ${url}`,
     `Risk score: ${summary.risk!==null?`${summary.risk.toFixed(1)} / 100 (higher means more risk)`:'not available'}`,
     `Trust score: ${summary.trust!==null?`${summary.trust.toFixed(1)} / 100 (100 minus risk; higher means less detected risk)`:'not available'}`,
     `Assessment confidence: ${summary.confidence}. ${summary.confidenceReason} Qualitative evidence assessment, not a validated statistical confidence percentage.`,
@@ -62,16 +65,17 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
     <button onClick={onBack} className="text-[#24695b]">Back to history</button>
     <AssessmentNotice/>
     <div className={panel}>
-      <h1 className="text-2xl font-bold">{title}</h1>
+      <h1 className="text-2xl font-bold">{plain.title}</h1><h2>{t('Why','Kyun')}</h2><p>{plain.why}</p><h2>{t('What to do next','Ab kya karein')}</h2><p>{plain.next}</p>
       {legacy?<p>Submit a new scan to apply the current detector and live checks.</p>:score!==null?
         <div className="space-y-3"><div className="grid sm:grid-cols-2 gap-3">
-          <div className="rounded-xl border border-rose-400/30 bg-rose-50 p-4"><p className="text-sm text-rose-800">Risk score</p><p className="text-3xl font-bold mt-2">{summary.risk?.toFixed(1)}<span className="text-sm text-slate-600"> / 100</span></p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-rose-400" style={{width:`${summary.risk ?? 0}%`}} /></div><p className="text-xs text-slate-600 mt-2">Higher means more detected risk.</p></div>
+          <div className="rounded-xl border border-rose-400/30 bg-rose-50 p-4"><p className="text-sm text-rose-800">Risk score</p><p className="text-3xl font-bold mt-2">{level((summary.risk??0)/100,language)}</p><div className="h-2 rounded bg-slate-700 mt-3 overflow-hidden"><div className="h-full bg-rose-400" style={{width:`${summary.risk ?? 0}%`}} /></div><p className="text-xs text-slate-600 mt-2">Higher means more detected risk.</p></div>
           <div className="rounded-xl border border-sky-400/30 bg-slate-50 p-4"><p className="text-sm text-[#24695b]">Assessment confidence</p><p className="text-xl font-bold mt-2">{summary.confidence}</p><p className="text-xs text-slate-700 mt-3">{summary.confidenceReason}</p></div>
         </div><p className="text-xs text-slate-600">Risk is a warning index, not a probability or ownership verification. Confidence describes the available evidence qualitatively; a validated confidence percentage is not available.</p></div>:
         <div className="space-y-2"><p className="text-amber-900">{result?.explanation || 'We could not complete this URL check. Please try again.'}</p><p className="text-sm text-slate-600">Risk score: unavailable · Trust score: unavailable · Assessment confidence: {summary.confidence}</p><p className="text-xs text-slate-600">{summary.confidenceReason}</p></div>}
       <p className="break-all rounded-xl bg-white p-3 font-mono text-sm">{url}</p>
       <div className="flex flex-wrap gap-3"><button onClick={exportPdf} className="px-4 py-2 bg-[#24695b] rounded-lg">Export report</button></div>
     </div>
+    <details className="report-details"><summary>{t('Details for experts','Experts ke liye details')}</summary><p>{t('Technical records below are kept in English.','Neeche technical records English mein hain.')}</p><p>Risk index: {summary.risk?.toFixed(1)??'Unavailable'}/100.</p>
     {!legacy && <PhishingAnalysis scan={scan} />}
     {forensic && <div className={panel}><h2 className="font-bold">Live checks and destination</h2>
       <p className="text-sm break-all">Actual hostname: {forensic.hostname || 'No website hostname in this link'}</p><p className="text-sm">Registered domain: {forensic.registered_domain || 'not established'}</p>
@@ -98,6 +102,7 @@ export function PhishingReport({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) 
       {(result?.analyzers || []).map((a,i)=><p key={i} className="text-xs">{a.name}: {a.status}. {a.finding || a.reason}</p>)}
       {(result?.evidence || []).map((e,i)=><p key={i} className="text-xs text-slate-600">{e.human_readable_note}</p>)}
       {limitations.map((l:string)=><p key={l} className="text-sm text-slate-600">{l}</p>)}
+    </details>
     </details>
     <p className="text-xs text-slate-600 break-all">Scan: {scan.id} · {result?.processing_time_ms ?? 0} ms · {result?.timestamp || scan.created_at}</p>
   </section>;

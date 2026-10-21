@@ -1,3 +1,4 @@
+import { useResultLanguage } from '../../services/resultLanguage.ts';
 import { useEffect, useState } from 'react';
 import { Upload } from 'lucide-react';
 import type { ScanRecord } from '../../types';
@@ -7,6 +8,7 @@ import { httpClient } from '../../services/api/client';
 interface Props { onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void }
 
 export function ImageScanView({onScanCompleted,onViewReport}:Props) {
+  const {t}=useResultLanguage();
   const [file,setFile] = useState<File|null>(null);
   const [preview,setPreview] = useState('');
   const [busy,setBusy] = useState(false);
@@ -35,17 +37,17 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
     finally{setBusy(false);}
   }
   return <section className="input-workspace" aria-labelledby="image-heading">
-    <div className="input-heading"><h2 id="image-heading">Image assessment</h2><p>Separate origin clues, AI generation evidence and localized editing evidence.</p></div>
+    <div className="input-heading"><h2 id="image-heading">{t('Check an image','Image check karein')}</h2><p>{t('Look for signs of AI generation and editing. Some changes can be missed.','AI aur editing ke sanket dekhein. Kuch edits miss ho sakte hain.')}</p></div>
     <div className="upload-surface" onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();if(!busy)select(e.dataTransfer.files[0]);}}>
       {preview?<img className="upload-preview" src={preview} alt="Selected original image"/>:<Upload size={30} strokeWidth={1.4} aria-hidden="true"/>}
       <label className="file-picker">{file?'Replace image':'Choose an image'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={e=>select(e.target.files?.[0])}/></label>
       <p>{file?`${file.name} · ${(file.size/1024).toFixed(0)} KB`:'Or drop a file here'}</p>
       <small>JPEG, PNG or WebP, up to 10 MB. The original upload bytes remain intact.</small>
     </div>
-    <label className="attention-option"><input type="checkbox" checked={includeAttention} disabled={busy} onChange={e=>setIncludeAttention(e.target.checked)}/> Include model attention (Grad-CAM)</label>
-    <p>Shows where the classifier found signal. This adds processing time and is separate from an edited-region mask.</p>
+    <label className="attention-option"><input type="checkbox" checked={includeAttention} disabled={busy} onChange={e=>setIncludeAttention(e.target.checked)}/> {t('Show where the model looked','Model ne kahan dekha dikhayein')}</label>
+    <p>{t('Where the model looked (not where the edit is). This can add a few seconds.','Model ne kahan dekha (yeh edit ki jagah nahi hai). Ismein kuch seconds aur lag sakte hain.')}</p>
     {error&&<p role="alert" className="error-message">{error}</p>}
-    <div className="input-actions"><p>Small or heavily compressed images may be inconclusive.</p><button className="primary-button" disabled={!file||busy} onClick={analyze}>{busy?'Examining image…':'Analyze image'}</button></div>
-    {busy&&<p role="status" className="loading-message">Models are examining the original image. Pixel localization can take longer than a quick classification.</p>}
+    <div className="input-actions"><p>{t('Small or heavily compressed images may not give a clear answer.','Chhoti ya compressed image se saaf jawab nahi mil sakta.')}</p><button className="primary-button" disabled={!file||busy} onClick={analyze}>{busy?'Examining image…':'Analyze image'}</button></div>
+    {busy&&<p role="status" className="loading-message">{t('Checking the original image for AI and editing signs. A check that cannot finish will be shown as incomplete.','Original image mein AI aur editing ke sanket check ho rahe hain. Adhura check saaf bataya jayega.')}</p>}
   </section>;
 }
