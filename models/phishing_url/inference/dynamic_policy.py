@@ -27,22 +27,9 @@ def apply(result, url, threshold=None, observations=None):
     strong = report['outcome'] == 'SUSPICIOUS'
     medium = any(f.get('severity') == 'medium' for f in report.get('findings', []))
 
-    from .lookalike import reference
-    try:
-        ref_domains = reference().get('domains', {})
-        reg_dom = str(report.get('registered_domain') or '').lower()
-        rank = ref_domains.get(reg_dom)
-        is_top_authority = rank is not None and rank <= 2000
-    except Exception:
-        reg_dom = ''
-        is_top_authority = False
-
-    is_accredited = any(reg_dom.endswith(suffix) for suffix in ('.edu', '.gov', '.mil', '.ac.in', '.edu.in', '.gov.in', '.nic.in', '.res.in'))
-    raw_path = str(link.get('path') or url).lower()
-    is_unsubscribe = any(k in raw_path for k in ('unsubscribe', 'opt-out', 'optout', 'email-preferences', 'manage-preferences'))
-
-    if (is_top_authority or is_accredited or is_unsubscribe) and not strong and not medium and trusted and model_p is not None:
-        model_p = min(model_p, 0.15)
+    # A popular/accredited hostname or an unsubscribe path is not safety evidence.
+    # Never overwrite the selected model reading with an unmeasured allowlist clamp.
+    meta['decision_policy_revision']='no-allowlist-score-clamp-v1'
 
     policy = evidence_policy()
     residual = 1 - model_p if trusted else 1.

@@ -41,3 +41,21 @@ The unchanged selected model was checked through its running inference API on 30
 This is a diagnostic, not a verified-benign or field-accuracy benchmark. Tranco is a popularity ranking, so the 3% reference warning rate is not certified real-world FPR. Full phishing URLs versus reference root domains create a URL-shape confound. The 300 phishing URLs span 282 distinct hostnames; campaign correlation and unknown training overlap remain. These results cannot be compared directly with the earlier 313-row test as a before/after improvement. No weights or thresholds changed, and evaluated destinations were never opened; DNS, TLS, HTML and JavaScript inspection were not measured by this offline run.
 
 Source data and complete outputs remain external. OpenPhish personal/academic research terms and raw-data redistribution restrictions apply: https://openphish.com/terms.html. Tranco provider attribution and licences: https://tranco-list.eu/. Compact aggregate evidence is retained in the existing reference-evaluation JSON, without raw feed URLs.
+
+## PhiUSIIL source-labelled audit and policy correction
+
+Prasad and Chandra's 2024 [UCI PhiUSIIL dataset](https://archive.ics.uci.edu/dataset/967/phiusiil+phishing+url+dataset) is CC BY 4.0. Its official label is 1=legitimate and 0=phishing. A frozen 300/300 sample uses one SHA-selected URL per hostname and removes conflicting hostname labels. Source archive and manifest checksums are retained externally. No destination was opened. Historical labels were not independently re-adjudicated, and registered-domain/campaign correlation or upstream training overlap is not excluded.
+
+The audit proved a separate policy bypass: a 0.95 selected-model reading was changed to 0.15 by an unsubscribe-path override. Popularity and academic/government suffixes could also erase model warnings. Those unmeasured overrides were removed without fitting new weights or changing learned thresholds. A regression check now preserves the original model reading for all these cases.
+
+| Same 600 source-labelled records | Before policy correction | After |
+| --- | ---: | ---: |
+| TP / FP / FN | 185 / 2 / 115 | 195 / 2 / 105 |
+| Recall | 61.67% | 65.00% |
+| Precision | 98.93% | 98.98% |
+| F1 | 75.98% | 78.47% |
+| FPR | 0.67% | 0.67% |
+| FPR 95% Wilson interval | 0.18–2.40% | 0.18–2.40% |
+| Detector review/uncertain share | 16.00% | 16.50% |
+
+This set was consumed for the before/after correction, not an untouched independent certification. These figures measure available offline detector warnings. Missing website checks can force an incomplete public headline; do not substitute detector recall for full UI recall. The remaining 105 missed source-labelled phishing URLs show a material recall limitation. The point FPR is below 2%, but its confidence interval does not certify a population bound below 2%. CPU request p50/p95 were 0.016/0.032 seconds after correction on this machine; load conditions differed, so no controlled speedup is claimed.
