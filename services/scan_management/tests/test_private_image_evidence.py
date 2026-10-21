@@ -40,22 +40,23 @@ async def test_original_bytes_history_and_every_asset_require_the_scan_owner(tmp
         async def __aexit__(self,*args):pass
         async def post(self,url,files,data):
             assert files['file'][1]==original
+            assert data['enable_explanation']=='true'
             result=dict(scan_id=data['scan_id'],module='image_deepfake',detector_id='image_deepfake.evidence.v2',
                 model_version='contract fixture',preprocessing_version='original-bytes',native_score=.01,
                 native_score_semantics='anomaly_score',risk_score=1.,confidence=0,label='INCONCLUSIVE',
                 verdict='INCONCLUSIVE',status='SUCCESS',timestamp=datetime.now(timezone.utc).isoformat(),
                 metadata={'image_analysis':{'source_sha256':hashlib.sha256(original).hexdigest()},
-                    'score_semantics':'independent readings','image_assets_base64':{'mask':base64.b64encode(original).decode(),'ela':base64.b64encode(original).decode()}})
+                    'score_semantics':'independent readings','image_assets_base64':{'mask':base64.b64encode(original).decode(),'ela':base64.b64encode(original).decode(),'attention':base64.b64encode(original).decode()}})
             return httpx.Response(200,json={'data':result})
     real_client=httpx.AsyncClient
     try:
         async with real_client(transport=httpx.ASGITransport(app=app),base_url='http://scan') as client:
             monkeypatch.setattr(httpx,'AsyncClient',lambda **kwargs:ModelClient())
-            response=await client.post('/scans/analyze',headers=token('owner-a'),files={'file':('camera.png',original,'image/png')})
+            response=await client.post('/scans/analyze',headers=token('owner-a'),files={'file':('camera.png',original,'image/png')},data={'enable_explanation':'true'})
             assert response.status_code==200,response.text
             record=response.json()['data'];identifier=record['id']
             assert 'image_assets_base64' not in record['result']['metadata']
-            for kind in ['original','mask','ela']:
+            for kind in ['original','mask','ela','attention']:
                 route=f'/scans/{identifier}/image/{kind}'
                 own=await client.get(route,headers=token('owner-a'))
                 assert own.status_code==200 and own.content==original

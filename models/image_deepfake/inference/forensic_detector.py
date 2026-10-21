@@ -128,6 +128,14 @@ class ForensicDetector:
             analysis['supporting_forensics']=supporting
         except (ValueError,OSError,RuntimeError,MemoryError,cv2.error) as exc:
             analysis['supporting_forensics']={'affects_verdict':False,'notice':f'Classical diagnostics unavailable ({type(exc).__name__}).'}
+        if enable_explanation:
+            try:
+                head=self.modern_head if self.config['ai'].get('mode')=='isotonic_feature_head' else None
+                attention=self.global_model.explain(image_bytes,feature_head=head)
+                encoded['attention']=attention.pop('image')
+                analysis['model_attention']=attention
+            except (ValueError,OSError,RuntimeError,MemoryError,cv2.error) as exc:
+                analysis['model_attention']={'note':f'Grad-CAM unavailable ({type(exc).__name__}). This does not change the verdict.'}
         return DetectionResult(scan_id=scan_id or str(uuid.uuid4()),module=ModuleEnum.image_deepfake,
             detector_id='image_deepfake.evidence.v2',model_version='CommunityForensics-ViT + modern feature head + TruFor',
             preprocessing_version='original-bytes-native-localization-v2',native_score=ai_raw,

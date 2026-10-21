@@ -20,13 +20,13 @@ router = APIRouter(prefix="", tags=["Inference"])
 pool=ThreadPoolExecutor(max_workers=1,thread_name_prefix='image-inference')
 active=0
 
-async def run_image(data,scan_id,filename=None):
+async def run_image(data,scan_id,filename=None,enable_explanation=False):
     global active
     if worker.detector is None:raise HTTPException(503,'Image model is not installed or failed integrity validation')
     if active:raise HTTPException(429,'Image analysis busy; retry later')
     active+=1
     loop=asyncio.get_running_loop()
-    future=loop.run_in_executor(pool,lambda:worker.detector.predict(data,scan_id=scan_id,filename=filename))
+    future=loop.run_in_executor(pool,lambda:worker.detector.predict(data,scan_id=scan_id,filename=filename,enable_explanation=enable_explanation))
     def finished(_):
         global active
         active-=1
@@ -75,7 +75,7 @@ async def detect_image_file(
 
     safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
 
-    result = await run_image(image_bytes,scan_id or str(uuid.uuid4()),safe_filename)
+    result = await run_image(image_bytes,scan_id or str(uuid.uuid4()),safe_filename,enable_explanation)
     if getattr(result, "status", None) and str(result.status).upper().endswith("FAILED"):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -103,7 +103,7 @@ async def detect_image_key(
             detail={"code": "FILE_NOT_FOUND", "message": error_err}
         )
         
-    result = await run_image(image_bytes,scan_id)
+    result = await run_image(image_bytes,scan_id,enable_explanation=req.enable_explanation)
     return APIResponse(
         data=result,
         meta=ResponseMeta(request_id=request_id)

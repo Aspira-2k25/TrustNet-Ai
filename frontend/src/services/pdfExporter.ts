@@ -27,6 +27,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
   line(`Source SHA-256: ${image.source_sha256||'Unavailable'}`);
   line(`Model: ${result.model_version}. Calibration: ${image.calibration_version||'Unavailable'}`);
   line(image.model_view_note||'');
+  if(image.model_attention)line(`Classifier attention: ${image.model_attention.note} Target: ${image.model_attention.target||'Unavailable'}.`);
   line(`Provenance: ${image.provenance?.c2pa_status||'Not assessed'}. Signature trusted: ${image.provenance?.signature_trusted?'yes':'no'}. Missing metadata is neutral.`);
   (image.quality?.limits||[]).forEach((r:string)=>line(r));
   line(`Supported pixel regions: ${image.regions?.length??0}. Model segmentation is not a verified edit mask.`);
@@ -38,7 +39,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
     if(supporting.noise)line(`Noise residual: ${supporting.noise.residual_rms} luminance levels RMS. ${supporting.noise.note}`);
     if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} geometric inliers. ${supporting.copy_move.note}`);
   }
-  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.assets?.overlay]]){
+  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.assets?.overlay],['Grad-CAM classifier attention, not an edit mask',image.assets?.attention]]){
     if(typeof url!=='string'||!url.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))continue;
     try{
       const response=await fetch(API_BASE_URL+url,{headers:httpClient.getHeaders()});

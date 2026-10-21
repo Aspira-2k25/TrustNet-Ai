@@ -11,6 +11,7 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
   const [preview,setPreview] = useState('');
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
+  const [includeAttention,setIncludeAttention] = useState(true);
   useEffect(()=>{
     if(!file){setPreview('');return;}
     const url=URL.createObjectURL(file);setPreview(url);
@@ -28,7 +29,7 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
     if(!httpClient.getToken()){setError('Sign in using the button above before running an assessment.');return;}
     setBusy(true);setError('');
     try{
-      const scan=await scanApi.uploadImageScan(file);
+      const scan=await scanApi.uploadImageScan(file,includeAttention);
       onScanCompleted(scan);onViewReport(scan);
     }catch(e){setError(e instanceof Error?e.message:'Image assessment failed. Try again.');}
     finally{setBusy(false);}
@@ -41,6 +42,8 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
       <p>{file?`${file.name} · ${(file.size/1024).toFixed(0)} KB`:'Or drop a file here'}</p>
       <small>JPEG, PNG or WebP, up to 10 MB. The original upload bytes remain intact.</small>
     </div>
+    <label className="attention-option"><input type="checkbox" checked={includeAttention} disabled={busy} onChange={e=>setIncludeAttention(e.target.checked)}/> Include model attention (Grad-CAM)</label>
+    <p>Shows where the classifier found signal. This adds processing time and is separate from an edited-region mask.</p>
     {error&&<p role="alert" className="error-message">{error}</p>}
     <div className="input-actions"><p>Small or heavily compressed images may be inconclusive.</p><button className="primary-button" disabled={!file||busy} onClick={analyze}>{busy?'Examining image…':'Analyze image'}</button></div>
     {busy&&<p role="status" className="loading-message">Models are examining the original image. Pixel localization can take longer than a quick classification.</p>}

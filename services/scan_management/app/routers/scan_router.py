@@ -79,7 +79,7 @@ async def analyze_image_direct(file: UploadFile = File(...), enable_explanation:
     try:
         async with httpx.AsyncClient(timeout=settings.IMAGE_SERVICE_TIMEOUT_SECONDS) as client:
             response=await client.post(settings.IMAGE_SERVICE_URL.rstrip('/')+'/detect/file',
-                files={'file':(safe_filename,file_bytes,source['mime_type'])},data={'scan_id':scan_id})
+                files={'file':(safe_filename,file_bytes,source['mime_type'])},data={'scan_id':scan_id,'enable_explanation':str(enable_explanation).lower()})
         if response.status_code!=200:
             raise HTTPException(response.status_code,'Image inference unavailable; retry or check image service readiness')
         detection=DetectionResult.model_validate(response.json()['data'])

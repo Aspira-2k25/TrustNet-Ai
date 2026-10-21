@@ -71,3 +71,8 @@ class GlobalClassifier:
             model_id=self.spec['id'], revision=self.spec['revision'], calibrated=False)
         if return_embedding:result['embedding']=features[0].cpu().numpy().tolist()
         return result
+
+    def explain(self,image_bytes,feature_head=None):
+        from models.image_deepfake.explainability.grad_cam import generate
+        with self.lock:
+            return generate(self.model,self.processor,image_bytes,feature_head)

@@ -6,7 +6,7 @@ import { ScamResult } from '../components/scam_message/ScamResult';
 import { AssessmentNotice } from '../components/AssessmentNotice';
 import { exportForensicPDFReport } from '../services/pdfExporter';
 
-type Layer = 'original' | 'overlay' | 'heatmap' | 'mask' | 'ela';
+type Layer = 'original' | 'overlay' | 'heatmap' | 'mask' | 'ela' | 'attention';
 const titles:Record<string,string>={LIKELY_AI_GENERATED:'Likely AI-generated',LIKELY_MANIPULATED:'Likely manipulated',LIKELY_AUTHENTIC:'Likely authentic',INCONCLUSIVE:'Inconclusive'};
 const percent=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?`${(value*100).toFixed(1)}%`:'Unavailable';
 
@@ -64,10 +64,11 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
     <div className="result-layout">
       <div className="image-workbench">
         <div className="viewer-controls" role="group" aria-label="Image evidence layer">
-          {(['original','overlay','heatmap','mask','ela'] as Layer[]).map(value=><button key={value} aria-pressed={layer===value} disabled={value!=='original'&&!paths[value]} onClick={()=>{setLayer(value);setZoom(1);}}>{value==='ela'?'JPEG / ELA':value[0].toUpperCase()+value.slice(1)}</button>)}
+          {(['original','overlay','heatmap','mask','ela','attention'] as Layer[]).map(value=><button key={value} aria-pressed={layer===value} disabled={value!=='original'&&!paths[value]} onClick={()=>{setLayer(value);setZoom(1);}}>{value==='ela'?'JPEG / ELA':value==='attention'?'Model attention':value[0].toUpperCase()+value.slice(1)}</button>)}
           <label>Zoom <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value={1}>100%</option><option value={1.5}>150%</option><option value={2}>200%</option><option value={3}>300%</option></select></label>
         </div>
         {layer==='ela'&&<p role="status">JPEG recompression differences, displayed at fixed 8× gain. Bright pixels are not proof of editing. Native diagnostic window: {supporting?.scope?.width} × {supporting?.scope?.height}, starting at ({supporting?.scope?.x}, {supporting?.scope?.y}). This is separate from the segmentation mask.</p>}
+        {layer==='attention'&&<p role="status">{image.model_attention?.note} Target: {image.model_attention?.target}. Classifier view: {image.model_attention?.view_width} × {image.model_attention?.view_height}.</p>}
         <div className="image-viewport">{source?<img src={source} alt={`${layer} image evidence`} style={{transform:`scale(${zoom})`}}/>:<p role="status">{imageError||'Loading saved image…'}</p>}</div>
         <p className="viewer-caption">{layer==='original'?'Original upload. The file remains intact on the server.':'Pixel segmentation evidence from the manipulation model. A highlighted area is a model estimate, not proof of editing.'}</p>
       </div>
@@ -86,6 +87,7 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
       {supporting.copy_move&&<p><strong>Repeated-pattern check:</strong> {supporting.copy_move.geometric_inliers} geometric inliers. {supporting.copy_move.note}</p>}
       <p>These observations do not change the verdict or establish that an image is authentic.</p>
     </details>}
+    {image.model_attention&&<details className="report-details"><summary>Classifier attention and its limits</summary><p>{image.model_attention.note}</p><p>{image.model_attention.target}</p></details>}
     <details className="report-details" open><summary>Why this result</summary><ul className="result-reasons">{reasons.map(reason=><li key={reason}>{reason}</li>)}</ul></details>
     <details className="report-details"><summary>Model and source record</summary><p>Model: {result?.model_version||'Unavailable'}</p><p>Native source: {scan.dimensions?`${scan.dimensions.width} × ${scan.dimensions.height}`:'Not recorded'}. SHA-256: <code className="break-all">{image.source_sha256||'Not recorded'}</code></p><p>{image.model_view_note||'AI classification and pixel localization use separate model views. Classifier attention is not a localization mask.'}</p></details>
   </section>;

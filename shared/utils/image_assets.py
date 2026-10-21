@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 KINDS={'original':'original.bin','overlay':'overlay.png','mask':'mask.png',
-       'heatmap':'heatmap.png','raw_heatmap':'raw_heatmap.npz','ela':'ela.png'}
+       'heatmap':'heatmap.png','raw_heatmap':'raw_heatmap.npz','ela':'ela.png','attention':'attention.png'}
 
 
 def directory(storage,scan_id):
