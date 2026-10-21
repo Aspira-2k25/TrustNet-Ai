@@ -4,6 +4,17 @@ from benchmark.coverage_train import select_threshold, score, PROTOCOL
 from models.image_deepfake.inference.decision import decide
 
 
+def test_feature_view_overrides_the_processor_center_crop():
+    from pathlib import Path
+    from PIL import Image
+    from transformers import AutoImageProcessor
+    from benchmark.coverage_train import feature_batch
+    location=Path(__file__).resolve().parents[1]/'models/image_deepfake/artifacts/global'
+    processor=AutoImageProcessor.from_pretrained(location,local_files_only=True)
+    batch=feature_batch(processor,[Image.new('RGB',(512,400))])
+    assert tuple(batch['pixel_values'].shape)==(1,3,224,224)
+
+
 def test_operating_point_does_not_split_tied_real_scores():
     labels=[False]*100+[True]*20
     scores=[.1]*98+[.8,.8]+[.9]*20

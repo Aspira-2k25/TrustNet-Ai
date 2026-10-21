@@ -168,6 +168,18 @@ def catalog(out,include_tgif=True,tgif_only=False):
 def download(out,doc):
     cache=out/'originals';cache.mkdir(exist_ok=True);target=out/'acquired.jsonl'
     done={r['identity']:r for r in [json.loads(l) for l in target.read_text(encoding='utf-8').splitlines()] } if target.exists() else {}
+    # Real photos are distributed across generator folders in this mirror.
+    # Resolve the pinned source catalog rather than inventing a common folder.
+    source_paths={}
+    if any(r['source']=='COCO' for r in doc['rows']):
+        metadata_path=out/'dit-source-paths.json'
+        if metadata_path.exists():source_paths=json.loads(metadata_path.read_text())
+        else:
+            metadata=get(f'https://huggingface.co/api/datasets/Jouesmak/DiTFake/revision/{DIT_REV}').json()
+            for item in metadata['siblings']:
+                name=item['rfilename']
+                if '/0_real/' in name:source_paths.setdefault(Path(name).name,name)
+            metadata_path.write_text(json.dumps(source_paths),encoding='utf-8')
     def one(row):
         identity=sha(json.dumps(row,sort_keys=True).encode())
         if identity in done:return None
@@ -180,12 +192,16 @@ def download(out,doc):
                 reader=RemoteZIP.__new__(RemoteZIP);reader.url=a['url'];reader.size=a['size'];reader.position=0;data=reader.member(info)
             elif row['source']=='TGIF':
                 s=tgif_session();r=s.get(row['url'],timeout=60);r.raise_for_status();data=r.content
+            elif row['source']=='COCO':
+                source=source_paths[Path(row['url']).name]
+                data=get(f'https://huggingface.co/datasets/Jouesmak/DiTFake/resolve/{DIT_REV}/{source}').content
             else:data=get(row['url']).content
             with Image.open(io.BytesIO(data)) as image:image.verify()
             path.write_bytes(data)
         data=path.read_bytes()
         with Image.open(io.BytesIO(data)) as image:width,height=image.size
-        return {**row,'identity':identity,'path':str(path.relative_to(out)),'sha256':sha(data),'width':width,'height':height}
+        provenance={'resolved_source_path':source_paths[Path(row['url']).name]} if row['source']=='COCO' else {}
+        return {**row,**provenance,'identity':identity,'path':str(path.relative_to(out)),'sha256':sha(data),'width':width,'height':height}
     errors=[];pending=doc['rows']
     with ThreadPoolExecutor(max_workers=10) as pool:
         futures={pool.submit(one,r):r for r in pending}
