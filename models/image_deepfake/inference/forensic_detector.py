@@ -8,6 +8,7 @@ import uuid
 import os
 from datetime import datetime,timezone
 import numpy as np
+import cv2
 from PIL import Image,ImageOps
 from shared.schemas.detection_result import DetectionResult
 from shared.constants.modules import ModuleEnum
@@ -85,7 +86,6 @@ class ForensicDetector:
                 if not supported:
                     regions=[]
                     from models.image_deepfake.forensics.localization_output import encode_png
-                    import cv2
                     encoded['mask']=encode_png(np.zeros(rgb.shape[:2],np.uint8))
                     encoded['overlay']=encode_png(cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR))
                 local_note=('Native JPEG score calibrated on synthetic splice and copy-move validation. ' if covered else
@@ -119,6 +119,15 @@ class ForensicDetector:
             'policy':'Low scores do not rule out editing. Authenticity verdicts are disabled until broader independent validation passes.',
         }
         analysis['localizer_license']='Research only: TruFor permits nonprofit/informational use. Not licensed for unrestricted commercial deployment.' if self.localizer else 'No localization backend enabled.'
+        # Classical observations remain separate from the learned verdict and
+        # segmentation. Their failure must never change a scan's decision.
+        try:
+            from models.image_deepfake.forensics.supporting_signals import analyze
+            supporting=analyze(image_bytes)
+            encoded.update(supporting.pop('assets'))
+            analysis['supporting_forensics']=supporting
+        except (ValueError,OSError,RuntimeError,MemoryError,cv2.error) as exc:
+            analysis['supporting_forensics']={'affects_verdict':False,'notice':f'Classical diagnostics unavailable ({type(exc).__name__}).'}
         return DetectionResult(scan_id=scan_id or str(uuid.uuid4()),module=ModuleEnum.image_deepfake,
             detector_id='image_deepfake.evidence.v2',model_version='CommunityForensics-ViT + modern feature head + TruFor',
             preprocessing_version='original-bytes-native-localization-v2',native_score=ai_raw,

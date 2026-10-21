@@ -30,6 +30,14 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
   line(`Provenance: ${image.provenance?.c2pa_status||'Not assessed'}. Signature trusted: ${image.provenance?.signature_trusted?'yes':'no'}. Missing metadata is neutral.`);
   (image.quality?.limits||[]).forEach((r:string)=>line(r));
   line(`Supported pixel regions: ${image.regions?.length??0}. Model segmentation is not a verified edit mask.`);
+  const supporting=image.supporting_forensics;
+  if(supporting){
+    line(`Classical forensic observations: ${supporting.notice}`);
+    if(supporting.scope)line(`Native diagnostic window ${supporting.scope.width} x ${supporting.scope.height} at (${supporting.scope.x}, ${supporting.scope.y}); whole-image coverage: ${supporting.scope.whole_image?'yes':'no'}.`);
+    if(supporting.ela)line(`JPEG / ELA: ${supporting.ela.note}`);
+    if(supporting.noise)line(`Noise residual: ${supporting.noise.residual_rms} luminance levels RMS. ${supporting.noise.note}`);
+    if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} geometric inliers. ${supporting.copy_move.note}`);
+  }
   for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.assets?.overlay]]){
     if(typeof url!=='string'||!url.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))continue;
     try{

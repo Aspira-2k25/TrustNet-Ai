@@ -27,6 +27,8 @@ The image service loads one pinned CommunityForensics ViT and an experimental fr
 
 Evidence includes AI readings, source SHA-256, editable metadata observations, C2PA validation status, image quality and calibrated localization coverage. Missing metadata is neutral. Untrusted credentials never become verified origin. Region alerts require a genuine pixel map, reliability/area filters and the validated image boundary. Native JPEG calibration does not silently extend to lossless or tiled modes.
 
+A separate supporting branch records JPEG-only ELA, noise residuals and ORB/RANSAC repeated-pattern observations in a bounded native window. These diagnostics do not enter verdict fusion. ELA has its own private viewer layer and is explicitly distinguished from the segmentation mask. Failures in this optional branch do not change the decision.
+
 Authenticity verdicts are disabled because generative fill, inpainting, object removal and face swaps are not reliably validated. Other weak or conflicting results are Inconclusive. Conservative abstention reduces assertions; it is not detector accuracy. TruFor and the SafeIMG-derived head impose research/noncommercial restrictions; consult the retained licences before distribution.
 
 ## Messages, URLs and reporting
