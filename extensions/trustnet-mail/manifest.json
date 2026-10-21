@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "TrustNet Mail \u00e2\u20ac\u201d Local Scam Screening",
+  "name": "TrustNet Mail: Local Scam Screening",
   "version": "1.1.0",
   "description": "Click to screen one opened Gmail message through your authenticated local TrustNet API. Email coverage is limited to evaluated collections.",
   "permissions": [
@@ -25,10 +25,12 @@
       ],
       "js": [
         "extract.js",
+        "translations.js",
         "presentation.js",
         "content.js"
       ],
       "css": [
+        "tokens.css",
         "panel.css"
       ],
       "run_at": "document_idle"

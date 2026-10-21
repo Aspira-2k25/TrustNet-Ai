@@ -1,3 +1,9 @@
+export interface ResultPresentation {
+  verdict_key: 'looks_ai'|'looks_edited'|'scam'|'risky'|'no_clear_signs'|'not_sure'|'incomplete';
+  headline:string; reasons:Array<{text:string;evidence_id:string}>; next_steps:string[];
+  level:Record<string,'low'|'medium'|'high'>; limits:string[]; details:Record<string,unknown>;
+  locales?:Record<string,Omit<ResultPresentation,'locales'|'details'>>;
+}
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
 export type ScanStatus = 'PENDING' | 'QUEUED' | 'PROCESSING' | 'PARTIAL_SUCCESS' | 'UNAVAILABLE' | 'TIMEOUT' | 'SUCCESS' | 'FAILED';
 export type ClassificationVerdict = 'INCONCLUSIVE' | 'LIKELY_AI_GENERATED' | 'LIKELY_MANIPULATED' | 'AUTHENTIC' | 'LIKELY_AUTHENTIC' | 'UNCERTAIN' | 'LIKELY_AI_MANIPULATED' | 'SUSPICIOUS' | 'AI_GENERATED' | 'SMISHING_RISK' | 'SPAM_SCREENING' | 'LOW_SMISHING_SIGNAL' | 'UNKNOWN' | 'NO_STRONG_INDICATORS' | 'LIKELY_SCAM' | 'UNABLE_TO_ASSESS';
@@ -32,6 +38,7 @@ export interface VisionAnalysis {
 }
 
 export interface DetectionResult {
+  presentation?:ResultPresentation;
   scan_id: string;
   module: string;
   detector_id: string;

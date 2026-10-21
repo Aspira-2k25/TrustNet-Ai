@@ -1,0 +1,15 @@
+/* Canonical website/extension palette. Extension copy is generated at build time. */
+:root {
+  --tn-paper: #f7f6f2;
+  --tn-surface: #ffffff;
+  --tn-ink: #252b29;
+  --tn-muted: #53636d;
+  --tn-line: #d8dcd5;
+  --tn-accent: #24695b;
+  --tn-danger: #922b25;
+  --tn-caution: #6c4a12;
+  --tn-radius: 8px;
+  --tn-space: 1rem;
+  --tn-shadow: 0 3px 16px #252b2908;
+  --tn-font: "IBM Plex Sans", "Segoe UI", sans-serif;
+}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator, field_validator
+from pydantic import BaseModel, Field, model_validator, field_validator, computed_field
 from typing import Optional, Dict, Any, List
 import re
 from datetime import datetime
@@ -8,8 +8,16 @@ from shared.constants.status import StatusEnum
 from shared.constants.native_score_semantics import NativeScoreSemanticsEnum
 from shared.constants.schema_version import CURRENT_SCHEMA_VERSION
 from shared.schemas.evidence import EvidenceItem
+from shared.schemas.result_presentation import ResultPresentation
 
 class DetectionResult(BaseModel):
+    @computed_field
+    @property
+    def presentation(self) -> ResultPresentation:
+        from shared.presentation.result import public_result
+        value = {name: getattr(self, name) for name in type(self).model_fields}
+        return ResultPresentation.model_validate(public_result(value))
+
     scan_id: str
     module: ModuleEnum
     detector_id: str

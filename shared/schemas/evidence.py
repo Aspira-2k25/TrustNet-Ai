@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class EvidenceItem(BaseModel):
     feature_or_region: str
-    contribution: float # [TO VERIFY] with the team whether contribution should be bounded (e.g., [0,1] or [-1,1])
+    contribution: float = Field(allow_inf_nan=False)  # Signed attribution in the detector-declared units.
     human_readable_note: str

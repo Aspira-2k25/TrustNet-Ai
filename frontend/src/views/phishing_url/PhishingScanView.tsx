@@ -1,12 +1,12 @@
-import { useResultLanguage,simpleResult,level } from '../../services/resultLanguage.ts';
-import { AssessmentNotice } from '../../components/AssessmentNotice';
+import { useResultLanguage } from '../../services/resultLanguage.ts';
+import { ResultSummary } from '../../components/results/ResultSummary';
 import React, { useEffect, useRef, useState } from 'react';
 import type { ScanRecord } from '../../types';
 import { submitPhishing, retrievePhishing } from '../../services/api/phishing.api';
 
 interface Props { onScanCompleted: (scan: ScanRecord) => void; onViewReport: (scan: ScanRecord) => void; }
 export const PhishingScanView: React.FC<Props> = ({onScanCompleted, onViewReport}) => {
-  const {language,t}=useResultLanguage();
+  const {t}=useResultLanguage();
   const [url, setUrl] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -40,10 +40,6 @@ export const PhishingScanView: React.FC<Props> = ({onScanCompleted, onViewReport
     } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Unable to scan URL.'); }
     finally { if (!controller.signal.aborted) setProcessing(false); }
   };
-  const plain=scan?simpleResult(scan,language):null;
-  const result = scan?.result;
-  const legacy = !!result && (result.metadata?.assessment_policy!=='dynamic-v2' || result.metadata?.link_analysis_version!=='links-v1');
-  const assessed = result && !legacy && ['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
   return <div className="max-w-4xl mx-auto space-y-5">
     <div className="bg-white border border-[#cbd3d7] rounded-2xl p-6">
       <h2 className="text-xl font-bold text-[#252a27]">Phishing URL detection</h2>
@@ -56,16 +52,8 @@ export const PhishingScanView: React.FC<Props> = ({onScanCompleted, onViewReport
       {error && <p role="alert" className="text-amber-900 mt-4">{error}</p>}
     </div>
     {scan && <div className="bg-white border border-[#cbd3d7] rounded-2xl p-6 text-slate-700 space-y-3">
-      <AssessmentNotice/>
-      <p className="text-xs break-all">Scan: {scan.id}</p>
-      {assessed && <>
-        <p className="text-xl">{plain?.title}</p>
-        <p>{t('Warning level','Warning level')}: {level(result.risk_score/100,language)}</p><h3>{t('Why','Kyun')}</h3><p>{plain?.why}</p><h3>{t('What to do next','Ab kya karein')}</h3><p>{plain?.next}</p>
-
-        <p className="text-xs text-slate-600">{result.metadata?.coverage?.website_fetched?'Live website checks applied.':'URL analysis completed; some live checks were unavailable.'} A low score does not guarantee safety.</p>
-      </>}
-      {!assessed && result && <div className="space-y-2 text-sm text-amber-900"><p>{legacy?'This saved result uses an earlier detector. Submit a new scan to apply the current model and live checks.':result.explanation || result.error_message || 'No reliable trust score is available.'}</p>{(!legacy && result.metadata?.reasons || []).map((reason:string)=><p key={reason}>{reason}</p>)}</div>}
-      {result && <button className="text-[#24695b] underline" onClick={()=>onViewReport(scan)}>{t('View full report','Puri report dekhein')}</button>}
+      <ResultSummary scan={scan}/>
+      {scan.result && <button className="text-[#24695b] underline" onClick={()=>onViewReport(scan)}>{t("View full report")}</button>}
     </div>}
   </div>;
 };

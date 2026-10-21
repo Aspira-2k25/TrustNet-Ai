@@ -6,7 +6,7 @@ from shared.schemas.detection_result import DetectionResult
 from shared.utils.ids import generate_event_id
 
 class DetectionRequestedPayload(BaseModel):
-    # [TO VERIFY] exact per-modality DetectionRequestedEvent payload fields against Blueprint Part G.
+    # Transport contract shared by synchronous dispatch and Kafka workers.
     # [PROPOSED] generic payload fields: object_storage_key for media (image/audio/video), 
     # raw_text or url for NLP modalities (phishing/scam/review/OSINT).
     object_storage_key: Optional[str] = None

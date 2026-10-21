@@ -74,6 +74,7 @@ async def assess_links(urls, scan_id, service_url, deadline=6.0):
                     assessment_policy=result.metadata.get('assessment_policy'),
                     coverage=result.metadata.get('coverage'),
                     reasons=result.metadata.get('reasons', []),
+                    presentation=result.model_dump(mode='json')['presentation'],
                     mode='offline_model_and_link_checks; destination not opened')
             except (httpx.HTTPError, ValueError, KeyError, TypeError):
                 results[index]['reason'] = 'Phishing service unavailable, timed out, busy or returned an invalid result'

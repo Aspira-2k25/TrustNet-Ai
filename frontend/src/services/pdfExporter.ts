@@ -1,8 +1,13 @@
-import { simpleResult,storedLanguage,notice } from './resultLanguage.ts';
+import { resultView,resultWords,storedLanguage,notice } from './resultLanguage.ts';
 import { assessmentVerdict } from './verdict';
 import { jsPDF } from 'jspdf';
 import type { ScanRecord } from '../types';
 import { API_BASE_URL, httpClient } from './api/client';
+
+function publicLines(scan:ScanRecord,language:'en'|'hi') {
+  const view=resultView(scan,language),words=resultWords[language];
+  return [notice(language),view.headline,words.why,...view.reasons.map(r=>r.text),words.next,...view.next_steps,words.limits,...view.limits];
+}
 
 export async function exportForensicPDFReport(scan: ScanRecord, download = true): Promise<Uint8Array> {
   if(scan.content_type!=='image')return exportMessagePDF(scan,download);
@@ -13,8 +18,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
   };
   doc.setFontSize(16);line('TrustNet image evidence report');doc.setFontSize(10);
   line(`Scan: ${scan.id}. Recorded: ${scan.created_at}`);
-  const language=storedLanguage(),plain=simpleResult(scan,language);
-  line(notice(language));line(plain.title);line((language==='hi'?'Kyun: ':'Why: ')+plain.why);line((language==='hi'?'Ab kya karein: ':'What to do next: ')+plain.next);
+  const language=storedLanguage();publicLines(scan,language).forEach(line);
   doc.addPage();y=18;line(language==='hi'?'Experts ke liye details (English)':'Details for experts');
   const result=scan.result;
   if(result?.detector_id!=='image_deepfake.evidence.v2'){
@@ -71,9 +75,21 @@ function exportMessagePDF(scan: ScanRecord, download: boolean): Uint8Array {
     const lines: string[] = doc.splitTextToSize(printable,180);
     lines.forEach(t=>{if(y>275){doc.addPage();y=18;}doc.text(t,15,y);y+=5;}); y+=3;
   };
-  doc.setFontSize(14);line('TrustNet message assessment');doc.setFontSize(10);
-  const language=storedLanguage(),plain=simpleResult(scan,language);line(notice(language));line(plain.title);line((language==='hi'?'Kyun: ':'Why: ')+plain.why);line((language==='hi'?'Ab kya karein: ':'What to do next: ')+plain.next);doc.addPage();y=18;line(language==='hi'?'Experts ke liye details (English)':'Details for experts');line(`Scan: ${scan.id} | ${scan.created_at}`);line(`Verdict: ${assessmentVerdict(scan)}`);
+  doc.setFontSize(14);line(scan.content_type==='url'?'TrustNet link assessment':'TrustNet message assessment');doc.setFontSize(10);
+  const language=storedLanguage();publicLines(scan,language).forEach(line);doc.addPage();y=18;line(resultWords[language].experts);line(`Scan: ${scan.id} | ${scan.created_at}`);
   const r=scan.result;
+  if(scan.content_type==='url'){
+    line(scan.raw_input||'');
+    if(r){
+      Object.entries(r.presentation?.details||{}).forEach(([key,value])=>line(key+': '+String(value)));
+      (r.metadata?.reasons||[]).forEach((reason:string)=>line(reason));
+      line('Recorded website evidence (unavailable checks do not establish safety):');
+      line(JSON.stringify(r.metadata?.forensics||{}));
+      (r.metadata?.limitations||[]).forEach((limit:string)=>line(limit));
+    }
+    if(download)doc.save(`TrustNet_Link_${scan.id}.pdf`);
+    return new Uint8Array(doc.output('arraybuffer'));
+  }
   if(r && ['SUCCESS','PARTIAL_SUCCESS'].includes(r.status) && ['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status)) {
     const riskLabel=r.metadata?.rule_findings?.length?'Rule/model warning index (not probability)':r.metadata?.evaluated_domains?.includes('English email') ? 'Message-model fraud estimate (limited coverage)' : `SMS-model smishing estimate${r.metadata?.message_type==='email'?' (email calibration unavailable)':''}`;
     line(`${r.metadata?.fusion?.links_found?'Combined message / URL warning index':riskLabel}: ${r.risk_score.toFixed(1)}/100`);
