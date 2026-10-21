@@ -906,5 +906,350 @@
       "Offline address/model checks only. No evaluated destination was fetched; TLS/DNS/HTML/JS signals are not measured."
     ],
     "promotion": "Diagnostic only. No model or decision threshold changed."
+  },
+  "native_crop_v4_rejected_20261021": {
+    "candidate_content_sha256": "85d7d39ceb3ad5448c8b81fccd467d7f36e8310599c1a00873c5053552333b0b",
+    "test_manifest_sha256": "88bf57220af692c1cf4d0ff8ff1aa2edd55bd0a34fe4b815e95d463ce3a32447",
+    "baseline": {
+      "n": 1109,
+      "real_n": 668,
+      "fake_n": 441,
+      "tp": 400,
+      "fp": 1,
+      "tn": 667,
+      "fn": 41,
+      "accuracy": 0.9621280432822362,
+      "precision": 0.9975062344139651,
+      "f1": 0.9501187648456056,
+      "roc_auc": 0.9988186891523076,
+      "recall": 0.9070294784580499,
+      "real_fpr": 0.0014970059880239522,
+      "real_fpr_wilson95": [
+        0.0002643072114261484,
+        0.008430391134442286
+      ],
+      "ai_stream_inconclusive_rate": 0.6384129846708747
+    },
+    "candidate": {
+      "n": 1109,
+      "real_n": 668,
+      "fake_n": 441,
+      "tp": 394,
+      "fp": 1,
+      "tn": 667,
+      "fn": 47,
+      "accuracy": 0.9567177637511272,
+      "precision": 0.9974683544303797,
+      "f1": 0.9425837320574163,
+      "roc_auc": 0.9815878447187258,
+      "recall": 0.8934240362811792,
+      "real_fpr": 0.0014970059880239522,
+      "real_fpr_wilson95": [
+        0.0002643072114261484,
+        0.008430391134442286
+      ],
+      "ai_stream_inconclusive_rate": 0.6438232642019838
+    },
+    "per_generator": {
+      "FLUX.1-schnell": {
+        "baseline": {
+          "n": 146,
+          "real_n": 0,
+          "fake_n": 146,
+          "tp": 118,
+          "fp": 0,
+          "tn": 0,
+          "fn": 28,
+          "accuracy": 0.8082191780821918,
+          "precision": 1.0,
+          "f1": 0.8939393939393939,
+          "roc_auc": null,
+          "recall": 0.8082191780821918,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.1917808219178082
+        },
+        "candidate": {
+          "n": 146,
+          "real_n": 0,
+          "fake_n": 146,
+          "tp": 110,
+          "fp": 0,
+          "tn": 0,
+          "fn": 36,
+          "accuracy": 0.7534246575342466,
+          "precision": 1.0,
+          "f1": 0.859375,
+          "roc_auc": null,
+          "recall": 0.7534246575342466,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.2465753424657534
+        }
+      },
+      "PixArt-Sigma-XL-2-1024-MS": {
+        "baseline": {
+          "n": 146,
+          "real_n": 0,
+          "fake_n": 146,
+          "tp": 146,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "roc_auc": null,
+          "recall": 1.0,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.0
+        },
+        "candidate": {
+          "n": 146,
+          "real_n": 0,
+          "fake_n": 146,
+          "tp": 146,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "f1": 1.0,
+          "roc_auc": null,
+          "recall": 1.0,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.0
+        }
+      },
+      "stable-diffusion-3-medium-diffusers": {
+        "baseline": {
+          "n": 149,
+          "real_n": 0,
+          "fake_n": 149,
+          "tp": 136,
+          "fp": 0,
+          "tn": 0,
+          "fn": 13,
+          "accuracy": 0.912751677852349,
+          "precision": 1.0,
+          "f1": 0.9543859649122807,
+          "roc_auc": null,
+          "recall": 0.912751677852349,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.087248322147651
+        },
+        "candidate": {
+          "n": 149,
+          "real_n": 0,
+          "fake_n": 149,
+          "tp": 138,
+          "fp": 0,
+          "tn": 0,
+          "fn": 11,
+          "accuracy": 0.9261744966442953,
+          "precision": 1.0,
+          "f1": 0.9616724738675958,
+          "roc_auc": null,
+          "recall": 0.9261744966442953,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.0738255033557047
+        }
+      }
+    },
+    "limits": [
+      "AI stream only, not combined manipulation false alerts or a four-verdict authenticity accuracy.",
+      "Accuracy/F1 treat no alert as negative for binary evaluation; runtime no-alert results remain uncertain, not authenticated real.",
+      "Test image identities are fresh, but generator identities were observed in a prior experiment.",
+      "No GPT-image/Imagen accuracy claim. No test tuning."
+    ],
+    "ai_stream_gate_passed": false,
+    "source_metadata_shortcut_gate_passed": false,
+    "promotion_eligible": false,
+    "promotion_blockers": [
+      "Full-pipeline real-photo guard and runtime parity/latency verification remain required.",
+      "Source-file metadata predicts the development labels above the near-chance target. Resolve source/format/size and compression-history confounds with controlled-input evaluation before deployment; crop geometry alone is not proof.",
+      "Independent AI-stream recall/FPR promotion gate failed."
+    ],
+    "deployed": false
+  },
+  "message_800_before_secret_negation_v2": {
+    "manifest_sha256": "ae1a27c104589a1dc87f8d5a8d59dc7c5fa4681e2cfe432c61f85c6ab419977a",
+    "model": {
+      "status": "ready",
+      "model_version": "message-distilbert-lexical-links-hybrid-4"
+    },
+    "overall": {
+      "n": 800,
+      "scam_n": 400,
+      "normal_n": 400,
+      "tp": 214,
+      "fp": 8,
+      "tn_decided": 282,
+      "missed_scams_including_abstentions": 186,
+      "precision": 0.963963963963964,
+      "recall": 0.535,
+      "f1_including_abstentions": 0.6881028938906752,
+      "normal_false_warning_rate": 0.02,
+      "inconclusive_rate": 0.28125,
+      "selective_accuracy": 0.8626086956521739,
+      "service_errors": 0,
+      "p50_seconds": 1.7884999999660067,
+      "p95_seconds": 4.046999999965192
+    },
+    "by_language": {
+      "English": {
+        "n": 659,
+        "scam_n": 371,
+        "normal_n": 288,
+        "tp": 211,
+        "fp": 8,
+        "tn_decided": 272,
+        "missed_scams_including_abstentions": 160,
+        "precision": 0.9634703196347032,
+        "recall": 0.568733153638814,
+        "f1_including_abstentions": 0.7152542372881356,
+        "normal_false_warning_rate": 0.027777777777777776,
+        "inconclusive_rate": 0.15629742033383914,
+        "selective_accuracy": 0.8687050359712231,
+        "service_errors": 0,
+        "p50_seconds": 2.0469999999622814,
+        "p95_seconds": 4.209199999982959
+      },
+      "Hindi": {
+        "n": 104,
+        "scam_n": 4,
+        "normal_n": 100,
+        "tp": 0,
+        "fp": 0,
+        "tn_decided": 0,
+        "missed_scams_including_abstentions": 4,
+        "precision": null,
+        "recall": 0.0,
+        "f1_including_abstentions": 0.0,
+        "normal_false_warning_rate": 0.0,
+        "inconclusive_rate": 1.0,
+        "selective_accuracy": null,
+        "service_errors": 0,
+        "p50_seconds": 0.06300000002374873,
+        "p95_seconds": 0.22934999999415578
+      },
+      "Hinglish": {
+        "n": 37,
+        "scam_n": 25,
+        "normal_n": 12,
+        "tp": 3,
+        "fp": 0,
+        "tn_decided": 10,
+        "missed_scams_including_abstentions": 22,
+        "precision": 1.0,
+        "recall": 0.12,
+        "f1_including_abstentions": 0.21428571428571427,
+        "normal_false_warning_rate": 0.0,
+        "inconclusive_rate": 0.4864864864864865,
+        "selective_accuracy": 0.6842105263157895,
+        "service_errors": 0,
+        "p50_seconds": 1.3910000000032596,
+        "p95_seconds": 3.5023999999975777
+      }
+    },
+    "previously_observed_n": 50,
+    "limits": [
+      "Not an untouched independent test: some examples were previously used in the small multilingual comparison.",
+      "Upstream English training overlap, synthetic templates and noisy public annotations are not excluded.",
+      "Hindi/Hinglish scam positives are scarce. Aggregate results do not establish language-specific field accuracy."
+    ],
+    "promotion": "Diagnostic only. No weights or thresholds changed."
+  },
+  "message_800_after_secret_negation_v2": {
+    "manifest_sha256": "ae1a27c104589a1dc87f8d5a8d59dc7c5fa4681e2cfe432c61f85c6ab419977a",
+    "model": {
+      "status": "ready",
+      "model_version": "message-distilbert-lexical-links-hybrid-4"
+    },
+    "overall": {
+      "n": 800,
+      "scam_n": 400,
+      "normal_n": 400,
+      "tp": 214,
+      "fp": 8,
+      "tn_decided": 282,
+      "missed_scams_including_abstentions": 186,
+      "precision": 0.963963963963964,
+      "recall": 0.535,
+      "f1_including_abstentions": 0.6881028938906752,
+      "normal_false_warning_rate": 0.02,
+      "inconclusive_rate": 0.28125,
+      "selective_accuracy": 0.8626086956521739,
+      "service_errors": 0,
+      "p50_seconds": 1.2339999999967404,
+      "p95_seconds": 2.8137500000215363
+    },
+    "by_language": {
+      "English": {
+        "n": 659,
+        "scam_n": 371,
+        "normal_n": 288,
+        "tp": 211,
+        "fp": 8,
+        "tn_decided": 272,
+        "missed_scams_including_abstentions": 160,
+        "precision": 0.9634703196347032,
+        "recall": 0.568733153638814,
+        "f1_including_abstentions": 0.7152542372881356,
+        "normal_false_warning_rate": 0.027777777777777776,
+        "inconclusive_rate": 0.15629742033383914,
+        "selective_accuracy": 0.8687050359712231,
+        "service_errors": 0,
+        "p50_seconds": 1.3899999999557622,
+        "p95_seconds": 2.8487000000372076
+      },
+      "Hindi": {
+        "n": 104,
+        "scam_n": 4,
+        "normal_n": 100,
+        "tp": 0,
+        "fp": 0,
+        "tn_decided": 0,
+        "missed_scams_including_abstentions": 4,
+        "precision": null,
+        "recall": 0.0,
+        "f1_including_abstentions": 0.0,
+        "normal_false_warning_rate": 0.0,
+        "inconclusive_rate": 1.0,
+        "selective_accuracy": null,
+        "service_errors": 0,
+        "p50_seconds": 0.01600000000325963,
+        "p95_seconds": 0.03200000000651926
+      },
+      "Hinglish": {
+        "n": 37,
+        "scam_n": 25,
+        "normal_n": 12,
+        "tp": 3,
+        "fp": 0,
+        "tn_decided": 10,
+        "missed_scams_including_abstentions": 22,
+        "precision": 1.0,
+        "recall": 0.12,
+        "f1_including_abstentions": 0.21428571428571427,
+        "normal_false_warning_rate": 0.0,
+        "inconclusive_rate": 0.4864864864864865,
+        "selective_accuracy": 0.6842105263157895,
+        "service_errors": 0,
+        "p50_seconds": 0.8599999999860302,
+        "p95_seconds": 2.4840000000200213
+      }
+    },
+    "previously_observed_n": 50,
+    "limits": [
+      "Not an untouched independent test: some examples were previously used in the small multilingual comparison.",
+      "Upstream English training overlap, synthetic templates and noisy public annotations are not excluded.",
+      "Hindi/Hinglish scam positives are scarce. Aggregate results do not establish language-specific field accuracy."
+    ],
+    "promotion": "Diagnostic only. No weights or thresholds changed."
   }
 }

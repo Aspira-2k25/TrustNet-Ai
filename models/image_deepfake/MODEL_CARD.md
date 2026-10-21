@@ -65,7 +65,26 @@ Compact evidence is retained in `benchmark/results/reference-evaluation.json`. F
 
 ## CPU runtime and native-crop experiment status, 21 October 2026
 
-The deployed classifier, feature-head weights and decision boundaries remain unchanged. A separate frozen-backbone experiment samples five native 224 pixel crops, without resizing source images, and caches CommunityForensics, DINOv2 and OpenCLIP features externally. CommunityForensics development extraction completed for 5,850 originals and 1,012 training stress views. DINO extraction and final evaluation are pending. To avoid an unjustified full third-backbone run, the CPU pipeline first fits CommunityForensics + DINO. It considers full OpenCLIP extraction only when development recall needs it and the source-shortcut control passes, then selects once before opening the sealed test. Its 40-image OpenCLIP pilot cache is retained. There are no new recall or false-positive results for this candidate.
+The deployed classifier, feature-head weights and decision boundaries remain unchanged. The native-crop experiment completed using CommunityForensics and DINOv2, five native 224 pixel crops without resizing source images, and cached features from 5,850 originals plus 1,012 training stress views per backbone. The head was fitted on 2,089 real and 2,089 generated training images, with separate 840-image calibration and 832-image threshold partitions. The selected development option was the fixed primary/native-head mean followed by isotonic mapping. Its threshold was frozen before fresh test inference. Full OpenCLIP extraction was skipped because the source-shortcut audit failed; its 40-image pilot cache remains external.
+
+The fresh-image diagnostic contained 668 COCO real photographs and 441 generated images. Entire FLUX, PixArt and SD3 generator identities were excluded from this head's training/calibration/threshold selection, but these generators had been examined in an earlier experiment. Original image identities were screened against prior sources before outcomes were extracted. Unknown upstream pretraining and batch/semantic overlap remain. This is not an all-generator or device-diversity certification.
+
+| Same 1,109-image AI-stream test | Existing primary boundary | Native-crop candidate |
+| --- | ---: | ---: |
+| Generated-image recall | 400/441, 90.70% | 394/441, 89.34% |
+| Real false alerts | 1/668, 0.15% | 1/668, 0.15% |
+| 95% Wilson real-FPR interval | 0.026% to 0.843% | 0.026% to 0.843% |
+| Binary accuracy | 96.21% | 95.67% |
+| Precision | 99.75% | 99.75% |
+| F1 | 95.01% | 94.26% |
+| ROC-AUC | 0.9988 | 0.9816 |
+| AI-stream no-alert/uncertain share | 63.84% | 64.38% |
+
+Binary accuracy/F1 treat no alert as negative for evaluation; runtime no-alert results do not authenticate real photographs. The uncertain share above is AI-stream-only and cannot be compared directly with the earlier 81.25% full-pipeline subset. Nor can the unchanged primary's higher recall on this different collection be called a software improvement.
+
+Generator recall, existing versus candidate: FLUX 118/146 (80.82%) versus 110/146 (75.34%); PixArt 146/146 (100%) for both; SD3 136/149 (91.28%) versus 138/149 (92.62%). **The candidate was rejected and was not installed.** It lost six generated-image detections overall, did not reduce abstention, and retained an unresolved source-metadata confound. No test-driven retuning or further long experiment was started. Full-pipeline false-positive certification, GPT-image/Imagen coverage and reliable inpainting localization remain unresolved.
+
+Test manifest SHA-256: `88bf57220af692c1cf4d0ff8ff1aa2edd55bd0a34fe4b815e95d463ce3a32447`. Candidate canonical-content SHA-256: `85d7d39ceb3ad5448c8b81fccd467d7f36e8310599c1a00873c5053552333b0b`. Full caches and rejected artifacts stay outside the runtime repository; compact aggregate results are in the existing reference-evaluation JSON.
 
 A source-metadata control fitted on the training partition and evaluated on the separate calibration partition reached ROC-AUC **1.00**, using original width, height, file bytes and JPEG format. This fails the near-chance shortcut target. These fields are not direct native-crop model inputs, but fixed crop dimensions do not rule out source content or compression-history confounds. The report explicitly blocks promotion pending a controlled-input audit and the independent whole-pipeline real-photo guard. Neither extraction completion nor a strong candidate score establishes a valid improvement.
 
