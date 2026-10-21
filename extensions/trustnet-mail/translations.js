@@ -97,7 +97,9 @@ var TrustNetWords = {
     "Heatmap shows the edit model response. Mask shows selected pixels, not confirmed edits.": "Heatmap shows the edit model response. Mask shows selected pixels, not confirmed edits.",
     "image_no_warning": "The completed checks found no strong signs of AI generation or editing. This does not prove the image is real.",
     "image_partial_ai": "AI warning found. Edit check incomplete.",
-    "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.": "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window."
+    "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.": "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.",
+    "Brighter colours mean a stronger edit-model response, not a confirmed edit.": "Brighter colours mean a stronger edit-model response, not a confirmed edit.",
+    "White pixels mark selected suspected areas. Black pixels are not selected. This is an estimate, not proof.": "White pixels mark selected suspected areas. Black pixels are not selected. This is an estimate, not proof."
   },
   "hi": {
     "looks_ai": "AI se bani lagti hai",
@@ -196,7 +198,9 @@ var TrustNetWords = {
     "Heatmap shows the edit model response. Mask shows selected pixels, not confirmed edits.": "Heatmap edit model ka response hai. Mask selected pixels dikhata hai, pakke edits nahi.",
     "image_no_warning": "Poore hue checks mein AI ya editing ke strong sanket nahi mile. Isse image real hona prove nahi hota.",
     "image_partial_ai": "AI ki warning mili. Editing ka check adhura hai.",
-    "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.": "JPEG ka farak recompression dikhata hai, pakke edits nahi. Yeh image ka alag native window hai."
+    "JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.": "JPEG ka farak recompression dikhata hai, pakke edits nahi. Yeh image ka alag native window hai.",
+    "Brighter colours mean a stronger edit-model response, not a confirmed edit.": "Tez rang edit model ka zyada response hai, pakka edit nahi.",
+    "White pixels mark selected suspected areas. Black pixels are not selected. This is an estimate, not proof.": "Safed pixels shak wale selected area hain. Kale pixels selected nahi hain. Yeh andaza hai, saboot nahi."
   }
 };
 if(typeof module!=='undefined')module.exports=TrustNetWords;
