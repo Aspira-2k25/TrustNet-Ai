@@ -53,6 +53,11 @@ def prepare(out):
     bad_family={k for k,v in families.items() if len(v)>1};bad_hash={k for k,v in hashes.items() if len(v)>1}
     rejected=[r for r in rows if r['family'] in bad_family or r['sha256'] in bad_hash]
     rows=[r for r in rows if r['family'] not in bad_family and r['sha256'] not in bad_hash]
+    unique=[];seen_bytes=set()
+    for row in sorted(rows,key=lambda r:r['identity']):
+        if row['sha256'] in seen_bytes:rejected.append(row)
+        else:unique.append(row);seen_bytes.add(row['sha256'])
+    rows=unique
     # Near-duplicate screen before fitting or outcomes. This is a heuristic and
     # cannot certify semantic independence or unknown upstream training batches.
     phash_path=out/'perceptual-hashes.json'
@@ -154,7 +159,7 @@ def features(out,doc,test=False,model=None):
         with torch.inference_mode():
             emb=model.model.vit(**batch,interpolate_pos_encoding=True).last_hidden_state[:,0].cpu().numpy()
             baseline=None
-            if test:
+            if test and any(row['split']=='test' for row,_ in group):
                 original_view=model.processor(images=[x[0] for x in images],return_tensors='pt')
                 baseline=torch.sigmoid(model.model(**original_view).logits[:,0]).cpu().numpy()
         with path.open('a',encoding='utf-8') as stream:
@@ -232,7 +237,9 @@ def evaluate(out,doc,head):
                 'scope':'Binary AI alarm metrics, not four-verdict authenticity accuracy; below threshold remains Inconclusive.'}
             results[split]['by_processing_proxy']={str(v):summary([r for r in group if r['schedule']%6==v],scores[np.array([r['schedule']%6==v for r in group])]) for v in range(6)}
     baseline_threshold=.3546251223812103
-    baseline=np.asarray([r['baseline_primary_raw']>=baseline_threshold for r in data]);test_indexes=np.array([r['split']=='test' for r in data]);truth=np.array([r['positive'] for r in data]);real=test_indexes&~truth;fake=test_indexes&truth
+    if any('baseline_primary_raw' not in r for r in data if r['split']=='test'):
+        raise ValueError('A main holdout image lacks its paired baseline score')
+    baseline=np.asarray([r.get('baseline_primary_raw',-1)>=baseline_threshold for r in data]);test_indexes=np.array([r['split']=='test' for r in data]);truth=np.array([r['positive'] for r in data]);real=test_indexes&~truth;fake=test_indexes&truth
     prior={'real_fpr':float(np.mean(baseline[real])),'real_fpr_wilson95':wilson(int(sum(baseline[real])),int(sum(real))),'generated_recall':float(np.mean(baseline[fake])),'ai_stream_inconclusive_rate':float(np.mean(~baseline[test_indexes])),'scope':'Frozen existing primary-model alert boundary, generation stream only. Manipulation/provenance/authenticity decisions require separate paired pipeline checks.'}
     report={'candidate_sha256':digest(out/'candidate.json'),'manifest_sha256':digest(out/'manifest.json'),'threshold':threshold,'baseline_ai_stream':prior,'results':results,'limits':doc['limitations']+['Wilson assumes independent photos; correlated camera/scene captures weaken that assumption.','No deployment promotion or authenticity enablement follows from classifier metrics alone.']}
     (out/'holdout-report.json').write_text(json.dumps(report,indent=2),encoding='utf-8');print(json.dumps(report,indent=2),flush=True)

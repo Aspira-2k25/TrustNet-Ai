@@ -33,6 +33,8 @@ def main():
     from models.image_deepfake.inference.forensic_detector import ForensicDetector
     from models.image_deepfake.inference.decision import decide
     detector=ForensicDetector();baseline_config_sha=digest(Path(__file__).resolve().parents[1]/'models/image_deepfake/calibration/evidence-v2.json')
+    if any(r['candidate_sha256']!=digest(out/'candidate.json') or r['baseline_config_sha256']!=baseline_config_sha for r in records):
+        raise ValueError('Saved paired decisions belong to a different candidate or baseline policy')
     for identity in selected:
         if identity in done:continue
         row=source[identity];feature=feature_map[identity];_,sha,data=view(out,row,0,include_bytes=True)
