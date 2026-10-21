@@ -59,8 +59,8 @@ def primary_scores(source,rows,target):
     return np.array([existing[r['identity']]['score'] for r in rows])
 
 
-def fit(source,cache,holdout,names):
-    target=cache/'candidate.json'
+def fit(source,cache,holdout,names,candidate_path=None):
+    target=candidate_path or cache/'candidate.json'
     if target.exists():
         head=json.loads(target.read_text())
         if head['development_manifest_sha256']!=digest(source/'manifest.json') or head['holdout_manifest_sha256']!=digest(holdout/'manifest.json') or head['backbones']!=names:raise ValueError('Frozen candidate contract changed')
@@ -96,6 +96,7 @@ def fit(source,cache,holdout,names):
     control_scaler=StandardScaler().fit(controls[tr]);control=LogisticRegression(max_iter=1500,class_weight='balanced').fit(control_scaler.transform(controls[tr]),y[tr])
     auc=float(roc_auc_score(y[ca],control.predict_proba(control_scaler.transform(controls[ca]))[:,1]))
     head={'version':'native-crops-head-v1','backbones':names,'crop_contract':asdict(CropContract()),'mean':scaler.mean_.tolist(),'scale':scaler.scale_.tolist(),'coef':model.coef_[0].tolist(),'intercept':float(model.intercept_[0]),'choice':choice,'development_options':options,'development_manifest_sha256':digest(source/'manifest.json'),'holdout_manifest_sha256':digest(holdout/'manifest.json'),'original_metadata_shortcut_auc':auc,'input_metadata_note':'Native crops are RGB tensors of the same dimensions; original container metadata is not a model input. Source compression/content shortcuts may remain.','training_originals':{'real':int(sum(tr&~y)),'fake':int(sum(tr&y))},'training_stress_views':len(augmented_rows),'promotion':'Not deployed. Require independent AI-stream and full-pipeline real-photo guard checks.'}
+    head['development_primary']={'raw_alert':.3546251223812103,'selection_recall':float(np.mean(primary[th_dev&y_dev]>=.3546251223812103)),'selection_real_fpr':float(np.mean(primary[th_dev&~y_dev]>=.3546251223812103))}
     target.write_text(json.dumps(head,indent=2));print('FROZEN',digest(target),choice,flush=True);return head
 
 
@@ -125,6 +126,6 @@ def evaluate(source,cache,head,output):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--source',type=Path,required=True);p.add_argument('--cache',type=Path,required=True);p.add_argument('--holdout',type=Path);p.add_argument('--candidate',type=Path);p.add_argument('--backbones',nargs='+',default=['community','dino','openclip']);p.add_argument('--evaluate',action='store_true');a=p.parse_args()
     if a.evaluate:evaluate(a.source,a.cache,json.loads(a.candidate.read_text()),a.cache/'holdout-report.json')
-    else:fit(a.source,a.cache,a.holdout,a.backbones)
+    else:fit(a.source,a.cache,a.holdout,a.backbones,a.candidate)
 
 if __name__=='__main__':main()
