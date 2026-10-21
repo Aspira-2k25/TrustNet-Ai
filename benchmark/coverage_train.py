@@ -132,6 +132,16 @@ def feature_batch(processor, images):
     return batch
 
 
+def control_geometry(row,augmentation):
+    # Exact container geometry can be reconstructed without decoding source
+    # photos a second time. RNG consumption matches view() above.
+    rng=np.random.default_rng(PROTOCOL['seed']+row['schedule']*13+augmentation*100003)
+    base=[384,448,512][row['schedule']%3]
+    size=max(192,round(base*float(rng.uniform(.5,1.)))) if augmentation else base
+    variant=int(rng.integers(0,6)) if augmentation else row['schedule']%6
+    return [size,size+32 if variant==5 else size,PROTOCOL['matched_jpeg_bytes'],1]
+
+
 def features(out,doc,test=False,model=None):
     import torch
     from models.image_deepfake.inference.global_classifier import GlobalClassifier
@@ -192,8 +202,7 @@ def train(out,doc):
     by_id={r['identity']:r for r in doc['rows']}
     for row in tr+ca:
         if 'control_features' not in row:
-            image,_=view(out,by_id[row['identity']],row['view'])
-            row['control_features']=[image.width,image.height,PROTOCOL['matched_jpeg_bytes'],1]
+            row['control_features']=control_geometry(by_id[row['identity']],row['view'])
     x=np.asarray([r['embedding'] for r in tr]);y=np.asarray([r['positive'] for r in tr])
     scaler=StandardScaler().fit(x);model=LogisticRegression(C=1,max_iter=1500,class_weight='balanced',random_state=81327).fit(scaler.transform(x),y)
     shortcut=None

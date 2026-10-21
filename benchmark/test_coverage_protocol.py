@@ -15,6 +15,17 @@ def test_feature_view_overrides_the_processor_center_crop():
     assert tuple(batch['pixel_values'].shape)==(1,3,224,224)
 
 
+@pytest.mark.parametrize('augmentation',[0,1])
+def test_shortcut_geometry_matches_the_actual_encoded_view(tmp_path,augmentation):
+    from PIL import Image
+    from benchmark.coverage_train import view,control_geometry
+    Image.new('RGB',(90,70),'#a4b5c6').save(tmp_path/'source.png')
+    for schedule in range(6):
+        row={'path':'source.png','schedule':schedule}
+        image,_,data=view(tmp_path,row,augmentation,include_bytes=True)
+        assert control_geometry(row,augmentation)==[image.width,image.height,len(data),1]
+
+
 def test_operating_point_does_not_split_tied_real_scores():
     labels=[False]*100+[True]*20
     scores=[.1]*98+[.8,.8]+[.9]*20
