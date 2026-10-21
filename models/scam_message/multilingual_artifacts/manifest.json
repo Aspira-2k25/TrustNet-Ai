@@ -1,0 +1,13 @@
+{
+  "model_version": "message-multilingual-lexical-v1",
+  "engine": "word-char-tfidf-logistic",
+  "files": {
+    "config.json": "186125cb2a3a6ff75e55c7f01af320b99f3f73e54e1b6b3a5da200af593e2f92",
+    "weights.npz": "95737e362b20d8ff9612d51092cb074f9e80b36cf156bd278ef9fa9b4ba002bb"
+  },
+  "source": "sidzzz07/scamshield-dataset",
+  "revision": "059dee884476a45e380808e68d09e74baff67291",
+  "license": "MIT dataset card; underlying source rights and label quality are not independently established. Research evaluation release.",
+  "split_manifest_sha256": "054d8d42aa621394739f5e980b5faf52b887358ad15b769cb06815ac300b53ac",
+  "selection": "Validation-selected thresholds; Hindi standalone route rejected by independent hard-negative gate; source-language routing bug corrected before runtime promotion, consumed test disclosed."
+}

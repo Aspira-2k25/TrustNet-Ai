@@ -16,19 +16,6 @@ if errorlevel 1 (
 )
 
 echo Checking scam model artifacts...
-if exist "%TASK_ROOT%exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip" (
-    "%TASK_ROOT%.venv-scam\Scripts\python.exe" "%TASK_ROOT%scripts\setup\install-scam-model.py" --package "%TASK_ROOT%exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip"
-    if errorlevel 1 (
-        echo [ERROR] Scam model installation failed.
-        exit /b 1
-    )
-) else (
-    if not exist "%TASK_ROOT%models\scam_message\artifacts\model.safetensors" (
-        echo [ERROR] model.safetensors is missing!
-        echo Please copy model.safetensors or place TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip in exports\
-        exit /b 1
-    )
-)
 
 echo Verifying scam model integrity...
 "%TASK_ROOT%.venv-scam\Scripts\python.exe" "%TASK_ROOT%scripts\checks\verify-scam.py"

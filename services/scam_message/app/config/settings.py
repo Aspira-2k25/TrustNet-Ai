@@ -1,8 +1,10 @@
 from pydantic import Field, SecretStr
+from typing import Literal
 from shared.config.base_settings import BaseSettings
 class ScamSettings(BaseSettings):
     SERVICE_NAME: str = 'scam_message_service'
     SCAM_PORT: int = 8005
+    SCAM_TEXT_POLICY: Literal['multilingual','legacy'] = 'multilingual'
     SCAM_MAX_CONCURRENCY: int = Field(default=2,ge=1,le=8)
     SCAM_TIMEOUT_SECONDS: float = 20
     PHISHING_SERVICE_URL: str = 'http://127.0.0.1:8007'

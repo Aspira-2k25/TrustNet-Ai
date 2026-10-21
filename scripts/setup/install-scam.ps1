@@ -12,8 +12,6 @@ if (!(Test-Path -LiteralPath $taskPython)) {
     }
     if (!(Test-Path -LiteralPath $taskPython)) { throw 'Failed to create .venv-scam. Install Python 3.11 and ensure it is in PATH.' }
 }
-& $taskPython -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
-if ($LASTEXITCODE -ne 0) { throw 'CPU PyTorch installation failed.' }
 & $taskPython -m pip install -r (Join-Path $taskRoot 'services/scam_message/requirements-portable.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Scam dependencies failed to install; existing image environment was not changed.' }
 & $taskPython -m pip check

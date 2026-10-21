@@ -1,0 +1,5 @@
+# Optional DistilBERT rollback only. Install CPU torch from its official index first.
+torch==2.6.0+cpu
+transformers==4.50.3
+safetensors==0.8.0
+regex==2026.9.29

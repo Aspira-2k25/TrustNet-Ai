@@ -80,16 +80,8 @@ if errorlevel 1 (
 )
 
 echo [4/5] Checking model artifacts...
-if exist "%~dp0exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip" (
-    "%~dp0.venv-scam\Scripts\python.exe" "%~dp0scripts\setup\install-scam-model.py" --package "%~dp0exports\TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip"
-    if errorlevel 1 exit /b 1
-) else (
-    if not exist "%~dp0models\scam_message\artifacts\model.safetensors" (
-        echo [ERROR] model.safetensors is missing!
-        echo Please copy model.safetensors or place TrustNet-Scam-Model-message-distilbert-lexical-links-hybrid-4.zip in exports\
-        exit /b 1
-    )
-)
+"%~dp0.venv-scam\Scripts\python.exe" "%~dp0scripts\checks\verify-scam.py"
+if errorlevel 1 exit /b 1
 
 echo Setting up isolated phishing runtime (.venv-phishing) and model artifacts...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\install-phishing.ps1"

@@ -1,4 +1,4 @@
-"""Create the selected weights/tokenizer package without introducing Git LFS."""
+"""Create the optional legacy DistilBERT rollback package. Selected lexical weights are in Git."""
 from pathlib import Path
 import hashlib,json,zipfile
 root=Path(__file__).resolve().parents[2];assets=root/'models/scam_message/artifacts'

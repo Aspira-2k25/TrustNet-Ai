@@ -32,6 +32,9 @@ def enrich(result, request):
     verdict=('UNABLE_TO_ASSESS' if insufficient or (outside and score<threshold)
              else 'SUSPICIOUS' if outside or result.confidence<.65 or threshold<=score<likely_threshold
              else 'LIKELY_SCAM' if score>=likely_threshold else 'NO_STRONG_INDICATORS')
+    if meta.get('classifier_policy')=='multilingual-tfidf-v1':
+        verdict=('UNABLE_TO_ASSESS' if insufficient or not meta.get('coverage',{}).get('supported')
+                 else 'LIKELY_SCAM' if score>=threshold else 'NO_STRONG_INDICATORS')
     category='phishing/fraud' if verdict=='LIKELY_SCAM' else 'spam' if result.label=='spam' and not outside else 'unknown'
     # Ham annotations cannot distinguish personal, transactional and promotional.
     result.verdict=verdict
@@ -83,4 +86,7 @@ def enrich(result, request):
         meta['assessment_dimensions']['scam_risk'].update(score=result.risk_score,
             definition='Explicit rule warning index, combined with available model reading. Not a fraud probability.')
         meta['assessment_dimensions']['message_category'].update(value='phishing/fraud',status='RULE_WARNING',reason='The text contains an explicit risky request; sender intent is not proven.')
+    if meta.get('classifier_policy')=='multilingual-tfidf-v1':
+        meta['threshold_definition']='Text-route threshold selected on a separate validation split. No test threshold tuning; not a universal safety boundary.'
+        meta['assessment_dimensions']['scam_risk'].update(status='LIMITED_PUBLIC_SOURCE_COVERAGE',definition='Uncalibrated multilingual lexical warning index, not a fraud probability.')
     return result

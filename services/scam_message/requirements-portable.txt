@@ -1,11 +1,7 @@
-# Python 3.11. Install CPU torch first with the official CPU index.
-torch==2.6.0+cpu
-transformers==4.50.3
+# Python 3.11. Selected lexical CPU runtime, no paid provider required.
 numpy==2.4.6
 scikit-learn==1.7.2
 scipy==1.17.1
-safetensors==0.8.0
-regex==2026.9.29
 fastapi==0.143.0
 uvicorn==0.54.0
 pydantic==2.14.0

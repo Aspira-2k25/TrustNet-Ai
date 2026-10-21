@@ -1,3 +1,38 @@
+# Selected message policy: multilingual lexical v1
+
+The default CPU runtime now uses a small word and character TF-IDF logistic model for supported English/Hinglish short messages, explicit request rules, and the existing embedded-URL branch. The old DistilBERT mixture is an optional rollback, not the default detector. `SCAM_TEXT_POLICY=legacy` also requires the separately supplied old model package and `requirements/scam-legacy.txt`.
+
+Selected weights and vocabulary are included in Git at `multilingual_artifacts/`, about 1.5 MB total, with SHA-256 checks before loading. Loading uses JSON/NPZ, never pickle. Training and inference share NFKC/case/URL/email/number normalization. Language routing reads the text, never the source language annotation. Readings are not calibrated probabilities; confidence is unavailable. Messages longer than the trained 1,800-character view remain explicitly incomplete, while full-message rules still run.
+
+## Data, selection and release gate
+
+Source: `sidzzz07/scamshield-dataset`, revision `059dee884476a45e380808e68d09e74baff67291`, MIT according to its dataset card. Underlying source rights and label quality are not independently established. Raw messages remain outside the repository. There are 5,215 training examples, 412 validation examples and 492 reserved test examples after the stated selection. Normalized template groups present in the original validation/test collections or earlier comparison are excluded. Conflicting normalized labels are discarded. Groups are disjoint across the new splits; numbers, URLs and email addresses are replaced before grouping and feature extraction. This does not eliminate every semantic paraphrase or unknown upstream English training overlap.
+
+An initial offline comparison incorrectly used the dataset language annotation for routing. That comparison is invalid for runtime. It was corrected to text-only routing and thresholds were reselected on validation, without fitting to test outcomes. The 492-row test has now been consumed. A separate ten-message synthetic hard-negative release gate rejected standalone Hindi classification after two false warnings on normal OTP/delivery notices. Hindi therefore keeps limited explicit rules and uncertainty, not the new head's standalone decisions. MuRIL's earlier same-split small comparison remains rejected because of benign false alerts; its headline score is not attributed to this model.
+
+## Actual API comparison
+
+These are detector-branch warnings, including rules and assessed links. They are not final presentation recall when checks are missing.
+
+| Frozen diagnostic | Prior recall | Selected recall | Prior precision | Selected precision | Prior F1 | Selected F1 | Prior FPR | Selected FPR |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 492 reserved public-source records | 48.83% | 82.81% | 87.41% | 100.00% | 62.66% | 90.60% | 7.63% | 0/236, 0.00% |
+| Previously consumed 800-record audit | 53.50% | 94.50% | 96.40% | 98.44% | 68.81% | 96.43% | 2.00% | 6/400, 1.50% |
+
+Selected branch FPR 95% Wilson intervals are 0–1.60% on the 492 set and 0.69–3.23% on the 800 set. Zero observed errors is not a guarantee. The 800 set has scarce Hindi/Hinglish positives, public label noise and previously inspected examples. Neither set establishes field accuracy. There is no claim of an untouched independent production certification.
+
+The final public contract deliberately reports incomplete when required link checks fail or lack coverage, even if the message branch warns. On 492 records its warning recall is 46.48%, precision 100%, F1 63.47%, FPR 0/236 and not-sure/incomplete share 47.15%. On 800 records its warning recall is 66.50%, precision 99.25%, F1 79.64%, FPR 2/400 (0.50%, 95% interval 0.14–1.80%) and not-sure/incomplete share 28.00%. Warning evidence remains visible in reasons; missing checks never become safe. Do not replace these UI figures with head-only or branch recall.
+
+CPU API p50/p95 were 0.031/0.906 seconds (492) and 0.016/0.703 seconds (800), on the developer machine under concurrent load, not controlled hardware benchmarks. Outputs and split manifests remain external; compact aggregate records are in `benchmark/results/reference-evaluation.json`.
+
+## Important limits
+
+Hindi standalone inference, new scam styles, quoted instructions, mixed scripts, long email context, source label noise and unfamiliar domains remain difficult. The model does not verify the sender, SPF/DKIM/DMARC, intent or AI authorship. Local inference needs no API key. Optional provider summaries do not change predictions. Live Gmail extraction was not tested, as requested.
+
+## Historical DistilBERT rollback evidence
+
+Everything below describes the earlier model and its old evaluation, not the selected default above.
+
 # Selected model: message-distilbert-lexical-links-hybrid-4
 
 Current runtime adds explicit rule warnings and language coverage handling. The accuracy figures below are historical selected-weight results, not a measurement of the changed runtime. The small multilingual comparison and current limitations are recorded in `benchmark/results/reference-evaluation.json`. Live Gmail extraction remains unverified. Image and message PDF downloads were verified in the browser with a synthetic local QA account.

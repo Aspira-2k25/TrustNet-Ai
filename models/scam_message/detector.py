@@ -1,6 +1,6 @@
 """Safe inference from checksummed JSON/NPZ; no research-folder dependency."""
 from pathlib import Path
-import hashlib,json,re,time
+import hashlib,json,re,time,os
 from datetime import datetime,timezone
 import numpy as np
 from scipy.special import softmax
@@ -9,8 +9,17 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from shared.schemas.detection_result import DetectionResult
 
 class ScamDetector:
-    def __init__(self, artifact_dir=None):
+    def __init__(self, artifact_dir=None, text_policy=None):
         self.path=Path(artifact_dir) if artifact_dir else Path(__file__).resolve().parent/'artifacts'
+        policy=(text_policy or os.getenv('SCAM_TEXT_POLICY','multilingual')).strip().lower()
+        if policy not in ('multilingual','legacy'):raise ValueError('SCAM_TEXT_POLICY must be multilingual or legacy')
+        self.multilingual=None
+        self.semantic=None
+        if policy=='multilingual':
+            from models.scam_message.multilingual import MultilingualHead
+            self.multilingual=MultilingualHead()
+            self.manifest={'model_version':self.multilingual.version,'engine':'multilingual_tfidf'}
+            return
         self.manifest=json.loads((self.path/'manifest.json').read_text(encoding='utf-8'))
         self.semantic = None
         if self.manifest.get('engine') in ('distilbert', 'distilbert_hybrid'):
@@ -48,6 +57,10 @@ class ScamDetector:
 
     def predict(self,text,scan_id):
         from models.scam_message.coverage import predict_with_coverage
+        if self.multilingual is not None and self.multilingual.supports(text):
+            return predict_with_coverage(self.multilingual.predict,text,scan_id,self.multilingual.version,multilingual=True)
+        if self.multilingual is not None:
+            return predict_with_coverage(self._predict_model,text,scan_id,self.multilingual.version,force_unsupported=True)
         return predict_with_coverage(self._predict_model,text,scan_id,self.manifest['model_version'])
 
     def _predict_model(self,text,scan_id):
