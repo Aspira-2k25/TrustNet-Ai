@@ -17,7 +17,7 @@ const scan=(verdict='INCONCLUSIVE',extra={})=>{
 };
 const render=(record,language='en')=>renderToStaticMarkup(React.createElement(LanguageContext.Provider,{value:{language,setLanguage(){}}},React.createElement(ReportView,{scan:record,onBack(){}})));
 test('an incomplete edit check is never presented as proof of a real image',()=>{
- const plain=simpleResult(scan());assert.equal(plain.title,'Could not check this');assert.match(plain.why,/edit check/);
+ const plain=simpleResult(scan());assert.equal(plain.title,'Image check partly finished');assert.match(plain.why,/edit check/);
  for(const language of ['en','hi']){const html=render(scan(),language);assert(html.includes(notice(language)));assert(!html.includes('Likely authentic'));}
 });
 
@@ -34,7 +34,7 @@ test('an unsupported experimental head warning is shown as disagreement, not a c
  assert.match(simpleResult(record).why,/AI checks disagree/);
 });
 test('zero supported regions do not offer an identical edited-area overlay',()=>{
- const html=render(scan());assert(html.includes('No edited area found (edits can still be missed)'));
+ const html=render(scan());assert(html.includes('Edited-area check did not finish. No heatmap or mask is available.'));
  assert(!html.includes('>Edited areas</button>'));assert(html.includes('Details for experts'));assert(!/<details[^>]*open/.test(html));
 });
 test('high AI and editing results use simple headings in both languages',()=>{
@@ -49,7 +49,7 @@ test('unknown message verdicts and failed links do not become a low-warning resu
 });
 test('PDF starts with the same plain result and does not fetch zero-region overlay assets',async()=>{
  const calls=[];global.fetch=async url=>{calls.push(url);throw Error('No assets in unit fixture');};
- const data=await exportForensicPDFReport(scan(),false);const pdf=Buffer.from(data).toString('latin1');assert(pdf.startsWith('%PDF'));assert(pdf.includes('Could not check this'));assert(pdf.includes('What to do next'));assert.equal(calls.length,0);
+ const data=await exportForensicPDFReport(scan(),false);const pdf=Buffer.from(data).toString('latin1');assert(pdf.startsWith('%PDF'));assert(pdf.includes('Image check partly finished'));assert(pdf.includes('What to do next'));assert.equal(calls.length,0);
 });
 
 test('message technical identity stays inside expert details',()=>{
@@ -58,4 +58,19 @@ test('message technical identity stays inside expert details',()=>{
  result.presentation=mapResult(result);
  const html=renderToStaticMarkup(React.createElement(ScamResult,{scan:{id:'qa',content_type:'text',status:'SUCCESS',result}}));
  assert(html.includes('private-expert-identity'));assert(!html.replace(/<details[\s\S]*<\/details>/g,'').includes('private-expert-identity'));
+});
+
+
+test('high reference reading below a decision boundary never becomes a High AI warning',()=>{
+ const record=scan('INCONCLUSIVE',{ai_generated_prob:.8153,analysis_complete:true,manipulation_prob:.1,quality:{adequate:true}});
+ assert.equal(record.result.presentation.level.ai,undefined);
+ assert(!('risk_score' in record.result.presentation.details));
+ assert.equal(record.result.presentation.checks[0].state,'uncertain');
+});
+test('available attention offers an accessible comparison slider even without edited regions',()=>{
+ const record=scan('INCONCLUSIVE',{original_url:'/api/v1/scans/scan-unit/image/original',assets:{attention:'/api/v1/scans/scan-unit/image/attention'}});
+ const html=render(record);
+ assert(html.includes('type="range"'));assert(html.includes('aria-label="Comparison position"'));
+ assert(!html.includes('>Mask</button>'));assert(!html.includes('>Heatmap</button>'));
+ assert(html.includes('not where the edit is'));
 });

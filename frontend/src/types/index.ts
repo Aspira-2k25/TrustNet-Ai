@@ -2,6 +2,7 @@ export interface ResultPresentation {
   verdict_key: 'looks_ai'|'looks_edited'|'scam'|'risky'|'no_clear_signs'|'not_sure'|'incomplete';
   headline:string; reasons:Array<{text:string;evidence_id:string}>; next_steps:string[];
   level:Record<string,'low'|'medium'|'high'>; limits:string[]; details:Record<string,unknown>;
+  checks?:Array<{name:string;state:'warning'|'uncertain'|'incomplete';text:string;evidence_id:string}>;
   locales?:Record<string,Omit<ResultPresentation,'locales'|'details'>>;
 }
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';

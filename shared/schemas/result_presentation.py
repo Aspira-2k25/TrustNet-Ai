@@ -11,6 +11,13 @@ class PublicReason(BaseModel):
     evidence_id: str = Field(pattern=r'^/')
 
 
+class SignalCheck(BaseModel):
+    name: str
+    state: Literal['warning', 'uncertain', 'incomplete']
+    text: str
+    evidence_id: str = Field(pattern=r'^/')
+
+
 class LocalizedResult(BaseModel):
     verdict_key: VerdictKey
     headline: str
@@ -18,6 +25,7 @@ class LocalizedResult(BaseModel):
     next_steps: list[str]
     level: dict[str, SignalLevel]
     limits: list[str]
+    checks: list[SignalCheck] = Field(default_factory=list)
 
 
 class ResultPresentation(LocalizedResult):

@@ -29,5 +29,5 @@ export function ExpertDetails({view,children}:{view:ResultPresentation;children?
 export function Disclaimer(){const {language}=useResultLanguage();return <p className="assessment-notice">{notice(language)}</p>;}
 export function ResultSummary({scan,children}:{scan:ScanRecord;children?:ReactNode}) {
   const {language}=useResultLanguage(),view=resultView(scan,language);
-  return <article className="result-summary"><VerdictCard view={view}/><ReasonList view={view}/><NextSteps view={view}/><LimitsNote view={view}/><ExpertDetails view={view}>{children}</ExpertDetails><Disclaimer/></article>;
+  return <article className="result-summary"><VerdictCard view={view}/>{!!view.checks?.length&&<dl className="check-breakdown">{view.checks.map(check=><div key={check.name} data-state={check.state} data-evidence-id={check.evidence_id}><dt>{check.name}</dt><dd>{check.text}</dd></div>)}</dl>}<ReasonList view={view}/><NextSteps view={view}/><LimitsNote view={view}/><ExpertDetails view={view}>{children}</ExpertDetails><Disclaimer/></article>;
 }

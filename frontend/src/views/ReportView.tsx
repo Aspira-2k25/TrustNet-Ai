@@ -11,7 +11,7 @@ const percent=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?`
 
 export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
   const {t}=useResultLanguage();
-  const [layer,setLayer]=useState<Layer>('original');
+  const [layer,setLayer]=useState<Layer>(scan.result?.metadata?.image_analysis?.assets?.attention?'attention':'original');
   const [zoom,setZoom]=useState(1);
   const [source,setSource]=useState('');
   const [imageError,setImageError]=useState('');
@@ -29,15 +29,15 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
   const hasRegions=Array.isArray(image.regions)&&image.regions.length>0;
   const layerPath=layer==='original'?image.original_url:paths[layer];
   useEffect(()=>{
-    if(layer!=='overlay'||!hasRegions)return;
+    if(layer==='original'||layer==='ela')return;
     const target=image.original_url;
     if(typeof target!=='string'||!target.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))return;
     const controller=new AbortController();let owned='';setOriginalSource('');
     fetch(API_BASE_URL+target,{headers:httpClient.getHeaders(),signal:controller.signal}).then(response=>{
       if(!response.ok)throw Error('Original unavailable');return response.blob();
-    }).then(blob=>{if(!controller.signal.aborted){owned=URL.createObjectURL(blob);setOriginalSource(owned);}}).catch(()=>{});
+    }).then(blob=>{if(!controller.signal.aborted){owned=URL.createObjectURL(blob);setOriginalSource(owned);}}).catch(()=>{if(!controller.signal.aborted)setImageError('Original image could not be loaded for comparison.');});
     return()=>{controller.abort();if(owned)URL.revokeObjectURL(owned);};
-  },[scan.id,image.original_url,layer,hasRegions]);
+  },[scan.id,image.original_url,layer]);
   useEffect(()=>{
     if(scan.content_type!=='image')return;
     let cancelled=false;
@@ -69,9 +69,8 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
     <div className="report-heading"><button className="secondary-button" onClick={()=>exportForensicPDFReport(scan)}>{t("Download report")}</button></div>
     <ResultSummary scan={scan}><>
       <p>{t("Technical records below are kept in English.")}</p>
-      <p>AI generation: {percent(image.ai_generated_prob)}. Manipulation: {percent(image.manipulation_prob)}. These readings are not guarantees.</p>
+      <p>Reference-mapped AI reading: {percent(image.ai_generated_prob)}. Edit reading: {percent(image.manipulation_prob)}. These are not the chance this photo is fake. A high mapped reading can be below the alert boundary.</p>
       <p>{image.ai_note}</p><p>{image.localization_note}</p>
-      <div className="viewer-controls" role="group" aria-label="Expert image views">{(['original','heatmap','mask','ela','attention'] as Layer[]).map(value=><button key={value} aria-pressed={layer===value} disabled={value!=='original'&&!paths[value]} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}</div>
       {layer==='ela'&&<p>JPEG recompression differences, fixed 8x gain. Bright pixels are not proof of editing. Window {supporting?.scope?.width} x {supporting?.scope?.height} at ({supporting?.scope?.x}, {supporting?.scope?.y}).</p>}
       <p>{image.model_attention?.note}</p>
       <h3>Original model reasons</h3><ul className="result-reasons">{reasons.map(reason=><li key={reason}>{reason}</li>)}</ul>
@@ -82,16 +81,21 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
 </></ResultSummary>
     <div className="result-layout">
       <div className="image-workbench">
+        <div className="viewer-intro"><h3>{t('Compare views')}</h3><p>{t('Choose a view to compare with the original. Drag the slider to reveal each side.')}</p></div>
         <div className="viewer-controls" role="group" aria-label={t("Image view")}>
-          {(['original','overlay','attention'] as Layer[]).filter(value=>value!=='overlay'||hasRegions).map(value=><button key={value} aria-pressed={layer===value} disabled={value!=='original'&&!paths[value]} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
+          {(['original','overlay','heatmap','mask','ela','attention'] as Layer[]).filter(value=>value==='original'||!!paths[value]&&(!['overlay','mask'].includes(value)||hasRegions)).map(value=><button key={value} aria-pressed={layer===value} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
           <label>{t("Zoom")} <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value={1}>100%</option><option value={1.5}>150%</option><option value={2}>200%</option><option value={3}>300%</option></select></label>
         </div>
         {layer==='attention'&&<p className="viewer-note" role="status">{t("Where the model looked (not where the edit is)")}</p>}
         {layer==='attention'&&<div className="attention-legend"><span>{t("Lower response")}</span><span className="attention-scale" aria-hidden="true"/><span>{t("Higher response")}</span></div>}
-        <div className="image-viewport">{source?layer==='overlay'&&originalSource?<div className="image-comparison" style={{transform:`scale(${zoom})`}}><img src={originalSource} alt={t("Original")}/><img className="comparison-overlay" src={source} alt={labels[layer]} style={{clipPath:`inset(0 ${100-comparison}% 0 0)`}}/></div>:<img src={source} alt={labels[layer]} style={{transform:`scale(${zoom})`}}/>:<p role="status">{imageError?t("This view could not be loaded. Try again."):t("Loading image...")}</p>}</div>
-        {layer==='overlay'&&originalSource&&<label className="viewer-note">{t("Compare original and highlighted areas")}<input type="range" min={0} max={100} value={comparison} onChange={e=>setComparison(Number(e.target.value))}/></label>}
+        {layer==='heatmap'&&<><p className="viewer-note">{t('Brighter colours mean a stronger edit-model response, not a confirmed edit.')}</p><div className="attention-legend"><span>{t('Lower response')}</span><span className="heatmap-scale" aria-hidden="true"/><span>{t('Higher response')}</span></div></>}
+        {layer==='mask'&&<p className="viewer-note">{t('White pixels mark selected suspected areas. Black pixels are not selected. This is an estimate, not proof.')}</p>}
+        {layer==='ela'&&<p className="viewer-note">{t('JPEG differences show recompression changes, not confirmed edits. This is a separate native image window.')} {supporting?.scope?.width} × {supporting?.scope?.height}</p>}
+        <div className="image-viewport">{source?layer!=='original'&&layer!=='ela'&&originalSource?<div className="image-comparison" style={{transform:`scale(${zoom})`}}><img src={originalSource} alt={t("Original")}/><img className="comparison-overlay" src={source} alt={labels[layer]} style={{clipPath:`inset(0 ${100-comparison}% 0 0)`}}/><span className="comparison-divider" style={{left:`${comparison}%`}} aria-hidden="true"/><span className="comparison-label comparison-label-left">{labels[layer]}</span><span className="comparison-label comparison-label-right">{t('Original')}</span></div>:<img src={source} alt={labels[layer]} style={{transform:`scale(${zoom})`}}/>:<p role="status">{imageError?t("This view could not be loaded. Try again."):t("Loading image...")}</p>}</div>
+        {layer!=='original'&&layer!=='ela'&&<label className="viewer-note comparison-control">{t("Comparison position")}<input aria-label={t('Comparison position')} type="range" min={0} max={100} value={comparison} disabled={!originalSource||!source} onChange={e=>setComparison(Number(e.target.value))}/></label>}
         <p className="viewer-caption">{layer==='original'?t("Your original file is kept unchanged."):layer==='attention'?t("Where the model looked (not where the edit is)"):t("Highlighted areas are estimates. They are not proof of an edit.")}</p>
-        {!hasRegions&&<p className="viewer-note">{t("No edited area found (edits can still be missed)")}</p>}
+        {image.analysis_complete!==true&&!paths.heatmap?<p className="viewer-note">{t('Edited-area check did not finish. No heatmap or mask is available.')}</p>:!hasRegions&&<p className="viewer-note">{t("No edited area found (edits can still be missed)")}</p>}
+        {(layer==='heatmap'||layer==='mask')&&<p className="viewer-note">{t('Heatmap shows the edit model response. Mask shows selected pixels, not confirmed edits.')}</p>}
       </div>
     </div>
 

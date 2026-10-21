@@ -64,3 +64,22 @@ def test_catalogue_keys_and_evidence_ids():
         for locale in view['locales'].values():
             assert locale['headline']
             for reason in locale['reasons']:resolve(item,reason['evidence_id'])
+
+
+def test_reference_mapped_reading_does_not_define_image_warning_level():
+    item=record(module='image_deepfake',verdict='INCONCLUSIVE',metadata={'image_analysis':{
+        'analysis_complete':True,'ai_generated_prob':.8153,'manipulation_prob':.1,'quality':{'adequate':True}}})
+    view=public_result(item)
+    assert view['level']=={}
+    assert view['checks'][0]['state']=='uncertain'
+    assert 'risk_score' not in view['details']
+    for check in view['checks']:resolve(item,check['evidence_id'])
+
+
+def test_ai_warning_and_edit_timeout_have_independent_visible_states():
+    item=record(module='image_deepfake',verdict='LIKELY_AI_GENERATED',status='PARTIAL_SUCCESS',metadata={'image_analysis':{
+        'analysis_complete':False,'ai_generated_prob':.99,'manipulation_prob':None,'quality':{'adequate':True}}})
+    view=public_result(item)
+    assert view['verdict_key']=='incomplete'
+    assert view['headline']=='AI warning found. Edit check incomplete.'
+    assert [c['state'] for c in view['checks']]==['warning','incomplete']

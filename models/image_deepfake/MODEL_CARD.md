@@ -95,3 +95,11 @@ Grad-CAM maps are projected through the actual classifier resize and center-crop
 ## Installation and distribution
 
 Use `scripts/setup/install-image.py` and `scripts/setup/install-image-localizer.py`. They pin source versions and verify artifact checksums. A teammate does not need the author's Hugging Face cache. See the root README for service startup and optional research-localizer restrictions.
+
+### Image result display and absence-of-warning policy
+
+Image reference-mapped readings are not used with generic 30/70 display cutoffs. A policy coordinate of 0.49 (below its 0.5 decision boundary) maps to about 81.53% in the current reference calibration. That mapped value must not be called a high AI warning or a probability that an uploaded photo is fake. Public image warning levels now follow the supported detector verdict, with separate AI and edited-area check states. Image risk index is excluded from public expert-summary fields; original reference readings remain explicitly labelled in the detailed evidence.
+
+When both finite assessed streams are below the existing conservative low boundaries, quality is adequate, no regions are supported and no origin evidence contradicts the result, the detector may return `NO_STRONG_INDICATORS`. This means no strong signs in the supported scope, never authentic or verified real. Missing edit checks, low quality and conflicting origin evidence cannot take this path. Existing AI alert boundaries and model weights are unchanged. No new recall or localization improvement is claimed for this display/policy correction.
+
+The image viewer compares available original-aligned evidence with a labelled keyboard-accessible slider. Heatmaps show model response, masks show selected pixels, and Grad-CAM shows attention rather than edits. Missing edit maps are explicitly unavailable. The JPEG-difference diagnostic uses a declared native window and is viewed separately, so a cropped diagnostic is never aligned to an unrelated whole-image view.

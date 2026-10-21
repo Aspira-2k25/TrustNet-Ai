@@ -6,7 +6,7 @@ import { API_BASE_URL, httpClient } from './api/client';
 
 function publicLines(scan:ScanRecord,language:'en'|'hi') {
   const view=resultView(scan,language),words=resultWords[language];
-  return [notice(language),view.headline,words.why,...view.reasons.map(r=>r.text),words.next,...view.next_steps,words.limits,...view.limits];
+  return [notice(language),view.headline,...(view.checks||[]).map(c=>`${c.name}: ${c.text}`),words.why,...view.reasons.map(r=>r.text),words.next,...view.next_steps,words.limits,...view.limits];
 }
 
 export async function exportForensicPDFReport(scan: ScanRecord, download = true): Promise<Uint8Array> {

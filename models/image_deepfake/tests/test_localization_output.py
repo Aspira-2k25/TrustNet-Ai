@@ -28,3 +28,15 @@ def test_outputs_preserve_native_geometry_and_raw_probabilities():
     with np.load(io.BytesIO(base64.b64decode(encoded['raw_heatmap'])),allow_pickle=False) as raw:
         np.testing.assert_array_equal(raw['heatmap'],heat)
     assert len(regions)==1
+
+
+def test_overlay_highlights_selected_pixels_and_leaves_other_pixels_unchanged():
+    rgb=np.full((80,100,3),120,np.uint8)
+    heat=np.zeros((80,100),np.float32);heat[20:50,30:70]=1
+    output,regions=assets(rgb,heat,np.ones_like(heat),{'pixel_threshold':.9,'min_reliability':.5,'min_area_fraction':.005})
+    overlay=cv2.imdecode(np.frombuffer(base64.b64decode(output['overlay']),np.uint8),cv2.IMREAD_COLOR)
+    mask=cv2.imdecode(np.frombuffer(base64.b64decode(output['mask']),np.uint8),cv2.IMREAD_GRAYSCALE)
+    np.testing.assert_array_equal(overlay[5,5],rgb[5,5])
+    assert not np.array_equal(overlay[30,40],rgb[30,40])
+    assert mask[30,40]==255 and mask[5,5]==0
+    assert len(regions)==1

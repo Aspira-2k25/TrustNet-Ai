@@ -119,3 +119,15 @@ code,.score-value{font-family:var(--font-mono);font-variant-numeric:tabular-nums
 .signal-levels{display:flex;flex-wrap:wrap;gap:1.5rem;margin:1rem 0 0}.signal-levels>div{display:flex;gap:.65rem;align-items:baseline}.signal-levels dt{color:var(--muted)}.signal-levels dd{margin:0;font-weight:600}
 
 .phishing-evidence{display:grid;gap:1.5rem}.phishing-evidence pre{white-space:pre-wrap;overflow-wrap:anywhere;font: .85rem/1.6 var(--font-mono);max-height:26rem;overflow:auto}.domain-difference{display:flex;gap:.25rem;overflow-x:auto;padding:.5rem 0}.domain-difference>span{display:grid;gap:.3rem;padding:.35rem;border:1px solid var(--line);font-family:var(--font-mono)}.domain-difference small{border-top:1px solid var(--line)}.domain-changed{background:#fff0ed;color:var(--tn-danger)}
+.check-breakdown{margin:1.3rem 0;display:grid;gap:0;border-block:1px solid var(--line)}
+.check-breakdown>div{display:grid;grid-template-columns:minmax(125px,1fr) 2fr;gap:1rem;padding:1rem 0}
+.check-breakdown>div+div{border-top:1px solid var(--line)}
+.check-breakdown dt{font-weight:600;color:var(--text)}.check-breakdown dd{margin:0;line-height:1.55}
+.check-breakdown [data-state=warning] dd{color:#79520e}.check-breakdown [data-state=incomplete] dd{color:#79520e}
+.viewer-intro{padding:1.2rem 1.2rem .5rem}.viewer-intro h3{margin:0 0 .4rem}.viewer-intro p{margin:0;max-width:65ch;line-height:1.55;color:#52615d}
+.comparison-divider{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px #243c34;pointer-events:none}
+.comparison-label{position:absolute;top:.5rem;max-width:45%;padding:.35rem .6rem;background:#fff;color:#203c33;font-size:.8rem;border-radius:4px;box-shadow:0 1px 5px #0002;pointer-events:none}
+.comparison-label-left{left:.5rem}.comparison-label-right{right:.5rem}.comparison-control{display:block;padding:1rem 1.2rem!important}.comparison-control input{min-height:32px;cursor:ew-resize}
+.image-comparison{max-height:100%;display:grid;place-items:center}.image-comparison>img:first-child{max-height:440px;width:auto;object-fit:contain}
+@media(max-width:760px){.check-breakdown>div{grid-template-columns:1fr;gap:.35rem}.image-comparison>img:first-child{max-height:320px}.viewer-controls{gap:.4rem;flex-wrap:wrap}}
+.heatmap-scale{display:inline-block;width:130px;height:10px;border-radius:3px;background:linear-gradient(90deg,#000004,#57106e,#bc3754,#f98e09,#fcffa4)}

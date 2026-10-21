@@ -27,6 +27,7 @@ def public_result(record):
     limits = ['edit_scope', 'edit_license'] if is_image else ['link_scope', 'language_scope']
     key = 'not_sure'
     levels = {}
+    checks = []
 
     def reason(code, pointer):
         reason_keys.append((code, pointer))
@@ -46,6 +47,9 @@ def public_result(record):
             key = 'looks_ai'
         elif verdict == 'LIKELY_MANIPULATED':
             key = 'looks_edited'
+        elif verdict == 'NO_STRONG_INDICATORS':
+            key = 'no_clear_signs'
+            reason('image_no_warning', '/verdict')
         # Authenticity is disabled until independently validated. Never upgrade old labels.
         if image.get('quality', {}).get('adequate') is False:
             reason('quality', '/metadata/image_analysis/quality/adequate')
@@ -53,13 +57,21 @@ def public_result(record):
             reason('conflict', '/metadata/image_analysis/ai_checks_disagree')
         if verdict in ('LIKELY_AI_GENERATED', 'LIKELY_MANIPULATED'):
             reason('model_warning', '/verdict')
-        if image.get('quality', {}).get('adequate') is not False and not image.get('ai_checks_disagree'):
-            value = band(image.get('ai_generated_prob'))
-            if value:
-                levels['ai'] = value
-        value = band(image.get('manipulation_prob'))
-        if value:
-            levels['editing'] = value
+        # Mapped reference readings are not decision probabilities. In particular,
+        # a reading above 80% can still be BELOW the selected raw alert boundary.
+        # Never apply generic .3/.7 display cutoffs to these image readings.
+        usable = image.get('quality', {}).get('adequate') is not False and not image.get('ai_checks_disagree')
+        ai_warning = usable and verdict == 'LIKELY_AI_GENERATED'
+        edit_warning = usable and verdict == 'LIKELY_MANIPULATED'
+        if ai_warning:
+            levels['ai'] = 'high'
+        if edit_warning:
+            levels['editing'] = 'high'
+        checks = [
+            ('ai_check', 'warning' if ai_warning else 'uncertain', 'ai_warning' if ai_warning else 'image_no_warning' if key == 'no_clear_signs' else 'ai_uncertain', '/metadata/image_analysis'),
+            ('edit_check', 'incomplete' if incomplete else 'warning' if edit_warning else 'uncertain',
+             'edit_incomplete' if incomplete else 'edit_warning' if edit_warning else 'edit_uncertain', '/metadata/image_analysis'),
+        ]
     else:
         links = meta.get('links') or []
         missing = [i for i, link in enumerate(links) if link.get('status') not in ('SUCCESS', 'PARTIAL_SUCCESS') or link.get('risk_score') is None
@@ -100,15 +112,18 @@ def public_result(record):
     result = {}
     for language, words in translations().items():
         result[language] = {
-            'verdict_key': key, 'headline': words[key],
+            'verdict_key': key, 'headline': words['image_partial_ai' if levels.get('ai') == 'high' else 'image_partial'] if is_image and key == 'incomplete' and status in ('SUCCESS','PARTIAL_SUCCESS') else words[key],
             'reasons': [{'text': words[code], 'evidence_id': pointer} for code, pointer in reason_keys] + custom,
             'next_steps': [words['next_image' if is_image else 'next_text']],
             'level': levels, 'limits': [words[code] for code in limits],
+            'checks': [{'name':words[name], 'state':state, 'text':words[code], 'evidence_id':pointer} for name,state,code,pointer in checks],
         }
     # Only factual existing measurements here, never invented confidence.
     details = {k: record[k] for k in ('risk_score', 'native_score', 'confidence', 'model_version', 'processing_time_ms') if k in record}
     if meta.get('confidence_available') is False or is_image:
         details.pop('confidence', None)
+    if is_image:
+        details.pop('risk_score', None)
     if status not in ('SUCCESS','PARTIAL_SUCCESS'):
         for name in ('risk_score','native_score','confidence'):
             details.pop(name, None)

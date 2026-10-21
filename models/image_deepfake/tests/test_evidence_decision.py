@@ -32,7 +32,7 @@ def test_unsigned_generator_text_is_not_a_trusted_credential():
 
 def test_failed_unseen_generator_diagnostic_disables_pixel_authenticity():
     config={**CONFIG,'authenticity_enabled':False,'authenticity_limit':'Unseen generator coverage is not established.'}
-    assert decide(.0001,.0001,{}, {'adequate':True},[],config)[0]=='INCONCLUSIVE'
+    assert decide(.0001,.0001,{}, {'adequate':True},[],config)[0]=='NO_STRONG_INDICATORS'
 
 
 def test_failed_real_photo_guard_requires_primary_corroboration():
@@ -46,7 +46,17 @@ def test_shipped_profile_disables_authenticity_for_unvalidated_edit_types():
     from pathlib import Path
     cfg=json.loads((Path(__file__).resolve().parents[1]/'calibration/evidence-v2.json').read_text())
     assert cfg['authenticity_enabled'] is False
-    assert decide(0,0,{}, {'adequate':True},[],cfg)[0]=='INCONCLUSIVE'
+    assert decide(0,0,{}, {'adequate':True},[],cfg)[0]=='NO_STRONG_INDICATORS'
+
+
+@pytest.mark.parametrize('ai,edit,quality,provenance',[
+    (0,None,{'adequate':True},{}),
+    (0,0,{'adequate':False},{}),
+    (0,0,{'adequate':True},{'ai_markers':['AI software']}),
+    (.2,0,{'adequate':True},{}),
+])
+def test_no_strong_signs_requires_complete_low_supported_checks(ai,edit,quality,provenance):
+    assert decide(ai,edit,provenance,quality,[],{**CONFIG,'authenticity_enabled':False})[0]!='NO_STRONG_INDICATORS'
 
 
 def test_research_localizer_can_be_disabled_without_importing_vendor():

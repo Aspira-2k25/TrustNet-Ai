@@ -31,8 +31,10 @@ def decide(ai, manipulation, provenance, quality, regions, config):
     if provenance.get('ai_markers'):reasons.append('Editable metadata mentions a generative tool and prevents an authenticity conclusion.')
     if provenance.get('asserts_ai_generation') or provenance.get('asserts_generative_edit'):
         reasons.append('An origin credential declares generation or generative editing; an untrusted signature cannot establish an untouched camera original.')
+    if not reasons and ai<=config['ai_authentic'] and manipulation<=config['manipulation_authentic'] and not regions:
+        if not config.get('authenticity_enabled',True):
+            return 'NO_STRONG_INDICATORS',['The completed AI and edit checks found no strong signs within their supported scope. This does not prove the image is real or unedited; generative fill, object removal and face swaps can be missed.']
+        return 'LIKELY_AUTHENTIC',['Both assessed evidence streams fall below their conservative validation boundaries, with adequate quality and no contradictory provenance. This does not prove an untouched camera original.']
     if not config.get('authenticity_enabled',True):
         reasons.append(config.get('authenticity_limit','Authenticity has not been validated for modern generators. Low model scores are insufficient.'))
-    if not reasons and ai<=config['ai_authentic'] and manipulation<=config['manipulation_authentic'] and not regions:
-        return 'LIKELY_AUTHENTIC',['Both assessed evidence streams fall below their conservative validation boundaries, with adequate quality and no contradictory provenance. This does not prove an untouched camera original.']
     return 'INCONCLUSIVE',reasons or ['Available model evidence is weak, intermediate or conflicting. Verify the image with an independent source.']

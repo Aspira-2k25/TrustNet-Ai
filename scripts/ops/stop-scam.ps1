@@ -1,3 +1,4 @@
+param([ValidateSet('all','image')][string]$Service = 'all')
 $ErrorActionPreference = 'Stop'
 $taskEntries = @()
 foreach ($taskStateFile in @('processes.json','web-processes.json','phishing-processes.json')) {
@@ -10,6 +11,7 @@ foreach ($taskStateFile in @('processes.json','web-processes.json','phishing-pro
     }
 }
 foreach ($taskEntry in $taskEntries) {
+    if ($Service -ne 'all' -and $taskEntry.service -ne $Service) { continue }
     $taskProcessId = 0
     if (-not [int]::TryParse([string]$taskEntry.id, [ref]$taskProcessId) -or $taskProcessId -le 0 -or -not $taskEntry.python -or -not $taskEntry.module) {
         throw 'Invalid launcher process record. No process was selected by port number.'
