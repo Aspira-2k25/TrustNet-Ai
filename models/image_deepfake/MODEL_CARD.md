@@ -63,6 +63,16 @@ TruFor was also evaluated on aligned operation masks for 20 TGIF partial edits. 
 
 Compact evidence is retained in `benchmark/results/reference-evaluation.json`. Full manifests, rejected artifacts and substantial outputs stay outside the runtime repository. Research sources retain their own terms, including noncommercial/research restrictions. No broad GPT-image, Gemini or all-generator detection claim follows from this experiment.
 
+## CPU runtime and native-crop experiment status, 21 October 2026
+
+The deployed classifier, feature-head weights and decision boundaries remain unchanged. A separate frozen-backbone experiment samples five native 224 pixel crops, without resizing source images, and caches CommunityForensics, DINOv2 and OpenCLIP features externally. CommunityForensics development extraction completed for 5,850 originals and 1,012 training stress views. Other extraction and final evaluation are pending. There are no new recall or false-positive results for this candidate.
+
+A source-metadata control fitted on the training partition and evaluated on the separate calibration partition reached ROC-AUC **1.00**, using original width, height, file bytes and JPEG format. This fails the near-chance shortcut target. These fields are not direct native-crop model inputs, but fixed crop dimensions do not rule out source content or compression-history confounds. The report explicitly blocks promotion pending a controlled-input audit and the independent whole-pipeline real-photo guard. Neither extraction completion nor a strong candidate score establishes a valid improvement.
+
+TruFor now runs in a resident, killable CPU worker with a 20 second request boundary. Two previously slow TGIF cases changed from 75.27 and 68.48 seconds to 21.53 and 21.44 seconds respectively, returning partial, uncertain assessments without partial masks. This bounds latency; it does not improve localization recall or IoU. A three-request public COCO image check measured p50 8.64 seconds and p95 9.94 seconds; message and quick URL checks measured p50/p95 0.32/0.84 and 0.018/0.032 seconds respectively. These small developer-load measurements are not a deployment SLA or broad latency distribution.
+
+Grad-CAM maps are projected through the actual classifier resize and center-crop geometry back to the original aspect ratio; unviewed borders remain unchanged. A 12-image diagnostic deletion check measured mean AI-score drops of 0.00268 for highlighted cells and 0.00124 for fixed random cells, with highlighted deletion larger in 7/12 cases. This is limited attention evidence, not manipulation ground truth or a claim of universal explanation faithfulness.
+
 ## Installation and distribution
 
 Use `scripts/setup/install-image.py` and `scripts/setup/install-image-localizer.py`. They pin source versions and verify artifact checksums. A teammate does not need the author's Hugging Face cache. See the root README for service startup and optional research-localizer restrictions.

@@ -31,7 +31,7 @@ async def run_image(data,scan_id,filename=None,enable_explanation=False):
         global active
         active-=1
     future.add_done_callback(finished)
-    try:return await asyncio.wait_for(asyncio.shield(future),120)
+    try:return await asyncio.wait_for(asyncio.shield(future),29)
     except asyncio.TimeoutError:raise HTTPException(504,'Image analysis timed out; computation remains bounded to one active request')
     except (ValueError,OSError) as exc:raise HTTPException(400,{'code':'INVALID_IMAGE_BYTES','message':str(exc)})
     except Exception:raise HTTPException(503,'Image inference failed; check service logs')
@@ -40,7 +40,7 @@ async def run_image(data,scan_id,filename=None,enable_explanation=False):
 async def ready():
     if worker.detector is None:raise HTTPException(503,'Image classifier unavailable; run image setup')
     return {'status':'ready','classifier':'CommunityForensics-ViT',
-        'localizer_ready':worker.detector.localizer is not None,
+        'localizer_ready':worker.detector.localizer is not None and getattr(worker.detector.localizer,'ready',True),
         'calibration_version':worker.detector.config['version'],
         'authenticity_enabled':worker.detector.config['authenticity_enabled']}
 

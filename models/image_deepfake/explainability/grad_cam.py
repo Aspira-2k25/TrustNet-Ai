@@ -8,7 +8,24 @@ from PIL import Image,ImageOps
 from models.image_deepfake.forensics.localization_output import encode_png
 
 
-def generate(model,processor,data,feature_head=None):
+def project_to_original(heat,original_size,resize_size):
+    """Invert the processor's aspect-preserving resize and rounded center crop.
+
+    Pixels outside the classifier view have zero coverage, not invented attention.
+    """
+    width,height=original_size;rh,rw=resize_size
+    h,w=heat.shape
+    top=int(round((rh-h)/2.));left=int(round((rw-w)/2.))
+    if top<0 or left<0:raise ValueError('Padded classifier views require a separate inverse mapping')
+    canvas=np.zeros((rh,rw),np.float32);coverage=np.zeros_like(canvas)
+    canvas[top:top+h,left:left+w]=heat;coverage[top:top+h,left:left+w]=1
+    mapped=cv2.resize(canvas,(width,height),interpolation=cv2.INTER_LINEAR)
+    visible=cv2.resize(coverage,(width,height),interpolation=cv2.INTER_NEAREST)>0
+    mapped[~visible]=0
+    return mapped,visible,dict(resized_width=rw,resized_height=rh,crop_left=left,crop_top=top,crop_width=w,crop_height=h)
+
+
+def generate(model,processor,data,feature_head=None,return_map=False):
     with Image.open(io.BytesIO(data)) as original:
         image=ImageOps.exif_transpose(original).convert('RGB')
     options={}
@@ -37,11 +54,25 @@ def generate(model,processor,data,feature_head=None):
     maximum=float(patch_map.max(initial=0))
     heat=patch_map.reshape(side,side)/(maximum if maximum>0 else 1.)
     h,w=map(int,pixels.shape[-2:]);heat=cv2.resize(heat,(w,h),interpolation=cv2.INTER_LINEAR)
-    view=pixels.detach()[0].permute(1,2,0).cpu().numpy()
-    if processor.do_normalize:view=view*np.asarray(processor.image_std)+np.asarray(processor.image_mean)
-    view=cv2.cvtColor(np.clip(view*255,0,255).astype(np.uint8),cv2.COLOR_RGB2BGR)
-    color=cv2.applyColorMap((heat*255).astype(np.uint8),cv2.COLORMAP_INFERNO)
-    overlay=cv2.addWeighted(view,.6,color,.4,0) if maximum>0 else view
-    return {'image':encode_png(overlay),'view_width':w,'view_height':h,'positive_gradient_signal':maximum>0,
+    # Reconstruct the exact supported processor geometry. Never stretch a square
+    # model view over an unrelated rectangular source photo.
+    size=options.get('size',processor.size)
+    shortest=size.get('shortest_edge') if isinstance(size,dict) else size.shortest_edge
+    if not processor.do_resize or not shortest:raise ValueError('Unsupported attention resize contract')
+    ow,oh=image.size
+    rh,rw=(shortest,int(shortest*ow/oh)) if oh<=ow else (int(shortest*oh/ow),shortest)
+    heat=cv2.GaussianBlur(heat,(0,0),max(1,w/96))
+    heat,visible,geometry=project_to_original(heat,image.size,(rh,rw))
+    positives=heat[visible & (heat>0)]
+    floor=float(np.quantile(positives,.7)) if len(positives) else 1.
+    alpha=np.where(visible & (heat>=floor),.4*heat,0)[...,None]
+    original=cv2.cvtColor(np.asarray(image),cv2.COLOR_RGB2BGR)
+    color=cv2.applyColorMap(np.clip(heat*255,0,255).astype(np.uint8),cv2.COLORMAP_INFERNO)
+    overlay=np.clip(original*(1-alpha)+color*alpha,0,255).astype(np.uint8)
+    result={'image':encode_png(overlay),'view_width':w,'view_height':h,'positive_gradient_signal':maximum>0,
+        'original_width':ow,'original_height':oh,'geometry':geometry,'display_floor':floor,
+        'legend':{'low':'dark purple','high':'pale yellow','unseen':'unchanged original pixels'},
         'target':'Frozen feature-head AI logit' if feature_head else 'Primary ViT AI logit',
-        'note':'Grad-CAM model attention on the classifier resized/cropped view. It highlights positive gradient contributions, not edited pixels, proof of AI, or an explanation of every fusion branch.'}
+        'note':'Where the model looked (this is not where the edit is). Grad-CAM is mapped back to the original image geometry; areas outside the classifier view are unchanged. Positive contributions are not edited pixels, proof of AI, or an explanation of every fusion branch.'}
+    if return_map:result.update(heatmap=heat,coverage=visible)
+    return result

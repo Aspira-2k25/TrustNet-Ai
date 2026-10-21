@@ -21,8 +21,16 @@ def test_grad_cam_uses_classifier_view_without_mutating_weights_or_leaking_hooks
     hooks=len(layer._forward_hooks)
     result=generate(model,processor,data)
     decoded=cv2.imdecode(np.frombuffer(base64.b64decode(result['image']),np.uint8),cv2.IMREAD_COLOR)
-    assert decoded.shape==(32,32,3)
+    assert decoded.shape==(80,100,3)
     assert result['view_width']==32 and result['view_height']==32
     assert 'not edited pixels' in result['note']
     assert len(layer._forward_hooks)==hooks
     assert all(p.grad is None and torch.equal(p,before) for p,before in zip(model.parameters(),params))
+
+
+def test_inverse_geometry_leaves_unseen_borders_without_attention():
+    from models.image_deepfake.explainability.grad_cam import project_to_original
+    heat,seen,geometry=project_to_original(np.ones((32,32),np.float32),(100,80),(32,40))
+    assert geometry['crop_left']==4 and geometry['crop_top']==0
+    assert not seen[:,0].any() and not seen[:,-1].any()
+    assert (heat[~seen]==0).all() and seen[:,50].all()

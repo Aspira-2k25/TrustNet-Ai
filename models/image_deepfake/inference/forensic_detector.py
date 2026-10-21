@@ -54,7 +54,7 @@ class ForensicDetector:
             if self.localizer is None:
                 self.localizer_error='Pixel localization is disabled. Editing cannot be ruled out.'
         except (ImportError,OSError,ValueError) as exc:
-            self.localizer_error=f'Manipulation model unavailable ({type(exc).__name__}); run the documented localizer installer.'
+            self.localizer_error=f'Analysis incomplete: edit checker unavailable ({type(exc).__name__}): {str(exc)[:200]}'
 
     def predict(self,image_bytes,scan_id=None,filename=None,enable_explanation=False):
         started=time.monotonic()
@@ -70,7 +70,7 @@ class ForensicDetector:
         local=None
         if self.localizer:
             try:
-                local=self.localizer.predict(image_bytes,time_budget=20 if ai_raw>=self.config['ai']['raw_alert'] else 60)
+                local=self.localizer.predict(image_bytes,time_budget=max(.1,22-(time.monotonic()-started)))
                 # Tiling and lossless files still get genuine pixel maps, but the
                 # JPEG/native validation does not calibrate their global score.
                 covered=local['inference_mode']=='native' and source['format']=='JPEG'
@@ -113,6 +113,7 @@ class ForensicDetector:
             model_view_note=f"Original bytes retained. Classifier tensor {global_result['model_view_shape']}; localization uses native pixels or overlapping native tiles. Classifier attention is never a tamper mask.",
             localization_mode=local['inference_mode'] if local else None,
             calibration_version=self.config['version'])
+        analysis['analysis_complete']=local is not None and manipulation_raw is not None
         analysis['edit_coverage']={
             'evaluated':['Synthetic splicing','Synthetic copy-move','Small TGIF SD2 and Photoshop/Firefly partial-edit sample'],
             'not_established':['Generative fill / inpainting','Object removal','Face swap'],
@@ -128,7 +129,7 @@ class ForensicDetector:
             analysis['supporting_forensics']=supporting
         except (ValueError,OSError,RuntimeError,MemoryError,cv2.error) as exc:
             analysis['supporting_forensics']={'affects_verdict':False,'notice':f'Classical diagnostics unavailable ({type(exc).__name__}).'}
-        if enable_explanation:
+        if enable_explanation and time.monotonic()-started<25:
             try:
                 head=self.modern_head if self.config['ai'].get('mode')=='isotonic_feature_head' else None
                 attention=self.global_model.explain(image_bytes,feature_head=head)
@@ -141,7 +142,7 @@ class ForensicDetector:
             preprocessing_version='original-bytes-native-localization-v2',native_score=ai_raw,
             native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
             risk_score=round(index,2),confidence=0.,label=verdict,verdict=verdict,
-            status=StatusEnum.SUCCESS,explanation=' '.join(reasons),
+            status=StatusEnum.SUCCESS if local is not None else StatusEnum.PARTIAL_SUCCESS,explanation=' '.join(reasons),
             metadata={'image_analysis':analysis,'image_assets_base64':encoded,
                 'score_semantics':'Maximum available calibrated stream reading; not a joint fraud probability. Confidence is not estimated.',
                 'ai_generated_prob':ai_prob},processing_time_ms=round((time.monotonic()-started)*1000),

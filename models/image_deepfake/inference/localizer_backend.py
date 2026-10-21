@@ -12,5 +12,5 @@ def create_localizer(backend: str = 'trufor') -> PixelLocalizer | None:
     if backend != 'trufor':
         raise ValueError('Unsupported localization backend: ' + backend)
     # Import lazily so disabling the research backend needs no vendor dependencies.
-    from .localizer import TruForLocalizer
-    return TruForLocalizer()
+    from .bounded_localizer import BoundedLocalizer
+    return BoundedLocalizer()
