@@ -1,3 +1,9 @@
+# Selected lexical model source
+
+The default `message-multilingual-lexical-v1` head uses `sidzzz07/scamshield-dataset`, revision `059dee884476a45e380808e68d09e74baff67291` ([dataset source](https://huggingface.co/datasets/sidzzz07/scamshield-dataset)). The dataset card declares MIT. Underlying collected-message rights and label quality were not independently established; this is a research evaluation release, not a blanket commercial rights statement. Git contains the derived vocabulary and numeric head, not the raw message corpus. Training replaces literal URLs, email addresses and numbers. See the selected model card for grouping, validation thresholds, rejected Hindi route and consumed-test limits.
+
+The notices below concern the optional legacy DistilBERT rollback and earlier sources.
+
 # Redistribution notices
 
 The fine-tuned DistilBERT derivative originates from distilbert/distilbert-base-uncased-finetuned-sst-2-english, revision 714eb0fa89d2f80546fda750413ed43d93601a13, Apache-2.0. Copyright/license notices and modification information are retained here; see APACHE-2.0.txt. TrustNet replaces the SST2 head with three classes, performs SMS/domain fine-tuning, and adds a sparse lexical model, local URL features and separate calibration. Selected transformer bytes can differ from the preserved version-2 baseline; exact versions and SHA-256 values are in the packaged artifact manifest.

@@ -29,10 +29,11 @@ export function ScamResult({scan: initialScan, onBack}: {scan: ScanRecord; onBac
     {(meta.links || []).length>0 && <div className="border border-[#cbd3d7] rounded-xl p-5"><h3>Embedded link analysis</h3>{meta.links.map((l:{url:string;reason:string;status?:string;risk_score?:number;verdict?:string;inspection?:SavedInspection}, index:number)=><div key={l.url} className="break-words text-sm mt-5"><p className="break-all">{l.url}</p><p>{l.status}{l.risk_score!=null?` — ${l.risk_score.toFixed(1)}/100`:''}{l.verdict?` — ${l.verdict.replaceAll('_',' ')}`:''}</p><p className="text-slate-600">Quick assessment: {l.reason}</p>{index<8 && /^(?:https?:\/\/|www\.)/i.test(l.url) && <LinkInspection scanId={scan.id} index={index} saved={l.inspection} onUpdated={setScan}/>}</div>)}</div>}
     {(meta.sender_link_observations || []).length>0&&<div className="border border-[#cbd3d7] rounded-xl p-5"><h3>Sender and displayed-link observations</h3>{meta.sender_link_observations.map((o:Record<string,unknown>,i:number)=><p className="break-all text-sm mt-3" key={i}>{Object.entries(o).filter(([,v])=>v!==null).map(([k,v])=>`${k}: ${String(v)}`).join(' · ')}</p>)}</div>}
     {meta.optional_explanation&&<div className="text-sm"><h3>Optional evidence summary: {meta.optional_explanation.status}</h3><p>{meta.optional_explanation.reason || meta.optional_explanation.method}</p>{(meta.optional_explanation.evidence || []).map((e:{id:number;note:string})=><p key={e.id}>{e.note}</p>)}</div>}
+    <p className="text-xs text-slate-600">Model: {result?.detector_id} / {result?.model_version}. {meta.span_offset_unit}</p>
 </></ResultSummary>
     <button onClick={()=>exportForensicPDFReport(scan)} className="primary-button">{t("Download report")}</button>
     {meta.fusion?.links_found>0&&<p>{t("Message and links were checked together. Open the link checks below to see which links could not be checked.")}</p>}
 
-    <p className="text-xs text-slate-600">Model: {result?.detector_id} / {result?.model_version}. {meta.span_offset_unit}</p>
+
   </section>;
 }

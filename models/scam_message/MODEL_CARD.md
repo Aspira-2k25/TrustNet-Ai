@@ -23,7 +23,7 @@ Selected branch FPR 95% Wilson intervals are 0–1.60% on the 492 set and 0.69�
 
 The final public contract deliberately reports incomplete when required link checks fail or lack coverage, even if the message branch warns. On 492 records its warning recall is 46.48%, precision 100%, F1 63.47%, FPR 0/236 and not-sure/incomplete share 47.15%. On 800 records its warning recall is 66.50%, precision 99.25%, F1 79.64%, FPR 2/400 (0.50%, 95% interval 0.14–1.80%) and not-sure/incomplete share 28.00%. Warning evidence remains visible in reasons; missing checks never become safe. Do not replace these UI figures with head-only or branch recall.
 
-CPU API p50/p95 were 0.031/0.906 seconds (492) and 0.016/0.703 seconds (800), on the developer machine under concurrent load, not controlled hardware benchmarks. Outputs and split manifests remain external; compact aggregate records are in `benchmark/results/reference-evaluation.json`.
+CPU API p50/p95 were 0.016/0.547 seconds (492) and 0.063/0.906 seconds (800), on the developer machine under concurrent load, not controlled hardware benchmarks. Outputs and split manifests remain external; compact aggregate records are in `benchmark/results/reference-evaluation.json`.
 
 ## Important limits
 

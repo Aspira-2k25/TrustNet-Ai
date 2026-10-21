@@ -51,3 +51,11 @@ test('PDF starts with the same plain result and does not fetch zero-region overl
  const calls=[];global.fetch=async url=>{calls.push(url);throw Error('No assets in unit fixture');};
  const data=await exportForensicPDFReport(scan(),false);const pdf=Buffer.from(data).toString('latin1');assert(pdf.startsWith('%PDF'));assert(pdf.includes('Could not check this'));assert(pdf.includes('What to do next'));assert.equal(calls.length,0);
 });
+
+test('message technical identity stays inside expert details',()=>{
+ const {ScamResult}=require('../src/components/scam_message/ScamResult.tsx');
+ const result={module:'scam_message',status:'SUCCESS',verdict:'LIKELY_SCAM',detector_id:'private-expert-identity',risk_score:90,metadata:{}};
+ result.presentation=mapResult(result);
+ const html=renderToStaticMarkup(React.createElement(ScamResult,{scan:{id:'qa',content_type:'text',status:'SUCCESS',result}}));
+ assert(html.includes('private-expert-identity'));assert(!html.replace(/<details[\s\S]*<\/details>/g,'').includes('private-expert-identity'));
+});

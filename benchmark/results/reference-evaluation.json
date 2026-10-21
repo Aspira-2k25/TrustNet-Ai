@@ -1497,8 +1497,8 @@
       "scam": 119,
       "not_sure": 131
     },
-    "p50_seconds": 0.031000000017229468,
-    "p95_seconds": 0.9059999999590218,
+    "p50_seconds": 0.01600000000325963,
+    "p95_seconds": 0.5470000000204891,
     "error_analysis": {
       "language": {
         "English": {
@@ -1738,8 +1738,8 @@
       "scam": 268,
       "incomplete": 120
     },
-    "p50_seconds": 0.01600000000325963,
-    "p95_seconds": 0.7030000000377186,
+    "p50_seconds": 0.06299999996554106,
+    "p95_seconds": 0.9059999999590218,
     "error_analysis": {
       "language": {
         "English": {

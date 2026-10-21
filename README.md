@@ -29,7 +29,7 @@ Before first setup, obtain these existing research artifacts from the project ma
 
 The selected message vocabulary/weights are included in Git (`models/scam_message/multilingual_artifacts`), with checksums verified by `scripts/checks/verify-scam.py`. No scam model ZIP or Hugging Face cache is needed for the default. The optional legacy DistilBERT rollback needs its 248,559,032-byte package, SHA-256 `1e499d55a042ee7268d6a49da91d81e60f1c776a936d675b92575fdbc4e50623`, and `requirements/scam-legacy.txt`. Set `SCAM_TEXT_POLICY=legacy` only after installing it; the default is `multilingual`.
 
-`setup.bat` downloads the image ViT from the pinned Hugging Face revision in `models/image_deepfake/calibration/global-artifacts.json` (87,270,764-byte weight). It also installs the official TruFor weight (about 261 MB) using the pinned URL and SHA-256 in its vendor manifest. Neither installer requires a pre-existing Hugging Face cache. Existing valid artifacts are reused.
+`setup.bat` downloads the image ViT from the pinned Hugging Face revision in `models/image_deepfake/calibration/global-artifacts.json` (87,270,764-byte weight). It also installs the official TruFor weight (281,496,429 bytes) using the pinned URL and SHA-256 in its vendor manifest. Neither installer requires a pre-existing Hugging Face cache. Existing valid artifacts are reused.
 
 **Research licensing:** TruFor permits informational/nonprofit use and prohibits unauthorised profit-oriented/industrial use. See `models/image_deepfake/vendor/trufor/LICENSE.txt`. The experimental modern feature head uses SafeIMG CC BY-NC-SA 4.0 data and is limited to academic/noncommercial use. The ViT itself is MIT licensed. Dataset/model source terms still apply to scam and phishing artifacts; no blanket commercial licence is asserted. Raw datasets are not redistributed. For commercial work, replace restricted components and obtain appropriate rights.
 
@@ -108,3 +108,5 @@ Website / click-only Gmail extension
 ```
 
 See `docs/ARCHITECTURE.md` for evaluator questions, actual dependencies and privacy limits. This is a research submission, not a claim that every modern generator, edit or scam is detected.
+
+Frontend contract tests use the main `.venv` Python after setup. If testing an export with a separately installed environment, set `TRUSTNET_TEST_PYTHON` to that Python executable before `npm test`; environments themselves are intentionally not included in exports.

@@ -1,4 +1,4 @@
-"""Offline model integrity and actual signed attribution smoke, any working directory."""
+"""Offline integrity, selected-model inference and public-contract smoke, any working directory."""
 from pathlib import Path
 import sys,json,math
 root=Path(__file__).resolve().parents[2];sys.path.insert(0,str(root))
