@@ -424,5 +424,455 @@
     "False-positive protection is accompanied by high abstention; abstention is not correct classification.",
     "Small convenience cohorts, upstream pretraining overlap and unknown generation batches limit independence.",
     "Face-swap ground-truth masks unavailable; IoU is null. Object removal challenge is OpenCV fill, not verified semantic removal."
-  ]
+  ],
+  "expanded_head_refresh": {
+    "decision": {
+      "status": "REJECTED",
+      "goal_achieved": false,
+      "candidate_sha256": "12518ed922e3953620d924fc3104d85bb78aeda9875ff402c66ca31c9d4f91e3",
+      "manifest_sha256": "35f955610c96fb30c5c7259ff3a37246a136d11f006bdc71155df31366c10c0b",
+      "reasons": [
+        "Generated-image recall declined from 53.47% to 26.80%.",
+        "Real false alerts increased from 3 to 14 among 1008 photos.",
+        "Candidate real FPR Wilson upper bound 2.32% exceeds the prespecified 2% guard.",
+        "Paired pipeline Inconclusive share increased from 81.25% to 91.67%."
+      ],
+      "test_retuned": false,
+      "production_weights_changed": false
+    },
+    "split_counts": {
+      "('train', False)": 2089,
+      "('train', True)": 2089,
+      "('calibration', False)": 420,
+      "('calibration', True)": 420,
+      "('threshold', False)": 416,
+      "('threshold', True)": 416,
+      "('test', False)": 1008,
+      "('test', True)": 750,
+      "('seen_test', True)": 600
+    },
+    "training_originals_per_class": 2089,
+    "training_views": 8356,
+    "calibration_files": 840,
+    "threshold_files": 832,
+    "shortcut_calibration_roc_auc": 0.5,
+    "baseline_ai_stream": {
+      "real_fpr": 0.002976190476190476,
+      "real_fpr_wilson95": [
+        0.001012678377147809,
+        0.008713607035355835
+      ],
+      "generated_recall": 0.5346666666666666,
+      "ai_stream_inconclusive_rate": 0.770193401592719,
+      "scope": "Frozen existing primary-model alert boundary, generation stream only. Manipulation/provenance/authenticity decisions require separate paired pipeline checks."
+    },
+    "candidate_holdout": {
+      "n": 1758,
+      "real": 1008,
+      "generated": 750,
+      "tp": 201,
+      "fp": 14,
+      "recall": 0.268,
+      "real_fpr": 0.013888888888888888,
+      "real_fpr_wilson95": [
+        0.008291104913077722,
+        0.02317771714705558
+      ],
+      "ai_stream_inconclusive_rate": 0.8777019340159272,
+      "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic.",
+      "by_generator": {
+        "FLUX.1-schnell": {
+          "n": 250,
+          "real": 0,
+          "generated": 250,
+          "tp": 35,
+          "fp": 0,
+          "recall": 0.14,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.86,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "PixArt-Sigma-XL-2-1024-MS": {
+          "n": 250,
+          "real": 0,
+          "generated": 250,
+          "tp": 110,
+          "fp": 0,
+          "recall": 0.44,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.56,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "real": {
+          "n": 1008,
+          "real": 1008,
+          "generated": 0,
+          "tp": 0,
+          "fp": 14,
+          "recall": null,
+          "real_fpr": 0.013888888888888888,
+          "real_fpr_wilson95": [
+            0.008291104913077722,
+            0.02317771714705558
+          ],
+          "ai_stream_inconclusive_rate": 0.9861111111111112,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "stable-diffusion-3-medium-diffusers": {
+          "n": 250,
+          "real": 0,
+          "generated": 250,
+          "tp": 56,
+          "fp": 0,
+          "recall": 0.224,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.776,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        }
+      },
+      "by_real_source": {
+        "COCO": {
+          "n": 699,
+          "real": 699,
+          "generated": 0,
+          "tp": 0,
+          "fp": 4,
+          "recall": null,
+          "real_fpr": 0.005722460658082976,
+          "real_fpr_wilson95": [
+            0.002227536865693395,
+            0.014620443104872156
+          ],
+          "ai_stream_inconclusive_rate": 0.994277539341917,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "OpenImages": {
+          "n": 200,
+          "real": 200,
+          "generated": 0,
+          "tp": 0,
+          "fp": 8,
+          "recall": null,
+          "real_fpr": 0.04,
+          "real_fpr_wilson95": [
+            0.020405632066152306,
+            0.07693206820093293
+          ],
+          "ai_stream_inconclusive_rate": 0.96,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "RAISE": {
+          "n": 100,
+          "real": 100,
+          "generated": 0,
+          "tp": 0,
+          "fp": 2,
+          "recall": null,
+          "real_fpr": 0.02,
+          "real_fpr_wilson95": [
+            0.00550196755016235,
+            0.07001179072854388
+          ],
+          "ai_stream_inconclusive_rate": 0.98,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "SIDD": {
+          "n": 9,
+          "real": 9,
+          "generated": 0,
+          "tp": 0,
+          "fp": 0,
+          "recall": null,
+          "real_fpr": 0.0,
+          "real_fpr_wilson95": [
+            0,
+            0.2991450484195441
+          ],
+          "ai_stream_inconclusive_rate": 1.0,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        }
+      },
+      "binary_ai_alarm_metrics": {
+        "roc_auc": 0.8481329365079364,
+        "precision": 0.9348837209302325,
+        "recall": 0.268,
+        "f1": 0.41658031088082903,
+        "accuracy": 0.679749715585893,
+        "scope": "Binary AI alarm metrics, not four-verdict authenticity accuracy; below threshold remains Inconclusive."
+      },
+      "by_processing_proxy": {
+        "0": {
+          "n": 294,
+          "real": 169,
+          "generated": 125,
+          "tp": 41,
+          "fp": 1,
+          "recall": 0.328,
+          "real_fpr": 0.005917159763313609,
+          "real_fpr_wilson95": [
+            0.0010452887665312535,
+            0.03275134116560824
+          ],
+          "ai_stream_inconclusive_rate": 0.8571428571428571,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "1": {
+          "n": 293,
+          "real": 168,
+          "generated": 125,
+          "tp": 31,
+          "fp": 2,
+          "recall": 0.248,
+          "real_fpr": 0.011904761904761904,
+          "real_fpr_wilson95": [
+            0.0032708093814397647,
+            0.042361128769621906
+          ],
+          "ai_stream_inconclusive_rate": 0.8873720136518771,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "2": {
+          "n": 292,
+          "real": 167,
+          "generated": 125,
+          "tp": 33,
+          "fp": 3,
+          "recall": 0.264,
+          "real_fpr": 0.017964071856287425,
+          "real_fpr_wilson95": [
+            0.00612790448454182,
+            0.05147789500130303
+          ],
+          "ai_stream_inconclusive_rate": 0.8767123287671232,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "3": {
+          "n": 293,
+          "real": 168,
+          "generated": 125,
+          "tp": 34,
+          "fp": 0,
+          "recall": 0.272,
+          "real_fpr": 0.0,
+          "real_fpr_wilson95": [
+            0,
+            0.022354668349868052
+          ],
+          "ai_stream_inconclusive_rate": 0.8839590443686007,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "4": {
+          "n": 293,
+          "real": 168,
+          "generated": 125,
+          "tp": 23,
+          "fp": 3,
+          "recall": 0.184,
+          "real_fpr": 0.017857142857142856,
+          "real_fpr_wilson95": [
+            0.006091318700860878,
+            0.05117925435079761
+          ],
+          "ai_stream_inconclusive_rate": 0.9112627986348123,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "5": {
+          "n": 293,
+          "real": 168,
+          "generated": 125,
+          "tp": 39,
+          "fp": 5,
+          "recall": 0.312,
+          "real_fpr": 0.02976190476190476,
+          "real_fpr_wilson95": [
+            0.01277812377684728,
+            0.06776971907600482
+          ],
+          "ai_stream_inconclusive_rate": 0.8498293515358362,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        }
+      }
+    },
+    "candidate_seen_generators": {
+      "n": 600,
+      "real": 0,
+      "generated": 600,
+      "tp": 383,
+      "fp": 0,
+      "recall": 0.6383333333333333,
+      "real_fpr": null,
+      "real_fpr_wilson95": null,
+      "ai_stream_inconclusive_rate": 0.3616666666666667,
+      "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic.",
+      "by_generator": {
+        "ADM": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 51,
+          "fp": 0,
+          "recall": 0.51,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.49,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "BigGAN": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 95,
+          "fp": 0,
+          "recall": 0.95,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.05,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "Midjourney": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 41,
+          "fp": 0,
+          "recall": 0.41,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.59,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "SD_v14": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 45,
+          "fp": 0,
+          "recall": 0.45,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.55,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "VQDM": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 76,
+          "fp": 0,
+          "recall": 0.76,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.24,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        },
+        "glide": {
+          "n": 100,
+          "real": 0,
+          "generated": 100,
+          "tp": 75,
+          "fp": 0,
+          "recall": 0.75,
+          "real_fpr": null,
+          "real_fpr_wilson95": null,
+          "ai_stream_inconclusive_rate": 0.25,
+          "note": "AI-stream coverage only; low scores remain Inconclusive, not authentic."
+        }
+      },
+      "by_real_source": {}
+    },
+    "paired_pipeline": {
+      "baseline": {
+        "n": 48,
+        "real_n": 24,
+        "generated_n": 24,
+        "false_alerts": 1,
+        "real_fpr": 0.041666666666666664,
+        "real_fpr_wilson95": [
+          0.0073934561655057685,
+          0.20241806478655938
+        ],
+        "ai_generated_recall": 0.3333333333333333,
+        "any_warning_recall": 0.3333333333333333,
+        "inconclusive_rate": 0.8125,
+        "verdict_counts": {
+          "INCONCLUSIVE": 39,
+          "LIKELY_AI_GENERATED": 9
+        }
+      },
+      "candidate": {
+        "n": 48,
+        "real_n": 24,
+        "generated_n": 24,
+        "false_alerts": 1,
+        "real_fpr": 0.041666666666666664,
+        "real_fpr_wilson95": [
+          0.0073934561655057685,
+          0.20241806478655938
+        ],
+        "ai_generated_recall": 0.125,
+        "any_warning_recall": 0.125,
+        "inconclusive_rate": 0.9166666666666666,
+        "verdict_counts": {
+          "INCONCLUSIVE": 44,
+          "LIKELY_AI_GENERATED": 4
+        }
+      },
+      "limits": [
+        "Small stratified paired subset; the larger classifier holdout measures AI-stream FPR separately.",
+        "Matched JPEG size/quality/filter controls are software proxies, not comprehensive device or app coverage.",
+        "Both policies keep authenticity disabled; localization and provenance are reused from the same actual detector run."
+      ]
+    },
+    "limits": [
+      "Class counts are original files, not independent scenes; SIDD scenes stay together.",
+      "Upstream ViT pretraining overlap is not known. Unseen refers to this adaptation.",
+      "Exact bytes, declared source identities and a pHash distance <=4 screen exclude cross-split duplicates; semantic independence is not guaranteed.",
+      "Wilson assumes independent photos; correlated camera/scene captures weaken that assumption.",
+      "No deployment promotion or authenticity enablement follows from classifier metrics alone."
+    ],
+    "baseline_ai_stream_per_generator": {
+      "FLUX.1-schnell": 0.296,
+      "PixArt-Sigma-XL-2-1024-MS": 0.88,
+      "stable-diffusion-3-medium-diffusers": 0.428
+    },
+    "baseline_binary_ai_alarm_metrics": {
+      "roc_auc": 0.9488373015873017,
+      "precision": 0.9925742574257426,
+      "recall": 0.5346666666666666,
+      "f1": 0.6949740034662045,
+      "accuracy": 0.7997724687144482,
+      "scope": "Binary AI alarm metrics, not four-verdict authenticity accuracy."
+    }
+  },
+  "tgif_partial_edit_localization": {
+    "metrics": {
+      "ps-sp": {
+        "n": 10,
+        "detected": 6,
+        "missed": 4,
+        "mean_iou_including_misses": 0.11009201648922107,
+        "errors": 0,
+        "production_supported_detected": 0
+      },
+      "sd2-sp": {
+        "n": 10,
+        "detected": 3,
+        "missed": 7,
+        "mean_iou_including_misses": 0.05342287175698651,
+        "errors": 3,
+        "production_supported_detected": 0
+      }
+    },
+    "manifest_sha256": "5ee945cb60a7d62e83d8884a5da05df2f70c62d4b84f2c738c8cf7f2a8040586",
+    "policy_sha256": "f09363dc1ea29acd7e230424f0260d66c55a17117dd5910be02e6990c4490bb1",
+    "limits": [
+      "Operation masks record editing operations, not proof that every changed pixel was synthesized.",
+      "Small ordered convenience sample; same COCO source may appear for both editing methods.",
+      "TruFor research licence; no model or threshold fitting on these cases.",
+      "Raw diagnostic detection does not promote PNG or tiled localization into supported production coverage."
+    ]
+  }
 }

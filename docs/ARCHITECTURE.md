@@ -29,6 +29,8 @@ Evidence includes AI readings, source SHA-256, editable metadata observations, C
 
 A separate supporting branch records JPEG-only ELA, noise residuals and ORB/RANSAC repeated-pattern observations in a bounded native window. These diagnostics do not enter verdict fusion. ELA has its own private viewer layer and is explicitly distinguished from the segmentation mask. Failures in this optional branch do not change the decision.
 
+Optional Grad-CAM follows the explanation flag from the image form through Scan Management into the image service. It differentiates the classifier logit and renders attention on the classifier view, not native edit regions. Attention files use the same owner-protected storage as other evidence and can appear in the PDF. The later expanded head was rejected after held-out evaluation; it is not loaded at runtime.
+
 Authenticity verdicts are disabled because generative fill, inpainting, object removal and face swaps are not reliably validated. Other weak or conflicting results are Inconclusive. Conservative abstention reduces assertions; it is not detector accuracy. TruFor and the SafeIMG-derived head impose research/noncommercial restrictions; consult the retained licences before distribution.
 
 ## Messages, URLs and reporting

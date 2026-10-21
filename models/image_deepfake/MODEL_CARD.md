@@ -38,6 +38,31 @@ Native JPEG synthetic splice/copy-move testing detected regions in 29/32 edited 
 
 Aggregate results are in `benchmark/results/reference-evaluation.json`. Raw research data stays outside the application and is not needed for runtime. These results are probabilistic indicators, not proof of image origin or editing.
 
-## Installation
+## Expanded head experiment, October 2026
+
+One new linear head was trained on frozen ViT features using 2,089 distinct real files and 2,089 generated files, with two JPEG/resize/blur/noise/filter views per training original. Real sources were COCO (1,494), Open Images (468), RAISE (90) and SIDD (37). Generated training sources were six GenImage generators plus TGIF SDXL. Calibration used 840 separate images and isotonic regression; the threshold used another 832 images. Thirteen duplicate/source-family/perceptual-conflict records were quarantined before fitting. Source and split manifests record exact hashes; cross-split exact-hash overlap was zero. Capture correlations and unknown backbone pretraining overlap remain limitations.
+
+The classifier view was explicitly 224 by 224, including the processor crop override. A preliminary cache that had silently remained at 384 was archived and was not used to fit this candidate. File type and encoded size were matched between classes. A development-only classifier using file size, format and view dimensions had ROC-AUC 0.500. This checks those shortcuts, not every content confound. ArtiFact was not mixed into this run because the examined convenient mirror lacked the generator/edit provenance needed for the split. Local SDXL/Flux generation was not attempted on this CPU-only machine.
+
+FLUX.1-schnell, PixArt-Sigma and SD3 were excluded from this head's fitting, calibration and threshold selection. The threshold was frozen at 0.9803921568627451 before their test inference; threshold-partition real FPR was 4/416 (0.962%). The untouched main test contained 1,008 real and 750 generated images. It was never used to retune the candidate.
+
+| Same 1,758-image AI-stream test | Existing primary boundary | New calibrated head |
+| --- | ---: | ---: |
+| Generated-image recall | 53.47% | 26.80% |
+| Real false alerts | 3/1,008 (0.30%) | 14/1,008 (1.39%) |
+| 95% Wilson FPR interval | 0.10% to 0.87% | 0.83% to 2.32% |
+| AI-stream Inconclusive share | 77.02% | 87.77% |
+
+Unseen-generator recall was 29.6% versus 14.0% for FLUX, 88.0% versus 44.0% for PixArt, and 42.8% versus 22.4% for SD3, respectively. The new head's supplemental seen-generator recall was 63.83% on 600 generated images. Its binary alarm ROC-AUC was 0.8481, precision 0.9349 and F1 0.4166; these are not four-verdict authenticity accuracy.
+
+**The new head was rejected and is not a runtime dependency.** It reduced recall, increased real false alerts and missed the prespecified upper-confidence-bound guard. Existing weights and decision boundaries were preserved. The requested reduction in abstention has not been achieved.
+
+In a fixed 48-image paired full-pipeline subset, the current policy produced 81.25% Inconclusive versus 91.67% for the rejected candidate. Generated-image recall was 8/24 versus 3/24. Both produced one real false alert among 24 real images: 4.17%, with a wide 95% interval of 0.74% to 20.24%. This small source-stratified subset does not establish population FPR. The larger 1,008-real measurement above covers the AI stream, not every full-pipeline branch. A whole-system FPR below 2% has not been established.
+
+TruFor was also evaluated on aligned operation masks for 20 TGIF partial edits. Photoshop/Firefly: detected 6/10, missed 4/10, mean IoU 0.1101. SD2: detected 3/10, missed 7/10 including three CPU-budget timeouts, mean IoU 0.0534. IoU includes missed/unavailable cases as zero. These are raw diagnostic detections on a small ordered sample; production-supported PNG/tiled detections remain zero. Masks describe editing operations, not verified synthesized pixels. These results do not justify enabling inpainting support or authenticity.
+
+Compact evidence is retained in `benchmark/results/reference-evaluation.json`. Full manifests, rejected artifacts and substantial outputs stay outside the runtime repository. Research sources retain their own terms, including noncommercial/research restrictions. No broad GPT-image, Gemini or all-generator detection claim follows from this experiment.
+
+## Installation and distribution
 
 Use `scripts/setup/install-image.py` and `scripts/setup/install-image-localizer.py`. They pin source versions and verify artifact checksums. A teammate does not need the author's Hugging Face cache. See the root README for service startup and optional research-localizer restrictions.
