@@ -1,0 +1,7 @@
+# Optional research dependencies. Application setup does not need these.
+-r ../models/image_deepfake/requirements.txt
+scikit-learn==1.9.0
+scipy==1.17.1
+open_clip_torch==3.3.0
+ftfy==6.3.1
+wcwidth==0.2.13
