@@ -127,12 +127,16 @@ def main():
                 buffer=io.BytesIO();Image.new('RGB',(300,300),(85,120,145)).save(buffer,'JPEG',quality=90)
                 original=buffer.getvalue()
                 image_response=client.post(base+'/scans/analyze',headers=owner,
-                    files={'file':('qa-photo-fixture.jpg',original,'image/jpeg')},timeout=140)
+                    files={'file':('qa-photo-fixture.jpg',original,'image/jpeg')},data={'enable_explanation':'true'},timeout=140)
                 assert image_response.status_code==200,image_response.text
                 image_scan=image_response.json()['data'];identifier=image_scan['id']
                 analysis=image_scan['result']['metadata']['image_analysis']
                 assert image_scan['result']['status']=='SUCCESS'
                 assert analysis['source_sha256']==hashlib.sha256(original).hexdigest()
+                assert analysis['supporting_forensics']['affects_verdict'] is False
+                assert analysis['supporting_forensics']['ela']['status']=='APPLIED'
+                assert analysis['model_attention']['view_width']>0
+                assert {'ela','attention'}.issubset(analysis['assets'])
                 for kind in ['original',*analysis['assets']]:
                     path=base+'/scans/'+identifier+'/image/'+kind
                     asset=client.get(path,headers=owner);assert asset.status_code==200

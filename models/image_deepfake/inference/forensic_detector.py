@@ -114,7 +114,7 @@ class ForensicDetector:
             localization_mode=local['inference_mode'] if local else None,
             calibration_version=self.config['version'])
         analysis['edit_coverage']={
-            'evaluated':['Synthetic splicing','Synthetic copy-move'],
+            'evaluated':['Synthetic splicing','Synthetic copy-move','Small TGIF SD2 and Photoshop/Firefly partial-edit sample'],
             'not_established':['Generative fill / inpainting','Object removal','Face swap'],
             'policy':'Low scores do not rule out editing. Authenticity verdicts are disabled until broader independent validation passes.',
         }

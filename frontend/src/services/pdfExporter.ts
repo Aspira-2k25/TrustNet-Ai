@@ -37,7 +37,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
     if(supporting.scope)line(`Native diagnostic window ${supporting.scope.width} x ${supporting.scope.height} at (${supporting.scope.x}, ${supporting.scope.y}); whole-image coverage: ${supporting.scope.whole_image?'yes':'no'}.`);
     if(supporting.ela)line(`JPEG / ELA: ${supporting.ela.note}`);
     if(supporting.noise)line(`Noise residual: ${supporting.noise.residual_rms} luminance levels RMS. ${supporting.noise.note}`);
-    if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} geometric inliers. ${supporting.copy_move.note}`);
+    if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} consistent feature matches. ${supporting.copy_move.note}`);
   }
   for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.assets?.overlay],['Grad-CAM classifier attention, not an edit mask',image.assets?.attention]]){
     if(typeof url!=='string'||!url.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))continue;
