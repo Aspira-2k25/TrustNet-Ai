@@ -17,7 +17,7 @@ foreach ($taskEntry in $taskEntries) {
         throw 'Invalid launcher process record. No process was selected by port number.'
     }
     $taskProcess = Get-CimInstance Win32_Process -Filter "ProcessId=$taskProcessId"
-    if ($taskProcess -and $taskProcess.ExecutablePath -eq $taskEntry.python -and $taskProcess.CommandLine.Contains($taskEntry.module)) {
+    if ($taskProcess -and $taskProcess.ExecutablePath -eq $taskEntry.python -and ($taskProcess.CommandLine -like "*$($taskEntry.module)*")) {
         # Stop the verified launcher-owned tree, including spawned CPU localizer workers.
         & taskkill.exe /PID $taskProcessId /T /F | Out-Null
         if ($LASTEXITCODE -ne 0 -and (Get-Process -Id $taskProcessId -ErrorAction SilentlyContinue)) {

@@ -1,17 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 $taskPython = Join-Path $taskRoot '.venv-scam\Scripts\python.exe'
-if (!(Test-Path -LiteralPath $taskPython)) {
-    $created = $false
-    try {
-        & py -3.11 -m venv (Join-Path $taskRoot '.venv-scam')
-        if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $taskPython)) { $created = $true }
-    } catch {}
-    if (-not $created) {
-        & python -m venv (Join-Path $taskRoot '.venv-scam')
-    }
-    if (!(Test-Path -LiteralPath $taskPython)) { throw 'Failed to create .venv-scam. Install Python 3.11 and ensure it is in PATH.' }
-}
+& (Join-Path $PSScriptRoot 'ensure-python-env.ps1') -Environment '.venv-scam'
 & $taskPython -m pip install -r (Join-Path $taskRoot 'services/scam_message/requirements-portable.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Scam dependencies failed to install; existing image environment was not changed.' }
 & $taskPython -m pip check

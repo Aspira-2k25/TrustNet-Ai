@@ -2,13 +2,23 @@
 setlocal
 cd /d "%~dp0"
 echo TrustNet AI - Full local launcher
+call "%~dp0setup.bat" --check
+if errorlevel 1 exit /b 1
 if not exist ".venv\Scripts\python.exe" (
-    echo [ERROR] Existing image .venv missing. Restore your image environment first.
+    echo [ERROR] Main environment missing. Run setup.bat first.
     exit /b 1
 )
 if not exist ".venv-scam\Scripts\python.exe" (
     echo [ERROR] Scam environment missing. Run scripts\setup\install-scam.ps1 first.
     exit /b 1
+)
+if not exist ".venv-phishing\Scripts\python.exe" (
+    echo [ERROR] Phishing environment missing. Run setup.bat first.
+    exit /b 1
+)
+for %%E in (.venv .venv-scam .venv-phishing) do (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\ensure-python-env.ps1" -Environment %%E -CheckOnly
+    if errorlevel 1 exit /b 1
 )
 if not exist "frontend\node_modules\.bin\vite.cmd" (
     echo [ERROR] Run npm ci in frontend first.
@@ -16,9 +26,11 @@ if not exist "frontend\node_modules\.bin\vite.cmd" (
 )
 if "%1"=="--restart" (
     call "%~dp0stop-dev.bat"
+    timeout /t 1 /nobreak >nul 2>&1
 )
 if "%1"=="-r" (
     call "%~dp0stop-dev.bat"
+    timeout /t 1 /nobreak >nul 2>&1
 )
 REM Check all ports before launching; never kill unrelated processes.
 powershell -NoProfile -Command "$ports = @(8000,8001,8002,8003,8004,8005,5173); $busy = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in $ports }; if ($busy) { Write-Host ('[ERROR] Ports already in use: ' + (($busy.LocalPort | Sort-Object -Unique) -join ', ')); Write-Host '[TIP] Run .\stop-dev.bat to stop existing background services, then re-run start-dev.bat.'; exit 1 }"
@@ -29,6 +41,7 @@ set KAFKA_ENABLED=false
 set PHISHING_START_ARGS=
 set ENABLE_KAFKA_CONSUMER=false
 REM Docker enables queued URL scans and isolated website inspection.
+if /i "%~1"=="--offline" goto :local_services
 docker info >nul 2>&1
 if not errorlevel 1 (
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ops\start-phishing-infrastructure.ps1"
@@ -39,6 +52,7 @@ if not errorlevel 1 (
 ) else (
     echo [NOTE] Docker is off; using local offline phishing inference.
 )
+:local_services
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ops\start-phishing.ps1" -Background
 if errorlevel 1 (
     echo [ERROR] Phishing is not ready. Run scripts\setup\install-phishing.ps1 and check its model ZIP.

@@ -33,7 +33,15 @@ if %errorlevel% neq 0 (
 )
 %PYTHON_CMD% -c "import sys; sys.exit(0 if sys.version_info[:2] == (3, 11) else 1)"
 if errorlevel 1 (
-    echo [ERROR] Python 3.11 is required.
+    python -c "import sys; sys.exit(0 if sys.version_info[:2] == (3, 11) else 1)"
+    if errorlevel 1 (
+        echo [ERROR] Python 3.11 is required. Install it and reopen this terminal.
+        exit /b 1
+    )
+)
+where npm >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] npm is missing. Install Node.js 24 LTS with npm and reopen this terminal.
     exit /b 1
 )
 node -e "const [a,b]=process.versions.node.split('.').map(Number);process.exit(a===20&&b>=19||a===22&&b>=12||a>=24?0:1)"
@@ -41,16 +49,19 @@ if errorlevel 1 (
     echo [ERROR] Unsupported Node.js version. Install Node.js 24 LTS.
     exit /b 1
 )
+if /i "%1"=="--check" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\ensure-python-env.ps1" -CheckOnly
+    if errorlevel 1 exit /b 1
+    exit /b 0
+)
 
 echo [2/5] Checking main Python environment (.venv)...
 set INSTALL_MAIN_DEPS=false
 if not exist ".venv\Scripts\python.exe" (
     set INSTALL_MAIN_DEPS=true
-    %PYTHON_CMD% -m venv .venv
-    if errorlevel 1 (
-        python -m venv .venv
-    )
 )
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\ensure-python-env.ps1" -Environment .venv
+if errorlevel 1 exit /b 1
 if not exist ".venv\Scripts\python.exe" (
     echo [ERROR] Could not create .venv. Ensure Python 3.11 is installed.
     exit /b 1

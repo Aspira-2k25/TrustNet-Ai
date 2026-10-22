@@ -4,6 +4,8 @@ A research application for checking images, messages and website links, with exp
 
 ## Windows setup
 
+For the complete teammate checklist, required model ZIP, safe configuration sharing and exact commands, see [TEAM_SETUP.md](TEAM_SETUP.md).
+
 Use Python **3.11** (verified 3.11.9), Node **24 LTS** (verified 24.13.0), npm and Windows PowerShell 5.1 or newer. CPU inference works without a GPU or API key. Allow several GB of disk space and preferably 16 GB RAM. Docker Desktop is optional for synchronous scans; it enables Kafka, MongoDB and the isolated live website collector.
 
 From the repository folder:

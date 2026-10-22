@@ -4,20 +4,7 @@ $taskRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location -LiteralPath $taskRoot
 
 $taskPython = Join-Path $taskRoot '.venv-phishing\Scripts\python.exe'
-if (!(Test-Path -LiteralPath $taskPython)) {
-    Write-Host '[1/3] Creating isolated Python 3.11 virtual environment (.venv-phishing)...' -ForegroundColor Cyan
-    $created = $false
-    try {
-        & py -3.11 -m venv (Join-Path $taskRoot '.venv-phishing')
-        if ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $taskPython)) { $created = $true }
-    } catch {}
-    if (-not $created) {
-        & python -m venv (Join-Path $taskRoot '.venv-phishing')
-    }
-    if (!(Test-Path -LiteralPath $taskPython)) {
-        throw 'Failed to create .venv-phishing. Python 3.11 is required. Ensure Python 3.11 is installed and in PATH.'
-    }
-}
+& (Join-Path $PSScriptRoot 'ensure-python-env.ps1') -Environment '.venv-phishing'
 
 Write-Host '[2/3] Installing isolated phishing runtime dependencies...' -ForegroundColor Cyan
 & $taskPython -m pip install -r (Join-Path $taskRoot 'services/phishing_url/requirements-runtime.txt')
