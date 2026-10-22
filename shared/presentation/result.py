@@ -20,7 +20,8 @@ def image_assessment(record, image, words):
     valid=lambda v:isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) and 0<=v<=1
     boundary=image.get('ai_decision_boundary')
     signed=record.get('status') in ('SUCCESS','PARTIAL_SUCCESS') and (image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_ai_generation')
-    category='ai_generated' if signed else 'likely_ai' if usable and record.get('verdict')=='LIKELY_AI_GENERATED' else 'uncertain'
+    has_markers=bool((image.get('provenance') or {}).get('ai_markers'))
+    category='ai_generated' if signed else 'likely_ai' if (usable and record.get('verdict')=='LIKELY_AI_GENERATED') or has_markers else 'uncertain'
     readings=[]
     if record.get('status') in ('SUCCESS','PARTIAL_SUCCESS'):
         for field,name,note in [('ai_raw_score','Primary image model','Primary reading note'),('modern_generator_raw_score','Experimental image head','Experimental reading note')]:
@@ -72,6 +73,7 @@ def public_result(record):
         incomplete = image.get('analysis_complete') is not True or image.get('manipulation_prob') is None
         verified_ai=(image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_ai_generation')
         verified_edit=(image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_generative_edit') and not verified_ai
+        ai_markers = (image.get('provenance') or {}).get('ai_markers') or []
         if verified_ai:
             key='looks_ai'
             reason('verified_ai_origin','/metadata/image_analysis/provenance')
@@ -85,6 +87,8 @@ def public_result(record):
             key = 'looks_ai'
         elif not (verified_ai or verified_edit) and verdict == 'LIKELY_MANIPULATED':
             key = 'looks_edited'
+        elif not (verified_ai or verified_edit) and ai_markers:
+            key = 'looks_ai'
         elif not (verified_ai or verified_edit) and verdict == 'NO_STRONG_INDICATORS':
             key = 'no_clear_signs'
             reason('image_no_warning', '/verdict')
@@ -92,6 +96,11 @@ def public_result(record):
         if image.get('quality', {}).get('adequate') is False:
             reason('quality', '/metadata/image_analysis/quality/adequate')
         origin=image.get('provenance') or {}
+        if ai_markers:
+            reason('ai_metadata_detected', '/metadata/image_analysis/provenance')
+            tools_found = sorted({c.get('tool') for c in ai_markers if c.get('tool')})
+            if tools_found:
+                custom.append({'text': f"Metadata inspection identified AI tool signatures: {', '.join(tools_found[:4])}.", 'evidence_id': '/metadata/image_analysis/provenance'})
         if (origin.get('asserts_ai_generation') or origin.get('asserts_generative_edit')) and not origin.get('signature_trusted'):
             reason('unverified_ai_origin','/metadata/image_analysis/provenance')
         if image.get('ai_checks_disagree') and not (verified_ai or verified_edit):
@@ -102,14 +111,14 @@ def public_result(record):
         # a reading above 80% can still be BELOW the selected raw alert boundary.
         # Never apply generic .3/.7 display cutoffs to these image readings.
         usable = image.get('quality', {}).get('adequate') is not False and not image.get('ai_checks_disagree')
-        ai_warning = bool(verified_ai) or usable and verdict == 'LIKELY_AI_GENERATED'
+        ai_warning = bool(verified_ai) or bool(ai_markers) or (usable and verdict == 'LIKELY_AI_GENERATED')
         edit_warning = bool(verified_edit) or usable and verdict == 'LIKELY_MANIPULATED'
         if ai_warning:
             levels['ai'] = 'high'
         if edit_warning:
             levels['editing'] = 'high'
         checks = [
-            ('ai_check', 'warning' if ai_warning else 'uncertain', 'verified_ai_origin' if verified_ai else 'ai_warning' if ai_warning else 'image_no_warning' if key == 'no_clear_signs' else 'ai_uncertain', '/metadata/image_analysis'),
+            ('ai_check', 'warning' if ai_warning else 'uncertain', 'verified_ai_origin' if verified_ai else 'ai_metadata_detected' if ai_markers else 'ai_warning' if ai_warning else 'image_no_warning' if key == 'no_clear_signs' else 'ai_uncertain', '/metadata/image_analysis'),
             ('edit_check', 'incomplete' if incomplete else 'warning' if edit_warning else 'uncertain',
              'verified_ai_edit' if verified_edit else 'edit_incomplete' if incomplete else 'edit_warning' if edit_warning else 'edit_uncertain', '/metadata/image_analysis'),
         ]

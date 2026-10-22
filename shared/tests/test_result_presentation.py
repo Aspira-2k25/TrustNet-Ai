@@ -143,3 +143,15 @@ def test_signed_ai_edit_is_not_claimed_to_be_a_fully_generated_image():
     assert view['checks'][1]['state']=='incomplete'
     item['metadata']['image_analysis']['provenance']['signature_trusted']=False
     assert public_result(item)['verdict_key']=='incomplete'
+
+
+def test_ai_metadata_clues_conclude_looks_ai():
+    item=record(module='image_deepfake',verdict='INCONCLUSIVE',status='SUCCESS',metadata={'image_analysis':{
+        'analysis_complete':True,'manipulation_prob':0.01,'ai_generated_prob':0.02,
+        'provenance':{'ai_markers':[{'field':'Software','marker':'Midjourney','tool':'Midjourney'}]}}})
+    view=public_result(item)
+    assert view['verdict_key']=='looks_ai'
+    assert view['level']['ai']=='high'
+    assert view['checks'][0]['state']=='warning'
+    assert any('Midjourney' in r['text'] for r in view['reasons'])
+

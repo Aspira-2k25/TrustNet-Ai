@@ -160,7 +160,8 @@ var TrustNetWords = {
     "Forensic observations": "Forensic observations",
     "Signature verified": "Signature verified",
     "Drag to compare with the original.": "Drag to compare with the original.",
-    "unverified_ai_origin": "The file declares AI use, but its signing identity could not be verified."
+    "unverified_ai_origin": "The file declares AI use, but its signing identity could not be verified.",
+    "ai_metadata_detected": "AI generator tool signatures or prompt parameters were detected in the image metadata."
   },
   "hi": {
     "looks_ai": "AI se bani lagti hai",
@@ -322,7 +323,8 @@ var TrustNetWords = {
     "Forensic observations": "Forensic observations",
     "Signature verified": "Signature verify hui",
     "Drag to compare with the original.": "Original se compare karne ke liye slider khiskein.",
-    "unverified_ai_origin": "File AI use batati hai, par signer ki identity verify nahi hui."
+    "unverified_ai_origin": "File AI use batati hai, par signer ki identity verify nahi hui.",
+    "ai_metadata_detected": "Image metadata mein AI generator tool ya generation parameters ke spasht sanket mile hain."
   }
 };
 if(typeof module!=='undefined')module.exports=TrustNetWords;

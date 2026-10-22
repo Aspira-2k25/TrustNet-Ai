@@ -15,25 +15,89 @@ MAX_PIXELS=24_000_000
 FORMATS={'JPEG':'image/jpeg','PNG':'image/png','WEBP':'image/webp'}
 
 
-def metadata_fields(image):
+import zlib
+
+
+def _clean_str(val, max_len=16000):
+    if isinstance(val, bytes):
+        if val.startswith(b'ASCII\x00\x00\x00'):
+            val = val[8:]
+        elif val.startswith(b'UNICODE\x00\x00'):
+            try:
+                return val[9:].decode('utf-16', errors='ignore')[:max_len].strip('\x00 ')
+            except Exception:
+                pass
+        for enc in ('utf-8', 'latin-1'):
+            try:
+                decoded = val.decode(enc, errors='replace')
+                return decoded.replace('\x00', '')[:max_len].strip()
+            except Exception:
+                pass
+        return str(val)[:max_len]
+    return str(val)[:max_len]
+
+
+def metadata_fields(image, raw_bytes=None):
     """Inspect bounded original metadata, without exposing personal EXIF values."""
-    raw=image.getexif()
-    fields={ExifTags.TAGS.get(k,str(k)):str(v)[:16000] for k,v in raw.items()}
-    try:
-        fields.update({f'Exif.{ExifTags.TAGS.get(k,str(k))}':str(v)[:16000]
-            for k,v in raw.get_ifd(34665).items()})
-    except (KeyError,ValueError,TypeError,OSError):
-        pass
-    for key,value in image.info.items():
-        if key in ('icc_profile','exif') or not isinstance(value,(str,bytes)):
+    raw = image.getexif()
+    fields = {ExifTags.TAGS.get(k, str(k)): _clean_str(v, 16000) for k, v in raw.items()}
+    for ifd_id, prefix in [(34665, 'Exif.'), (34853, 'GPS.'), (40965, 'Interop.')]:
+        try:
+            for k, v in raw.get_ifd(ifd_id).items():
+                fields[f'{prefix}{ExifTags.TAGS.get(k, str(k))}'] = _clean_str(v, 16000)
+        except (KeyError, ValueError, TypeError, OSError):
+            pass
+
+    for key, value in image.info.items():
+        if key in ('icc_profile', 'exif'):
             continue
-        fields[str(key)]=value[:262144].decode('utf-8',errors='replace') if isinstance(value,bytes) else value[:262144]
+        if isinstance(value, (str, bytes)):
+            fields[str(key)] = _clean_str(value, max_len=262144)
+        elif isinstance(value, (dict, list)):
+            try:
+                fields[str(key)] = json.dumps(value)[:262144]
+            except Exception:
+                pass
+
     try:
         from PIL.IptcImagePlugin import getiptcinfo
-        for key,value in (getiptcinfo(image) or {}).items():
-            fields[f'IPTC.{key}']=value[:16000].decode('utf-8',errors='replace') if isinstance(value,bytes) else str(value)[:16000]
-    except (ValueError,TypeError,OSError,SyntaxError):
+        for key, value in (getiptcinfo(image) or {}).items():
+            fields[f'IPTC.{key}'] = _clean_str(value, 16000)
+    except (ValueError, TypeError, OSError, SyntaxError):
         pass
+
+    if raw_bytes:
+        try:
+            xmp_matches = re.findall(rb'(?:<x:xmpmeta[\s\S]*?</x:xmpmeta>|<\?xpacket begin[\s\S]*?\?xpacket end[\s\S]*?>|<rdf:RDF[\s\S]*?</rdf:RDF>)', raw_bytes)
+            for i, match in enumerate(xmp_matches[:4]):
+                xmp_text = match.decode('utf-8', errors='ignore')
+                tag_name = 'XMP' if i == 0 else f'XMP.{i}'
+                fields[tag_name] = xmp_text[:262144]
+
+            if raw_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+                offset = 8
+                while offset < len(raw_bytes) - 12:
+                    length = int.from_bytes(raw_bytes[offset:offset+4], 'big')
+                    chunk_type = raw_bytes[offset+4:offset+8]
+                    chunk_data = raw_bytes[offset+8:offset+8+length]
+                    offset += 12 + length
+                    if chunk_type == b'zTXt' and len(chunk_data) > 2:
+                        null_idx = chunk_data.find(b'\x00')
+                        if 0 < null_idx < len(chunk_data) - 2:
+                            kw = chunk_data[:null_idx].decode('latin-1', errors='ignore')
+                            try:
+                                decompressed = zlib.decompress(chunk_data[null_idx+2:])
+                                fields[f'PNG.zTXt.{kw}'] = _clean_str(decompressed, 262144)
+                            except Exception:
+                                pass
+                    elif chunk_type in (b'tEXt', b'iTXt') and len(chunk_data) > 2:
+                        null_idx = chunk_data.find(b'\x00')
+                        if null_idx > 0:
+                            kw = chunk_data[:null_idx].decode('latin-1', errors='ignore')
+                            fields[f'PNG.{chunk_type.decode("ascii", errors="ignore")}.{kw}'] = _clean_str(chunk_data[null_idx+1:], 262144)
+        except Exception:
+            pass
+
     return fields
 
 
@@ -167,7 +231,7 @@ def inspect_source(data):
             image.verify()
         with Image.open(io.BytesIO(data)) as image:
             exif={ExifTags.TAGS.get(k,str(k)):str(v)[:1000] for k,v in image.getexif().items()}
-            textual=metadata_fields(image)
+            textual=metadata_fields(image, raw_bytes=data)
             clues=metadata_clues({**exif,**textual})
             quantization=getattr(image,'quantization',None)
             quality_limits=[]

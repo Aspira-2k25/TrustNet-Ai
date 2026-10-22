@@ -114,6 +114,9 @@ class ForensicDetector:
             reasons.append('The experimental feature head raises a warning, but the primary classifier does not corroborate it. The mapped AI reading is not a supported AI verdict or a probability that this photo is fake.')
         if provenance.get('asserts_ai_generation') and not provenance.get('signature_trusted'):
             reasons.append('A Content Credential declares AI generation, but its signature or certificate trust could not be validated. This is an unverified origin claim, not proof from the pixels.')
+        if provenance.get('ai_markers'):
+            tools_list = sorted({c.get('tool') for c in provenance['ai_markers'] if c.get('tool')})
+            reasons.append(f"Image metadata inspection identified AI tool signatures: {', '.join(tools_list[:4])}.")
         if manipulation_raw is None:reasons.append(local_note)
 
         probabilities=[p for p in [ai_prob,manipulation_prob] if p is not None]
