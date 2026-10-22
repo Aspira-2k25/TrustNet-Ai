@@ -42,9 +42,15 @@ def assets(rgb,heatmap,reliability,config):
     bgr=cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR)
     overlay=bgr.copy()
     selected=mask>0
-    overlay[selected]=cv2.addWeighted(bgr,.5,color,.5,0)[selected]
+    overlay[selected]=cv2.addWeighted(bgr,.35,color,.65,0)[selected]
     contours,_=cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    # Glowing dual-contour for sharp visual contrast
+    cv2.drawContours(overlay,contours,-1,(40,180,255),2)
     cv2.drawContours(overlay,contours,-1,(255,255,255),1)
+    # Highlight each detected AI / edited region with bounding box
+    for r in regions:
+        rx, ry, rw, rh = r['x'], r['y'], r['width'], r['height']
+        cv2.rectangle(overlay, (rx, ry), (rx + rw, ry + rh), (40, 180, 255), 1)
     raw=io.BytesIO()
     np.savez_compressed(raw,heatmap=heatmap.astype(np.float32),reliability=reliability.astype(np.float32))
     return dict(overlay=encode_png(overlay),heatmap=encode_png(color),mask=encode_png(mask),

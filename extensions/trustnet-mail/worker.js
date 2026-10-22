@@ -18,6 +18,7 @@ async function handle(req,sender) {
   const trusted=trustedSender(sender), mail=mailSender(sender);
   if (!trusted && !mail) throw new Error('Unsupported sender');
   if(req.action==='OPEN_SETTINGS'){await chrome.runtime.openOptionsPage();return {opened:true};}
+  if(req.action==='CLOSE_TAB'){if(sender.tab?.id){try{await chrome.tabs.remove(sender.tab.id);}catch{}return {closed:true};}return {closed:false};}
   if(req.action==='GET_LANGUAGE')return {language:(await chrome.storage.local.get('language')).language==='hi'?'hi':'en'};
   if(req.action==='SET_LANGUAGE'){
     if(!['en','hi'].includes(req.language))throw new Error('Unsupported language');

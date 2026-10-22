@@ -22,6 +22,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onGoToRegi
     try {
       const { user } = await api.login(email, password);
       onLoginSuccess(user);
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage({ type: 'TRUSTNET_LOGIN_SUCCESS', user }, '*');
+        } catch {}
+        setTimeout(() => {
+          try { window.close(); } catch {}
+        }, 600);
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your email and password.');
     } finally {

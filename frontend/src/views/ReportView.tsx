@@ -78,12 +78,23 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
       <div className="image-workbench">
         <div className="viewer-intro"><h3>{t('Compare views')}</h3>{canCompare&&<p>{t('Drag to compare with the original.')}</p>}</div>
         <div className="viewer-controls" role="group" aria-label={t("Image view")}>
-          {(['original','overlay','heatmap','mask','attention','ela','noise','frequency','repetition','gabor'] as Layer[]).filter(value=>(!['ela','noise','frequency','repetition','gabor'].includes(value)||advanced)&&(value==='original'||!!paths[value]&&(!['overlay','mask'].includes(value)||hasRegions))).map(value=><button key={value} aria-pressed={layer===value} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
+          {(['original','overlay','heatmap','mask','attention','ela','noise','frequency','repetition','gabor'] as Layer[]).filter(value=>(!['ela','noise','frequency','repetition','gabor'].includes(value)||advanced)&&(value==='original'||!!paths[value]&&(!['mask'].includes(value)||hasRegions))).map(value=><button key={value} aria-pressed={layer===value} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
           <label className="advanced-views"><input type="checkbox" checked={advanced} onChange={e=>{setAdvanced(e.target.checked);if(!e.target.checked&&diagnosticLayers.includes(layer))setLayer(paths.attention?'attention':'original');}}/>{t("Advanced forensic views")}</label>
           <label>{t("Zoom")} <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value={1}>100%</option><option value={1.5}>150%</option><option value={2}>200%</option><option value={3}>300%</option></select></label>
         </div>
         {layer==='attention'&&<p className="viewer-note"><strong>{t("Explainability")}: </strong>{paths.attention?t("Grad-CAM on the Vision Transformer. Highlights what influenced the AI classifier, not edited pixels."):t("Model explanation unavailable for this scan. Run a new check with explanations enabled.")}</p>}
         {layer==='attention'&&<div className="attention-legend"><span>{t("Lower response")}</span><span className="attention-scale copper-scale" aria-hidden="true"/><span>{t("Higher response")}</span></div>}
+        {layer==='attention'&&image.model_attention?.focal_region&&(
+          <div className="focal-region-badge" style={{margin:'0.5rem 1rem',padding:'0.5rem 0.75rem',background:'rgba(184,93,25,0.08)',border:'1px solid rgba(184,93,25,0.3)',borderRadius:'6px',fontSize:'0.85rem'}}>
+            <strong style={{color:'#b85d19'}}>🎯 {t("Primary AI Focal Area")}: </strong>
+            <span>
+              {image.model_attention.focal_region.width}×{image.model_attention.focal_region.height}px at ({image.model_attention.focal_region.x},{image.model_attention.focal_region.y})
+            </span>
+            <span style={{marginLeft:'0.5rem',fontSize:'0.75rem',color:'#555'}}>
+              (Focal area of strongest AI model attention)
+            </span>
+          </div>
+        )}
         {layer==='heatmap'&&<><p className="viewer-note">{t('Brighter colours mean a stronger edit-model response, not a confirmed edit.')}</p><div className="attention-legend"><span>{t('Lower response')}</span><span className="heatmap-scale" aria-hidden="true"/><span>{t('Higher response')}</span></div></>}
         {layer==='mask'&&<p className="viewer-note">{t('White pixels mark selected suspected areas. Black pixels are not selected. This is an estimate, not proof.')}</p>}
         {layer==='gabor'&&<p className="viewer-note">{t('Shows texture directions and edges. Natural patterns can be bright too. This is not an edited-area mask.')}</p>}

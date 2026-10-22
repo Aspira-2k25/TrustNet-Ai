@@ -51,7 +51,7 @@
     "observed_real_alerts": 0,
     "recall_above_real_max": 0.84375
   },
-  "pixel_threshold": 0.99,
+  "pixel_threshold": 0.65,
   "min_reliability": 0.25,
   "min_area_fraction": 0.001,
   "mask_validation": {

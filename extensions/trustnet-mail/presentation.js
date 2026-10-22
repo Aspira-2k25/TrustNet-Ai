@@ -7,8 +7,11 @@ var TrustNetPresentation = (() => {
     const catalog=words[language==='hi'?'hi':'en'];
     const view=result?.presentation?.locales?.[language]||result?.presentation;
     const known=view&&['looks_ai','looks_edited','scam','risky','no_clear_signs','not_sure','incomplete'].includes(view.verdict_key);
-    const warning=known&&['looks_ai','looks_edited','scam','risky'].includes(view.verdict_key);
-    const low=known&&view.verdict_key==='no_clear_signs';
+    const hasAlert = ['looks_ai','looks_edited','scam','risky'].includes(view?.verdict_key) ||
+                     view?.level?.ai==='high' || view?.level?.editing==='high' || view?.level?.warning==='high' ||
+                     (view?.headline && /warning|scam|alert|risky|ai/i.test(view.headline));
+    const warning=known&&hasAlert;
+    const low=known&&!hasAlert&&view.verdict_key==='no_clear_signs';
     const links=result?.metadata?.links||[];
     return {title:known?view.headline:catalog.incomplete,
       why:known?(view.reasons||[]).map(r=>r.text).join(' '):catalog.failed,
@@ -20,9 +23,18 @@ var TrustNetPresentation = (() => {
   }
   function linkLabel(link,language='en') {
     const catalog=words[language==='hi'?'hi':'en'];
-    const inspPres=link?.inspection?.result?.presentation;
-    const inspView=inspPres?.locales?.[language]||inspPres;
-    if(inspView?.headline)return inspView.headline;
+    const insp=link?.inspection;
+    if(insp?.result) {
+      const inspPres=insp.result.presentation;
+      const inspView=inspPres?.locales?.[language]||inspPres;
+      if(inspView?.headline)return inspView.headline;
+      if(insp.result.verdict==='SUSPICIOUS' || (insp.result.risk_score||0)>=50) {
+        return language==='hi' ? '⚠️ Khatarnaak link / Phishing ka shak' : '⚠️ Risky website / Phishing risk';
+      }
+      if(insp.result.verdict==='NO_STRONG_INDICATORS' || (insp.result.risk_score||0)<30) {
+        return language==='hi' ? '✓ Surakshit / Low risk website' : '✓ Safe / Low risk website';
+      }
+    }
     const view=link?.presentation?.locales?.[language]||link?.presentation;
     return view?.headline||catalog["Could not check this link"];
   }

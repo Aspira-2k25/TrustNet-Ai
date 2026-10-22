@@ -28,9 +28,9 @@ def project_to_original(heat,original_size,resize_size):
 def copper_colormap(gray):
     """Copper gradient colormap transitioning from dark bronze (0) to radiant copper/amber (255)."""
     norm = gray.astype(np.float32) / 255.0
-    r = np.clip(norm * 1.25 * 255, 0, 255).astype(np.uint8)
-    g = np.clip(norm * 0.78 * 255, 0, 255).astype(np.uint8)
-    b = np.clip(norm * 0.50 * 255, 0, 255).astype(np.uint8)
+    r = np.clip(norm * 1.35 * 255, 0, 255).astype(np.uint8)
+    g = np.clip(norm * 0.82 * 255, 0, 255).astype(np.uint8)
+    b = np.clip(norm * 0.45 * 255, 0, 255).astype(np.uint8)
     return cv2.merge([b, g, r])
 
 
@@ -43,16 +43,25 @@ def generate(model,processor,data,feature_head=None,return_map=False,target_clas
     batch=processor(images=image,return_tensors='pt',**options)
     pixels=batch['pixel_values'].detach().requires_grad_(True)
     captures=[]
-    # Support both model.vit.layers and model.vit.encoder.layer
-    encoder_layers = getattr(model.vit, 'layers', None)
-    if encoder_layers is None and hasattr(model.vit, 'encoder'):
-        encoder_layers = getattr(model.vit.encoder, 'layer', None)
+    # Support multiple transformer layer hierarchies
+    encoder_layers = getattr(model, 'vit', None)
+    if encoder_layers is not None:
+        encoder_layers = getattr(encoder_layers, 'layers', None) or getattr(getattr(encoder_layers, 'encoder', None), 'layer', None)
+    if encoder_layers is None and hasattr(model, 'encoder'):
+        encoder_layers = getattr(model.encoder, 'layer', None) or getattr(model.encoder, 'layers', None)
+    if encoder_layers is None and hasattr(model, 'transformer'):
+        encoder_layers = getattr(model.transformer, 'layers', None) or getattr(model.transformer, 'layer', None)
     if encoder_layers is None:
         raise ValueError('Unable to find transformer layers for Grad-CAM')
     last_layer = encoder_layers[-1]
-    target_norm = getattr(last_layer, 'layernorm_before', None) or getattr(last_layer, 'layer_norm1', None)
-    if target_norm is None:
-        raise ValueError('Unable to find layernorm_before in last transformer layer')
+    target_norm = (getattr(last_layer, 'layernorm_before', None) or
+                   getattr(last_layer, 'layer_norm1', None) or
+                   getattr(last_layer, 'norm1', None) or
+                   getattr(last_layer, 'layernorm_after', None) or
+                   getattr(last_layer, 'layer_norm2', None) or
+                   getattr(last_layer, 'norm2', None) or
+                   getattr(last_layer, 'output', None) or
+                   last_layer)
     hook = target_norm.register_forward_hook(lambda module,args,output:captures.append(output))
     try:
         with torch.enable_grad():
@@ -67,6 +76,15 @@ def generate(model,processor,data,feature_head=None,return_map=False,target_clas
                     target_idx = 0
                 score = out[:, target_idx].sum()
             activation=captures[-1]
+            
+            # Pixel-level Saliency (sensitivity of AI decision w.r.t input pixels)
+            saliency_map = None
+            try:
+                pixel_grads = torch.autograd.grad(score, pixels, retain_graph=True)[0]
+                saliency_map = pixel_grads.abs().max(dim=1)[0][0].detach().cpu().numpy()
+            except Exception:
+                pass
+
             gradients=torch.autograd.grad(score,activation,retain_graph=False)[0]
             weights=gradients[:,1:,:].mean(dim=1,keepdim=True)
             patch_map=torch.relu((activation[:,1:,:]*weights).sum(dim=-1))[0].detach().cpu().numpy()
@@ -76,6 +94,14 @@ def generate(model,processor,data,feature_head=None,return_map=False,target_clas
     maximum=float(patch_map.max(initial=0))
     heat=patch_map.reshape(side,side)/(maximum if maximum>0 else 1.)
     h,w=map(int,pixels.shape[-2:]);heat=cv2.resize(heat,(w,h),interpolation=cv2.INTER_LINEAR)
+
+    # Fuse with pixel Saliency map if available for fine-grained object sensitivity
+    if saliency_map is not None:
+        sal_max = float(saliency_map.max(initial=0))
+        if sal_max > 0:
+            sal_resized = cv2.resize(saliency_map / sal_max, (w, h), interpolation=cv2.INTER_LINEAR)
+            heat = 0.75 * heat + 0.25 * sal_resized
+
     # Reconstruct the exact supported processor geometry. Never stretch a square
     # model view over an unrelated rectangular source photo if center cropped.
     size=options.get('size',processor.size)
@@ -97,15 +123,28 @@ def generate(model,processor,data,feature_head=None,return_map=False,target_clas
     color=copper_colormap(np.clip(heat*255,0,255).astype(np.uint8))
     overlay=np.clip(original*(1-alpha)+color*alpha,0,255).astype(np.uint8)
 
-    # Canny edge enhancement: trace the sharp edges of the object inside the active attention area
+    # Copper edge enhancement: trace the sharp edges of the object inside the active attention area
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     canny = cv2.Canny(gray, 40, 120)
     active_edges = (canny > 0) & (heat >= floor) & visible
-    overlay[active_edges] = np.clip(overlay[active_edges].astype(np.int32) + [30, 140, 240], 0, 255).astype(np.uint8)
+    overlay[active_edges] = np.clip(overlay[active_edges].astype(np.int32) + [35, 150, 255], 0, 255).astype(np.uint8)
+
+    # Compute bounding box of focal AI attention region
+    active_mask = (heat >= floor) & visible
+    focal_region = None
+    if np.any(active_mask):
+        ys, xs = np.where(active_mask)
+        focal_region = {
+            'x': int(xs.min()), 'y': int(ys.min()),
+            'width': int(xs.max() - xs.min() + 1),
+            'height': int(ys.max() - ys.min() + 1),
+            'mean_intensity': float(heat[active_mask].mean())
+        }
 
     result={'image':encode_png(overlay),'view_width':w,'view_height':h,'positive_gradient_signal':maximum>0,
         'original_width':ow,'original_height':oh,'geometry':geometry,'display_floor':floor,
-        'legend':{'low':'dark copper bronze','high':'radiant golden amber','edges':'copper edges','unseen':'unchanged original pixels'},
+        'focal_region': focal_region,
+        'legend':{'low':'dark bronze','high':'radiant copper amber','edges':'copper edges','unseen':'unchanged original pixels'},
         'target':'Frozen feature-head AI logit' if feature_head else 'Primary ViT AI logit',
         'note':'Copper Grad-CAM & Saliency with Canny edges show where the model looked (not edited pixels). Positive contributions are not proof of AI alone.'}
     if return_map:result.update(heatmap=heat,coverage=visible)

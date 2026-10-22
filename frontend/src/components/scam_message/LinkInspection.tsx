@@ -58,7 +58,16 @@ export function LinkInspection({scanId, index, saved, onUpdated}: {
       {saved.reason && <p className="text-sm text-amber-900">{saved.reason}</p>}
       {summary && <>
         <p className="text-xs text-slate-600">{summary.scope} {summary.live_checks_observed}/{summary.live_checks_total} live checks returned observations.</p>
-        {saved.result && ['SUCCESS', 'PARTIAL_SUCCESS'].includes(saved.result.status || '') && <p className="text-sm">Separate URL inspection: {saved.result.risk_score.toFixed(1)}/100 risk. {saved.result.verdict?.replaceAll('_', ' ')}</p>}
+        {saved.result && ['SUCCESS', 'PARTIAL_SUCCESS'].includes(saved.result.status || '') && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg border font-medium text-sm" style={{
+            background: (saved.result.risk_score >= 50 || saved.result.verdict === 'SUSPICIOUS') ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+            borderColor: (saved.result.risk_score >= 50 || saved.result.verdict === 'SUSPICIOUS') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)',
+            color: (saved.result.risk_score >= 50 || saved.result.verdict === 'SUSPICIOUS') ? '#991b1b' : '#065f46'
+          }}>
+            <span>{(saved.result.risk_score >= 50 || saved.result.verdict === 'SUSPICIOUS') ? '⚠️ Phishing / Risky Website' : '✓ Safe / Legitimate Website'}</span>
+            <span className="text-xs opacity-75">({saved.result.risk_score.toFixed(1)}/100 risk score — {saved.result.verdict?.replaceAll('_', ' ')})</span>
+          </div>
+        )}
         <h4 className="font-semibold">What we observed and why it matters</h4>
         <div className="grid gap-3 md:grid-cols-2">{summary.observations.map((item, i) => <article key={`${item.title}-${i}`} className={`rounded-lg border p-3 ${item.status === 'warning' ? 'border-amber-600' : 'border-slate-700'}`}>
           <h5 className="font-semibold">{item.title}</h5>

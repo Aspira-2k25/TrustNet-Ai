@@ -150,8 +150,13 @@ def public_result(record):
         reason('uncertain', '/verdict' if 'verdict' in record else '/status')
     result = {}
     for language, words in translations().items():
+        if is_image:
+            headline = words['image_partial_ai' if levels.get('ai') == 'high' else 'image_partial'] if key == 'incomplete' and status in ('SUCCESS','PARTIAL_SUCCESS') else words[key]
+        else:
+            has_alert = verdict in ('LIKELY_SCAM', 'SMISHING_RISK', 'SUSPICIOUS') or bool(levels.get('warning')) or any(f.get('code') in ('SECRET_REQUEST','PRIZE_ADVANCE_FEE','GUARANTEED_INVESTMENT') for f in (meta.get('rule_findings') or [])) or any(link.get('verdict') == 'SUSPICIOUS' for link in meta.get('links') or [])
+            headline = words['text_partial_warning'] if key == 'incomplete' and status in ('SUCCESS','PARTIAL_SUCCESS') and has_alert else words[key]
         result[language] = {
-            'verdict_key': key, 'headline': words['image_partial_ai' if levels.get('ai') == 'high' else 'image_partial'] if is_image and key == 'incomplete' and status in ('SUCCESS','PARTIAL_SUCCESS') else words[key],
+            'verdict_key': key, 'headline': headline,
             'reasons': [{'text': words[code], 'evidence_id': pointer} for code, pointer in reason_keys] + custom,
             'next_steps': [words['next_image' if is_image else 'next_text']],
             'level': levels, 'limits': [words[code] for code in limits],

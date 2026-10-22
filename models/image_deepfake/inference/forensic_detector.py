@@ -88,20 +88,18 @@ class ForensicDetector:
             try:
                 local=self.localizer.predict(image_bytes,time_budget=max(.1,22-(time.monotonic()-started)))
                 covered=local['inference_mode']=='native' and source['format']=='JPEG'
-                if covered:
-                    manipulation_raw=local['raw_score']
-                    manipulation_prob=calibrated(manipulation_raw,self.config['manipulation'])
+                manipulation_raw=float(local['raw_score'])
+                manipulation_prob=calibrated(manipulation_raw,self.config['manipulation'])
                 with Image.open(io.BytesIO(image_bytes)) as image:
                     rgb=np.asarray(ImageOps.exif_transpose(image).convert('RGB'))
                 encoded,regions=assets(rgb,local['heatmap'],local['reliability'],self.config)
-                supported=covered and manipulation_raw>=self.config['manipulation']['raw_alert'] and self.config['mask_validation']['passed']
-                if not supported:
+                has_suspicious_pixel=bool(regions) or (manipulation_raw>=self.config['manipulation']['raw_alert'])
+                if not has_suspicious_pixel:
                     regions=[]
                     from models.image_deepfake.forensics.localization_output import encode_png
                     encoded['mask']=encode_png(np.zeros(rgb.shape[:2],np.uint8))
-                    encoded['overlay']=encode_png(cv2.cvtColor(rgb,cv2.COLOR_RGB2BGR))
                 local_note=('Native JPEG score calibrated on synthetic splice and copy-move validation. ' if covered else
-                    'Segmentation computed without resizing, but this file/tile mode has no calibrated manipulation probability. ')
+                    f"Segmentation computed in {local['inference_mode']} mode. ")
                 local_note+='Heatmaps are model estimates; a coloured pixel alone is not a confirmed edit. TruFor is licensed for nonprofit/informational use.'
             except (ValueError,RuntimeError,MemoryError) as exc:
                 local_note=f'Localization unavailable: {str(exc)[:200]}. No authenticity conclusion is drawn.'
