@@ -22,5 +22,5 @@ export function resultView(scan:ScanRecord,language:ResultLanguage='en') {
 export function simpleResult(scan:ScanRecord,language:ResultLanguage='en') {
   const view=resultView(scan,language);
   return {title:view.headline,why:view.reasons.map(r=>r.text).join(' '),next:view.next_steps.join(' '),
-    tone: (['looks_ai','looks_edited','scam','risky'].includes(view.verdict_key)?'warning':view.verdict_key==='no_clear_signs'?'low':'unsure') as 'warning'|'low'|'unsure'};
+    tone: (['looks_ai','looks_edited','scam','risky'].includes(view.verdict_key)?'warning':['no_clear_signs','looks_real'].includes(view.verdict_key)?'low':'unsure') as 'warning'|'low'|'unsure'};
 }

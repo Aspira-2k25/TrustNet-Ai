@@ -25,7 +25,16 @@ def project_to_original(heat,original_size,resize_size):
     return mapped,visible,dict(resized_width=rw,resized_height=rh,crop_left=left,crop_top=top,crop_width=w,crop_height=h)
 
 
-def generate(model,processor,data,feature_head=None,return_map=False):
+def copper_colormap(gray):
+    """Copper gradient colormap transitioning from dark bronze (0) to radiant copper/amber (255)."""
+    norm = gray.astype(np.float32) / 255.0
+    r = np.clip(norm * 1.25 * 255, 0, 255).astype(np.uint8)
+    g = np.clip(norm * 0.78 * 255, 0, 255).astype(np.uint8)
+    b = np.clip(norm * 0.50 * 255, 0, 255).astype(np.uint8)
+    return cv2.merge([b, g, r])
+
+
+def generate(model,processor,data,feature_head=None,return_map=False,target_class=None):
     with Image.open(io.BytesIO(data)) as original:
         image=ImageOps.exif_transpose(original).convert('RGB')
     options={}
@@ -34,16 +43,29 @@ def generate(model,processor,data,feature_head=None,return_map=False):
     batch=processor(images=image,return_tensors='pt',**options)
     pixels=batch['pixel_values'].detach().requires_grad_(True)
     captures=[]
-    # Before the last attention operation: final patch tokens after attention
-    # have no path back to the classification token in a CLS-only head.
-    hook=model.vit.layers[-1].layernorm_before.register_forward_hook(lambda module,args,output:captures.append(output))
+    # Support both model.vit.layers and model.vit.encoder.layer
+    encoder_layers = getattr(model.vit, 'layers', None)
+    if encoder_layers is None and hasattr(model.vit, 'encoder'):
+        encoder_layers = getattr(model.vit.encoder, 'layer', None)
+    if encoder_layers is None:
+        raise ValueError('Unable to find transformer layers for Grad-CAM')
+    last_layer = encoder_layers[-1]
+    target_norm = getattr(last_layer, 'layernorm_before', None) or getattr(last_layer, 'layer_norm1', None)
+    if target_norm is None:
+        raise ValueError('Unable to find layernorm_before in last transformer layer')
+    hook = target_norm.register_forward_hook(lambda module,args,output:captures.append(output))
     try:
         with torch.enable_grad():
             if feature_head:
                 cls=model.vit(pixel_values=pixels,interpolate_pos_encoding=True).last_hidden_state[:,0]
                 tensor=lambda name:torch.as_tensor(feature_head[name],dtype=cls.dtype,device=cls.device)
                 score=(((cls-tensor('mean'))/tensor('scale'))*tensor('coef')).sum()+feature_head['intercept']
-            else:score=model(pixel_values=pixels).logits[:,0].sum()
+            else:
+                out = model(pixel_values=pixels).logits
+                target_idx = target_class if target_class is not None else 0
+                if target_idx >= out.shape[-1]:
+                    target_idx = 0
+                score = out[:, target_idx].sum()
             activation=captures[-1]
             gradients=torch.autograd.grad(score,activation,retain_graph=False)[0]
             weights=gradients[:,1:,:].mean(dim=1,keepdim=True)
@@ -55,24 +77,36 @@ def generate(model,processor,data,feature_head=None,return_map=False):
     heat=patch_map.reshape(side,side)/(maximum if maximum>0 else 1.)
     h,w=map(int,pixels.shape[-2:]);heat=cv2.resize(heat,(w,h),interpolation=cv2.INTER_LINEAR)
     # Reconstruct the exact supported processor geometry. Never stretch a square
-    # model view over an unrelated rectangular source photo.
+    # model view over an unrelated rectangular source photo if center cropped.
     size=options.get('size',processor.size)
-    shortest=size.get('shortest_edge') if isinstance(size,dict) else size.shortest_edge
-    if not processor.do_resize or not shortest:raise ValueError('Unsupported attention resize contract')
+    shortest=size.get('shortest_edge') if isinstance(size,dict) else getattr(size,'shortest_edge',None)
+    do_crop=getattr(processor,'do_center_crop',False) or bool(feature_head and feature_head.get('feature_input_size')==224)
     ow,oh=image.size
-    rh,rw=(shortest,int(shortest*ow/oh)) if oh<=ow else (int(shortest*oh/ow),shortest)
     heat=cv2.GaussianBlur(heat,(0,0),max(1,w/96))
-    heat,visible,geometry=project_to_original(heat,image.size,(rh,rw))
+    if do_crop and shortest:
+        rh,rw=(shortest,int(shortest*ow/oh)) if oh<=ow else (int(shortest*oh/ow),shortest)
+        heat,visible,geometry=project_to_original(heat,image.size,(rh,rw))
+    else:
+        heat=cv2.resize(heat,(ow,oh),interpolation=cv2.INTER_LINEAR)
+        visible=np.ones((oh,ow),dtype=bool)
+        geometry=dict(resized_width=ow,resized_height=oh,crop_left=0,crop_top=0,crop_width=ow,crop_height=oh)
     positives=heat[visible & (heat>0)]
     floor=float(np.quantile(positives,.7)) if len(positives) else 1.
-    alpha=np.where(visible & (heat>=floor),.4*heat,0)[...,None]
+    alpha=np.where(visible & (heat>=floor),np.clip(.55*heat, .2, .7),0)[...,None]
     original=cv2.cvtColor(np.asarray(image),cv2.COLOR_RGB2BGR)
-    color=cv2.applyColorMap(np.clip(heat*255,0,255).astype(np.uint8),cv2.COLORMAP_INFERNO)
+    color=copper_colormap(np.clip(heat*255,0,255).astype(np.uint8))
     overlay=np.clip(original*(1-alpha)+color*alpha,0,255).astype(np.uint8)
+
+    # Canny edge enhancement: trace the sharp edges of the object inside the active attention area
+    gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    canny = cv2.Canny(gray, 40, 120)
+    active_edges = (canny > 0) & (heat >= floor) & visible
+    overlay[active_edges] = np.clip(overlay[active_edges].astype(np.int32) + [30, 140, 240], 0, 255).astype(np.uint8)
+
     result={'image':encode_png(overlay),'view_width':w,'view_height':h,'positive_gradient_signal':maximum>0,
         'original_width':ow,'original_height':oh,'geometry':geometry,'display_floor':floor,
-        'legend':{'low':'dark purple','high':'pale yellow','unseen':'unchanged original pixels'},
+        'legend':{'low':'dark copper bronze','high':'radiant golden amber','edges':'copper edges','unseen':'unchanged original pixels'},
         'target':'Frozen feature-head AI logit' if feature_head else 'Primary ViT AI logit',
-        'note':'Where the model looked (this is not where the edit is). Grad-CAM is mapped back to the original image geometry; areas outside the classifier view are unchanged. Positive contributions are not edited pixels, proof of AI, or an explanation of every fusion branch.'}
+        'note':'Copper Grad-CAM & Saliency with Canny edges show where the model looked (not edited pixels). Positive contributions are not proof of AI alone.'}
     if return_map:result.update(heatmap=heat,coverage=visible)
     return result

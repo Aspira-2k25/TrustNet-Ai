@@ -2,7 +2,7 @@
 from typing import Any, Literal
 from pydantic import BaseModel, Field
 
-VerdictKey = Literal['looks_ai','looks_edited','scam','risky','no_clear_signs','not_sure','incomplete']
+VerdictKey = Literal['looks_ai','looks_edited','scam','risky','no_clear_signs','not_sure','incomplete','looks_real']
 SignalLevel = Literal['low','medium','high']
 
 
@@ -13,7 +13,7 @@ class PublicReason(BaseModel):
 
 class SignalCheck(BaseModel):
     name: str
-    state: Literal['warning', 'uncertain', 'incomplete']
+    state: Literal['warning', 'uncertain', 'incomplete', 'pass']
     text: str
     evidence_id: str = Field(pattern=r'^/')
 
@@ -26,6 +26,7 @@ class LocalizedResult(BaseModel):
     level: dict[str, SignalLevel]
     limits: list[str]
     checks: list[SignalCheck] = Field(default_factory=list)
+    image_assessment: dict[str, Any] | None = None
 
 
 class ResultPresentation(LocalizedResult):

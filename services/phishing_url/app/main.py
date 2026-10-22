@@ -54,6 +54,22 @@ async def infer(req: InferenceRequest):
     try:
         result = await asyncio.to_thread(app.state.detector.predict, {'scan_id': req.scan_id, 'url': req.url})
         result.metadata['embedded_scan_mode'] = 'offline_url_model_and_link_policy'
+        from urllib.parse import urlparse
+        from models.phishing_url.inference.forensics import registered_domain
+        host = urlparse(req.url).hostname or req.url
+        try:
+            reg_dom = registered_domain(host)
+        except Exception:
+            reg_dom = host
+        result.metadata['domain_intel'] = {
+            'domain': reg_dom,
+            'domain_age_days': None,
+            'registration_date': None,
+            'ssl_status': 'UNVERIFIED_SSL' if req.url.lower().startswith('https://') else 'UNENCRYPTED_HTTP',
+            'ssl_issuer': None,
+            'has_password_form': False,
+            'final_url': req.url
+        }
         return {'data': result.model_dump(mode='json')}
     finally:
         app.state.inference_slots.release()

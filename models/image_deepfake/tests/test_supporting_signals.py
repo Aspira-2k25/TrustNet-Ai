@@ -16,7 +16,7 @@ def test_lossless_input_does_not_invent_a_jpeg_history_or_edit_mask():
     data=encoded(np.random.default_rng(42).integers(0,256,(128,160,3),dtype=np.uint8))
     sha=hashlib.sha256(data).hexdigest();result=analyze(data)
     assert result['ela']['status']=='NOT_APPLICABLE'
-    assert result['assets']=={}
+    assert set(result['assets'])=={'noise','frequency','gabor','diagnostic_original'}
     assert result['affects_verdict'] is False
     assert not {'probability','regions','mask'} & result.keys()
     assert hashlib.sha256(data).hexdigest()==sha
@@ -39,6 +39,23 @@ def test_copy_move_reports_geometric_candidates_without_asserting_manipulation()
     assert result['copy_move']['geometric_inliers']>=6
     assert result['affects_verdict'] is False
     assert 'No edit regions are asserted' in result['copy_move']['note']
+    assert 'repetition' in result['assets']
+    assert result['copy_move']['matches']
+    marked=cv2.imdecode(np.frombuffer(base64.b64decode(result['assets']['repetition']),np.uint8),cv2.IMREAD_COLOR)
+    assert marked.shape==pixels.shape
+    assert np.any(marked!=cv2.cvtColor(pixels,cv2.COLOR_RGB2BGR))
+
+
+def test_diagnostic_views_are_finite_native_window_displays_not_edit_regions():
+    data=encoded(np.full((300,420,3),128,np.uint8))
+    result=analyze(data)
+    for kind in ('noise','frequency','gabor','diagnostic_original'):
+        image=cv2.imdecode(np.frombuffer(base64.b64decode(result['assets'][kind]),np.uint8),cv2.IMREAD_COLOR)
+        assert image.shape==(300,420,3)
+        assert np.isfinite(image).all()
+    assert 'repetition' not in result['assets']
+    assert result['frequency']['method']=='Centered FFT log magnitude'
+    assert result['affects_verdict'] is False
 
 
 @pytest.mark.parametrize('failure',[RuntimeError,cv2.error])
@@ -61,3 +78,14 @@ def test_diagnostic_failure_cannot_change_the_real_verdict_path(monkeypatch,fail
     result=detector.predict(data)
     assert (result.verdict,result.explanation,result.native_score)==(reference.verdict,reference.explanation,reference.native_score)
     assert result.metadata['image_analysis']['supporting_forensics']['affects_verdict'] is False
+
+
+def test_gabor_responds_to_texture_without_classifying_it_as_fake():
+    pixels=np.full((128,160,3),128,np.uint8)
+    flat=analyze(encoded(pixels))
+    pixels[:,::8]=255;pixels[:,1::8]=255
+    striped=analyze(encoded(pixels))
+    assert max(striped['gabor']['mean_response']) > max(flat['gabor']['mean_response']) + 1
+    assert striped['affects_verdict'] is False
+    original=cv2.imdecode(np.frombuffer(base64.b64decode(striped['assets']['diagnostic_original']),np.uint8),cv2.IMREAD_COLOR)
+    assert np.array_equal(original,cv2.cvtColor(pixels,cv2.COLOR_RGB2BGR))

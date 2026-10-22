@@ -132,11 +132,15 @@ def main():
                 image_scan=image_response.json()['data'];identifier=image_scan['id']
                 analysis=image_scan['result']['metadata']['image_analysis']
                 assert image_scan['result']['status']=='SUCCESS'
+                scale=image_scan['result']['presentation']['image_assessment']
+                assert scale['alert_boundary']==round(analysis['ai_decision_boundary']*100,1)
+                assert scale['model']==analysis['ai_model_id']
+                assert not any(band['enabled'] for band in scale['bands'][:2])
                 assert analysis['source_sha256']==hashlib.sha256(original).hexdigest()
                 assert analysis['supporting_forensics']['affects_verdict'] is False
                 assert analysis['supporting_forensics']['ela']['status']=='APPLIED'
                 assert analysis['model_attention']['view_width']>0
-                assert {'ela','attention'}.issubset(analysis['assets'])
+                assert {'ela','attention','noise','frequency','gabor','diagnostic_original'}.issubset(analysis['assets'])
                 for kind in ['original',*analysis['assets']]:
                     path=base+'/scans/'+identifier+'/image/'+kind
                     asset=client.get(path,headers=owner);assert asset.status_code==200

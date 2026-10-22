@@ -19,6 +19,7 @@ class CopyMoveAnalyzer:
                     if np.linalg.norm(a-b)<32:continue
                     seen.add((i,j));candidates.append((a,b))
         coherent=0
+        aligned=[]
         if len(candidates)>=6:
             votes={}
             for a,b in candidates:
@@ -30,6 +31,11 @@ class CopyMoveAnalyzer:
                 _,inliers=cv2.estimateAffinePartial2D(np.float32([p[0] for p in group]),np.float32([p[1] for p in group]),
                     method=cv2.RANSAC,ransacReprojThreshold=3,maxIters=500,confidence=.95)
                 coherent=int(inliers.sum()) if inliers is not None else 0
+                if inliers is not None and coherent>=6:
+                    aligned=[{'from':[round(float(v),2) for v in a],
+                              'to':[round(float(v),2) for v in b]}
+                             for (a,b),keep in zip(group,inliers.ravel()) if keep][:24]
         return {'descriptor_pairs':len(candidates),'geometric_inliers':coherent,
+            'matches':aligned,
             'status':'REPEATED_PATTERN_CANDIDATES' if coherent>=6 else 'NO_COHERENT_PATTERN_FOUND',
             'note':'ORB self-matches with RANSAC are a copy-move diagnostic. Natural repetition can match; missing matches do not exclude copying. No edit regions are asserted.'}

@@ -1,0 +1,6 @@
+{
+  "url": "https://raw.githubusercontent.com/c2pa-org/conformance-public/47009eedfe6721edd0ce3e69b89c1101cd6f03e5/trust-list/C2PA-TRUST-LIST.pem",
+  "revision": "47009eedfe6721edd0ce3e69b89c1101cd6f03e5",
+  "sha256": "b3949271a07b007e92ef1d18050b55388f5e0d2686a16fd864176c48421af8ae",
+  "description": "Official C2PA trust anchors. Public certificates only. Source commit pinned; never trust a certificate supplied by an uploaded image."
+}

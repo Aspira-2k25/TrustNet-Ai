@@ -5,6 +5,13 @@ import numpy as np
 from models.image_deepfake.forensics.localization_output import pixel_mask,assets
 
 
+def test_empty_mask_never_lowers_the_validated_pixel_threshold():
+    heat=np.full((64,64),.8,dtype=np.float32)
+    mask,regions=pixel_mask(heat,np.ones_like(heat),.9,.5,.005)
+    assert not mask.any()
+    assert regions==[]
+
+
 def test_mask_uses_segmentation_and_reliability_not_image_edges():
     heat=np.zeros((80,100),np.float32)
     heat[20:45,30:60]=.99

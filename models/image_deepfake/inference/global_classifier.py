@@ -8,6 +8,8 @@ import numpy as np
 import torch
 
 CANDIDATES = {
+    'dima806': {'id':'dima806/deepfake_vs_real_image_detection',
+        'ai_label':'Fake', 'real_label':'Real', 'license':'apache-2.0'},
     'community': {'id':'buildborderless/CommunityForensics-DeepfakeDet-ViT',
         'revision':'ac6ee457bea904a373065754107451793b56db00',
         'output_kind':'single_sigmoid', 'license':'mit'},
@@ -23,12 +25,14 @@ class GlobalClassifier:
         from transformers import AutoImageProcessor, AutoModelForImageClassification
         spec=CANDIDATES[name]
         location=str(model_path or spec['id'])
-        options={'local_files_only':True} if model_path else {'revision':spec['revision'], 'local_files_only':True}
+        options={'local_files_only':True}
+        if not model_path and spec.get('revision'):
+            options['revision']=spec['revision']
         self.processor=AutoImageProcessor.from_pretrained(location,**options)
         self.model=AutoModelForImageClassification.from_pretrained(location,**options).eval()
         self.labels={int(k):str(v) for k,v in self.model.config.id2label.items()}
         self.single_logit=spec.get('output_kind')=='single_sigmoid'
-        # No guessed LABEL_0/1 or substring mapping.
+        # Normalize labels to casefold
         normalized={v.casefold():k for k,v in self.labels.items()}
         if self.single_logit:
             cfg=self.model.config
@@ -68,11 +72,11 @@ class GlobalClassifier:
         result=dict(ai_score=float(probabilities[self.ai_index]), real_score=float(probabilities[self.real_index]),
             class_probabilities={label:float(probabilities[index]) for index,label in self.labels.items()},
             original_shape=original_shape, model_view_shape=list(batch['pixel_values'].shape),
-            model_id=self.spec['id'], revision=self.spec['revision'], calibrated=False)
+            model_id=self.spec['id'], revision=self.spec.get('revision'), calibrated=False)
         if return_embedding:result['embedding']=features[0].cpu().numpy().tolist()
         return result
 
     def explain(self,image_bytes,feature_head=None):
         from models.image_deepfake.explainability.grad_cam import generate
         with self.lock:
-            return generate(self.model,self.processor,image_bytes,feature_head)
+            return generate(self.model,self.processor,image_bytes,feature_head,target_class=self.ai_index)

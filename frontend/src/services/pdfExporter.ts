@@ -5,8 +5,9 @@ import type { ScanRecord } from '../types';
 import { API_BASE_URL, httpClient } from './api/client';
 
 function publicLines(scan:ScanRecord,language:'en'|'hi') {
-  const view=resultView(scan,language),words=resultWords[language];
-  return [notice(language),view.headline,...(view.checks||[]).map(c=>`${c.name}: ${c.text}`),words.why,...view.reasons.map(r=>r.text),words.next,...view.next_steps,words.limits,...view.limits];
+  const view=resultView(scan,language),words=resultWords[language],image=view.image_assessment;
+  const imageIntro=image?[`Model: ${image.model}`,...(image.file_origin?.trusted&&image.file_origin.declares_ai?[`Verified signed AI-generation declaration. Signer: ${image.file_origin.signer||'Not recorded'}`]:[`${image.score_label}: ${image.score??'Unavailable'} / 100`,image.score_notice])]:[];
+  return [notice(language),view.headline,...imageIntro,...(view.checks||[]).map(c=>`${c.name}: ${c.text}`),words.why,...view.reasons.map(r=>r.text),words.next,...view.next_steps,words.limits,...view.limits];
 }
 
 export async function exportForensicPDFReport(scan: ScanRecord, download = true): Promise<Uint8Array> {
@@ -46,7 +47,7 @@ export async function exportForensicPDFReport(scan: ScanRecord, download = true)
     if(supporting.noise)line(`Noise residual: ${supporting.noise.residual_rms} luminance levels RMS. ${supporting.noise.note}`);
     if(supporting.copy_move)line(`Repeated-pattern check: ${supporting.copy_move.geometric_inliers} consistent feature matches. ${supporting.copy_move.note}`);
   }
-  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.regions?.length?image.assets?.overlay:undefined],['Where the model looked (not where the edit is)',image.assets?.attention]]){
+  for(const [kind,url] of [['Original upload',image.original_url],['Supported region overlay',image.regions?.length?image.assets?.overlay:undefined],['Where the model looked (not where the edit is)',image.assets?.attention],['JPEG differences: recompression diagnostic, not an edit mask',image.assets?.ela],['Noise and detail: native window, not an edit mask',image.assets?.noise],['Frequency patterns: frequency coordinates, not photo locations',image.assets?.frequency],['Repeated patterns: matching candidates, not verified copying',image.assets?.repetition],['Texture directions: Gabor diagnostic, not an edit mask',image.assets?.gabor]]){
     if(typeof url!=='string'||!url.startsWith(`/api/v1/scans/${encodeURIComponent(scan.id)}/image/`))continue;
     try{
       const response=await fetch(API_BASE_URL+url,{headers:httpClient.getHeaders()});

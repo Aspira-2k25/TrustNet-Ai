@@ -1,8 +1,8 @@
 /* Pure presentation contract. No network, mailbox access or HTML interpolation. */
 var TrustNetPresentation = (() => {
   const text=(language,en,hi)=>language==='hi'?hi:en;
-  const words=typeof module!=='undefined'?require('./translations.js'):TrustNetWords;
-  const notice=language=>words[language==='hi'?'hi':'en'].notice;
+  const words=typeof module!=='undefined'?require('./translations.js'):(typeof TrustNetWords!=='undefined'?TrustNetWords:(globalThis.TrustNetWords||{en:{notice:''},hi:{notice:''}}));
+  const notice=language=>(words[language==='hi'?'hi':'en']||{}).notice||'';
   function summary(result,language='en') {
     const catalog=words[language==='hi'?'hi':'en'];
     const view=result?.presentation?.locales?.[language]||result?.presentation;
@@ -19,7 +19,12 @@ var TrustNetPresentation = (() => {
       linksChecked:result?.metadata?.fusion?.links_assessed??links.filter(l=>['SUCCESS','PARTIAL_SUCCESS'].includes(l.status)).length};
   }
   function linkLabel(link,language='en') {
-    return link?.presentation?.locales?.[language]?.headline||link?.presentation?.headline||words[language==='hi'?'hi':'en']["Could not check this link"];
+    const catalog=words[language==='hi'?'hi':'en'];
+    const inspPres=link?.inspection?.result?.presentation;
+    const inspView=inspPres?.locales?.[language]||inspPres;
+    if(inspView?.headline)return inspView.headline;
+    const view=link?.presentation?.locales?.[language]||link?.presentation;
+    return view?.headline||catalog["Could not check this link"];
   }
   function reportUrl(id){if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(id))throw new Error('Invalid saved report ID');return 'http://localhost:5173/?scan='+encodeURIComponent(id);}
   function errorMessage(error,language='en'){

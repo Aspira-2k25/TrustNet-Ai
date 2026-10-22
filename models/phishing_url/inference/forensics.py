@@ -10,8 +10,19 @@ POLICY_VERSION = 'dynamic-v2'
 
 @lru_cache(maxsize=1)
 def suffix_parser():
-    import tldextract
-    return tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None, include_psl_private_domains=True)
+    try:
+        import tldextract
+        return tldextract.TLDExtract(suffix_list_urls=(), cache_dir=None, include_psl_private_domains=True)
+    except ImportError:
+        class SimpleExtract:
+            def __call__(self, host):
+                parts = host.split('.')
+                top = '.'.join(parts[-2:]) if len(parts) >= 2 else host
+                class Res:
+                    top_domain_under_public_suffix = top
+                    suffix = parts[-1] if len(parts) > 1 else ''
+                return Res()
+        return SimpleExtract()
 
 def registered_domain(host):
     try:

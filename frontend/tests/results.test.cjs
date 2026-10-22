@@ -18,7 +18,7 @@ const scan=(verdict='INCONCLUSIVE',extra={})=>{
 const render=(record,language='en')=>renderToStaticMarkup(React.createElement(LanguageContext.Provider,{value:{language,setLanguage(){}}},React.createElement(ReportView,{scan:record,onBack(){}})));
 test('an incomplete edit check is never presented as proof of a real image',()=>{
  const plain=simpleResult(scan());assert.equal(plain.title,'Image check partly finished');assert.match(plain.why,/edit check/);
- for(const language of ['en','hi']){const html=render(scan(),language);assert(html.includes(notice(language)));assert(!html.includes('Likely authentic'));}
+ for(const language of ['en','hi']){const html=render(scan(),language);assert(html.includes(notice(language)));assert(!/<li[^>]*aria-current="step"[^>]*><span>Likely authentic/.test(html));assert.equal(scan().result.presentation.verdict_key,'incomplete');}
 });
 
 test('a high score on a quality-limited real-photo report is not a reliable AI warning',()=>{
@@ -34,7 +34,7 @@ test('an unsupported experimental head warning is shown as disagreement, not a c
  assert.match(simpleResult(record).why,/AI checks disagree/);
 });
 test('zero supported regions do not offer an identical edited-area overlay',()=>{
- const html=render(scan());assert(html.includes('Edited-area check did not finish. No heatmap or mask is available.'));
+ const html=render(scan());assert(html.includes('Editing check incomplete. No edited-area mask is available.'));
  assert(!html.includes('>Edited areas</button>'));assert(html.includes('Details for experts'));assert(!/<details[^>]*open/.test(html));
 });
 test('high AI and editing results use simple headings in both languages',()=>{
@@ -67,10 +67,47 @@ test('high reference reading below a decision boundary never becomes a High AI w
  assert(!('risk_score' in record.result.presentation.details));
  assert.equal(record.result.presentation.checks[0].state,'uncertain');
 });
-test('available attention offers an accessible comparison slider even without edited regions',()=>{
+test('image opens on the original and offers a labelled AI explanation without invented regions',()=>{
  const record=scan('INCONCLUSIVE',{original_url:'/api/v1/scans/scan-unit/image/original',assets:{attention:'/api/v1/scans/scan-unit/image/attention'}});
  const html=render(record);
- assert(html.includes('type="range"'));assert(html.includes('aria-label="Comparison position"'));
+ assert(html.includes('aria-pressed="true">Original</button>'));assert(html.includes('>AI explanation</button>'));assert(!html.includes('type="range"'));
  assert(!html.includes('>Mask</button>'));assert(!html.includes('>Heatmap</button>'));
- assert(html.includes('not where the edit is'));
+ assert(html.includes('not edited pixels'));assert(html.includes('Grad-CAM on the Vision Transformer'));
+});
+
+
+test('advanced forensic plots stay folded without inventing edited regions',()=>{
+ const record=scan('INCONCLUSIVE',{analysis_complete:true,manipulation_prob:.1,assets:{gabor:'/api/v1/scans/scan-unit/image/gabor',noise:'/api/v1/scans/scan-unit/image/noise',frequency:'/api/v1/scans/scan-unit/image/frequency',repetition:'/api/v1/scans/scan-unit/image/repetition'}});
+ const html=render(record);
+ for(const name of ['Noise and detail','Frequency patterns','Repeated patterns','Texture directions'])assert(!html.includes('>'+name+'</button>'));
+ assert(html.includes('Advanced forensic views'));
+ assert(!html.includes('>Edited areas</button>'));assert(!html.includes('>Mask</button>'));
+});
+
+
+test('image model and guarded evidence score are visible without invented authenticity thresholds',()=>{
+ const record=scan('INCONCLUSIVE',{ai_policy_score:.49,ai_decision_boundary:.5,ai_model_id:'CommunityForensics ViT',analysis_complete:true,manipulation_prob:.1,quality:{adequate:true}});
+ const html=render(record);assert(html.includes('CommunityForensics ViT'));assert(html.includes('49.0'));assert(html.includes('50.0 / 100'));
+ assert(html.includes('Authentic'));assert(html.includes('Likely authentic'));assert(html.includes('Validation required'));
+ assert.equal(record.result.presentation.image_assessment.category,'uncertain');
+});
+
+
+test('verified signed AI origin is prominent even when the edit model cannot finish',()=>{
+ const record=scan('LIKELY_AI_GENERATED',{analysis_complete:false,quality:{adequate:true},ai_checks_disagree:true,
+ provenance:{signature_trusted:true,asserts_ai_generation:true,signer:'OpenAI OpCo, LLC',c2pa_status:'present'},
+ ai_raw_score:.2197122,modern_generator_raw_score:.942399,ai_policy_score:.74167,ai_decision_boundary:.5});
+ const html=render(record);assert(html.includes('This is AI-generated'));assert(html.includes('OpenAI OpCo, LLC'));
+ assert(html.includes('Verified signed record declares AI generation'));assert(html.includes('21.97 / 100'));assert(html.includes('94.24 / 100'));
+ assert(html.indexOf('class="report-details"')<html.indexOf('50.0 / 100'));
+ assert.equal(record.result.presentation.checks[1].state,'incomplete');
+});
+
+
+test('main image result has no scale, raw scores or duplicated technical panels',()=>{
+ const record=scan('LIKELY_AI_GENERATED',{analysis_complete:false,quality:{adequate:true},provenance:{signature_trusted:true,asserts_ai_generation:true,signer:'Example provider'},ai_policy_score:.8,ai_decision_boundary:.5});
+ const html=render(record),main=html.split('<details class="report-details">')[0];
+ assert(main.includes('This is AI-generated'));assert(main.includes('Example provider'));
+ for(const phrase of ['Validation required','Category rules','AI evidence score','Alert boundary','Pixel model readings','check-breakdown'])assert(!main.includes(phrase));
+ assert.equal((main.match(/This tool can make mistakes/g)||[]).length,1);
 });

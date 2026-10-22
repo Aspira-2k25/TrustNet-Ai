@@ -14,6 +14,36 @@ def translations():
     return json.loads(Path(__file__).with_name('translations.json').read_text(encoding='utf-8'))
 
 
+def image_assessment(record, image, words):
+    score=image.get('ai_policy_score')
+    usable=record.get('status') in ('SUCCESS','PARTIAL_SUCCESS') and (image.get('quality') or {}).get('adequate') is True and not image.get('ai_checks_disagree')
+    valid=lambda v:isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v) and 0<=v<=1
+    boundary=image.get('ai_decision_boundary')
+    signed=record.get('status') in ('SUCCESS','PARTIAL_SUCCESS') and (image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_ai_generation')
+    category='ai_generated' if signed else 'likely_ai' if usable and record.get('verdict')=='LIKELY_AI_GENERATED' else 'uncertain'
+    readings=[]
+    if record.get('status') in ('SUCCESS','PARTIAL_SUCCESS'):
+        for field,name,note in [('ai_raw_score','Primary image model','Primary reading note'),('modern_generator_raw_score','Experimental image head','Experimental reading note')]:
+            value=image.get(field)
+            if valid(value):readings.append({'name':words[name],'value':round(value*100,2),'note':words[note],'evidence_id':'/metadata/image_analysis/'+field})
+    provenance=image.get('provenance') or {}
+    origin={'status':provenance.get('c2pa_status','not_checked'),'signer':provenance.get('signer'),
+        'trusted':bool(provenance.get('signature_trusted')),'declares_ai':bool(provenance.get('asserts_ai_generation')),
+        'declares_ai_edit':bool(provenance.get('asserts_generative_edit')),
+        'evidence_id':'/metadata/image_analysis/provenance'}
+    return {'file_origin':origin,'model_readings':readings,'category':category,'score':round(score*100,1) if usable and valid(score) else None,
+        'alert_boundary':round(boundary*100,1) if valid(boundary) else None,
+        'model':image.get('ai_model_id') or record.get('model_version') or words['Model unavailable'],
+        'score_label':words['AI evidence score'], 'score_notice':words['Score interpretation'],
+        'bands':[{'key':key,'label':words[label],'rule':words[rule],'enabled':enabled}
+            for key,label,rule,enabled in [
+                ('authentic','Authentic','Authentic rule',False),
+                ('likely_authentic','Likely authentic','Likely authentic rule',False),
+                ('uncertain','Uncertain','Uncertain rule',True),
+                ('likely_ai','Likely AI-generated','Likely AI rule',True),
+                ('ai_generated','AI-generated','AI generated rule',True)]]}
+
+
 def public_result(record):
     meta = record.get('metadata') or {}
     image = meta.get('image_analysis') or {}
@@ -40,55 +70,64 @@ def public_result(record):
         reason('failed', '/status')
     elif is_image:
         incomplete = image.get('analysis_complete') is not True or image.get('manipulation_prob') is None
+        verified_ai=(image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_ai_generation')
+        verified_edit=(image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_generative_edit') and not verified_ai
+        if verified_ai:
+            key='looks_ai'
+            reason('verified_ai_origin','/metadata/image_analysis/provenance')
+        elif verified_edit:
+            key='looks_edited'
+            reason('verified_ai_edit','/metadata/image_analysis/provenance')
         if incomplete:
-            key = 'incomplete'
+            if not (verified_ai or verified_edit):key = 'incomplete'
             reason('edit_incomplete', '/metadata/image_analysis/analysis_complete' if 'analysis_complete' in image else '/metadata/image_analysis' if 'image_analysis' in meta else '/metadata')
-        elif verdict == 'LIKELY_AI_GENERATED':
+        elif not (verified_ai or verified_edit) and verdict == 'LIKELY_AI_GENERATED':
             key = 'looks_ai'
-        elif verdict == 'LIKELY_MANIPULATED':
+        elif not (verified_ai or verified_edit) and verdict == 'LIKELY_MANIPULATED':
             key = 'looks_edited'
-        elif verdict == 'NO_STRONG_INDICATORS':
+        elif not (verified_ai or verified_edit) and verdict == 'NO_STRONG_INDICATORS':
             key = 'no_clear_signs'
             reason('image_no_warning', '/verdict')
         # Authenticity is disabled until independently validated. Never upgrade old labels.
         if image.get('quality', {}).get('adequate') is False:
             reason('quality', '/metadata/image_analysis/quality/adequate')
-        if image.get('ai_checks_disagree'):
+        origin=image.get('provenance') or {}
+        if (origin.get('asserts_ai_generation') or origin.get('asserts_generative_edit')) and not origin.get('signature_trusted'):
+            reason('unverified_ai_origin','/metadata/image_analysis/provenance')
+        if image.get('ai_checks_disagree') and not (verified_ai or verified_edit):
             reason('conflict', '/metadata/image_analysis/ai_checks_disagree')
-        if verdict in ('LIKELY_AI_GENERATED', 'LIKELY_MANIPULATED'):
+        if verdict in ('LIKELY_AI_GENERATED', 'LIKELY_MANIPULATED') and not (verified_ai or verified_edit):
             reason('model_warning', '/verdict')
         # Mapped reference readings are not decision probabilities. In particular,
         # a reading above 80% can still be BELOW the selected raw alert boundary.
         # Never apply generic .3/.7 display cutoffs to these image readings.
         usable = image.get('quality', {}).get('adequate') is not False and not image.get('ai_checks_disagree')
-        ai_warning = usable and verdict == 'LIKELY_AI_GENERATED'
-        edit_warning = usable and verdict == 'LIKELY_MANIPULATED'
+        ai_warning = bool(verified_ai) or usable and verdict == 'LIKELY_AI_GENERATED'
+        edit_warning = bool(verified_edit) or usable and verdict == 'LIKELY_MANIPULATED'
         if ai_warning:
             levels['ai'] = 'high'
         if edit_warning:
             levels['editing'] = 'high'
         checks = [
-            ('ai_check', 'warning' if ai_warning else 'uncertain', 'ai_warning' if ai_warning else 'image_no_warning' if key == 'no_clear_signs' else 'ai_uncertain', '/metadata/image_analysis'),
+            ('ai_check', 'warning' if ai_warning else 'uncertain', 'verified_ai_origin' if verified_ai else 'ai_warning' if ai_warning else 'image_no_warning' if key == 'no_clear_signs' else 'ai_uncertain', '/metadata/image_analysis'),
             ('edit_check', 'incomplete' if incomplete else 'warning' if edit_warning else 'uncertain',
-             'edit_incomplete' if incomplete else 'edit_warning' if edit_warning else 'edit_uncertain', '/metadata/image_analysis'),
+             'verified_ai_edit' if verified_edit else 'edit_incomplete' if incomplete else 'edit_warning' if edit_warning else 'edit_uncertain', '/metadata/image_analysis'),
         ]
     else:
         links = meta.get('links') or []
-        missing = [i for i, link in enumerate(links) if link.get('status') not in ('SUCCESS', 'PARTIAL_SUCCESS') or link.get('risk_score') is None
-                   or (link.get('presentation') or {}).get('verdict_key') == 'incomplete'
-                   or ((link.get('inspection') or {}).get('status') not in (None, 'COMPLETED'))]
+        missing = [i for i, link in enumerate(links) if link.get('status') not in ('SUCCESS', 'PARTIAL_SUCCESS') or link.get('risk_score') is None]
         # Missing live checks are explicit, including offline-only URL results.
         if meta.get('coverage', {}).get('truncated'):
             key = 'incomplete'
             reason('failed', '/metadata/coverage/truncated')
-        elif missing or (record.get('module') == 'phishing' and meta.get('missing_signals')):
+        elif missing:
             key = 'incomplete'
-            reason('links_incomplete' if missing else 'failed', '/metadata/links' if missing else '/metadata/missing_signals')
+            reason('links_incomplete', '/metadata/links')
         elif verdict in ('LIKELY_SCAM', 'SMISHING_RISK'):
             key = 'scam'
         elif verdict == 'SUSPICIOUS':
             key = 'risky'
-        elif verdict == 'NO_STRONG_INDICATORS' and status == 'SUCCESS':
+        elif verdict in ('NO_STRONG_INDICATORS', 'LEGITIMATE') and status in ('SUCCESS', 'PARTIAL_SUCCESS'):
             key = 'no_clear_signs'
             reason('no_warning', '/verdict')
         for i, finding in enumerate(meta.get('rule_findings') or []):
@@ -118,6 +157,13 @@ def public_result(record):
             'level': levels, 'limits': [words[code] for code in limits],
             'checks': [{'name':words[name], 'state':state, 'text':words[code], 'evidence_id':pointer} for name,state,code,pointer in checks],
         }
+    if is_image:
+        for language,view in result.items():
+            view['image_assessment']=image_assessment(record,image,translations()[language])
+            if key=='looks_ai' and (image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_ai_generation'):
+                view['headline']=translations()[language]['Verified AI-generated']
+            elif key=='looks_edited' and (image.get('provenance') or {}).get('signature_trusted') and (image.get('provenance') or {}).get('asserts_generative_edit'):
+                view['headline']=translations()[language]['Verified AI edits']
     # Only factual existing measurements here, never invented confidence.
     details = {k: record[k] for k in ('risk_score', 'native_score', 'confidence', 'model_version', 'processing_time_ms') if k in record}
     if meta.get('confidence_available') is False or is_image:
@@ -128,6 +174,25 @@ def public_result(record):
         for name in ('risk_score','native_score','confidence'):
             details.pop(name, None)
     details['score_notice'] = 'Detector readings are not guarantees. A combined warning index is not a calibrated probability.'
+    intel = meta.get('domain_intel') or {}
+    if intel:
+        if intel.get('domain'):
+            details['domain_name'] = intel['domain']
+        age = intel.get('domain_age_days')
+        if age is not None:
+            if age < 30:
+                details['domain_age'] = f"{age} days old (⚠️ Brand New Domain - High Risk)"
+            elif age < 365:
+                details['domain_age'] = f"{age // 30} months old ({age} days)"
+            else:
+                years = round(age / 365, 1)
+                details['domain_age'] = f"{years} years old ({age} days)"
+        if intel.get('registration_date'):
+            details['registered_on'] = str(intel['registration_date'])[:10]
+        if intel.get('ssl_status'):
+            details['ssl_status'] = intel['ssl_status']
+        if intel.get('ssl_issuer'):
+            details['ssl_issuer'] = intel['ssl_issuer']
     return {**result['en'], 'details': details, 'locales': result, 'contract_version': '1'}
 
 

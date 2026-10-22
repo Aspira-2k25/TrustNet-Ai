@@ -43,6 +43,27 @@ class DetectionService:
                 result.metadata["collection_status"]="unavailable"
                 from models.phishing_url.inference.forensics import apply_policy
                 result=apply_policy(result,event.payload.url,result.metadata.get('threshold'),{'signals':{}})
+        obs = result.metadata.get("collected_observations") or {}
+        obs_signals = obs.get('signals', {})
+        reg = obs_signals.get('registration', {})
+        tls = obs_signals.get('tls', {})
+        tls_analysis = tls.get('analysis', {})
+        age = obs.get('domain_age_days')
+        from urllib.parse import urlparse
+        from models.phishing_url.inference.forensics import registered_domain
+        host = urlparse(event.payload.url).hostname or event.payload.url
+        try: reg_dom = registered_domain(host)
+        except Exception: reg_dom = host
+        tls_verified = tls.get('status') == 'observed' and tls.get('validated', True) and bool(tls.get('certificate'))
+        result.metadata['domain_intel'] = {
+            'domain': reg_dom,
+            'domain_age_days': age,
+            'registration_date': reg.get('registration_date'),
+            'ssl_status': 'SECURE_HTTPS' if tls_verified else ('UNENCRYPTED_HTTP' if not event.payload.url.lower().startswith('https://') else 'UNVERIFIED_SSL'),
+            'ssl_issuer': tls_analysis.get('issuer') if tls_verified else None,
+            'has_password_form': bool(obs_signals.get('html', {}).get('password_forms')),
+            'final_url': obs_signals.get('http', {}).get('final_url') or event.payload.url
+        }
         result.metadata['model_inference_ms'] = result.processing_time_ms
         result.processing_time_ms = round((time.monotonic()-started)*1000)
         result.metadata['processing_time_definition'] = 'Total phishing pipeline including collection; excludes Kafka queue delay.'

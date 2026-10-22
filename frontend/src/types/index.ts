@@ -1,8 +1,9 @@
 export interface ResultPresentation {
-  verdict_key: 'looks_ai'|'looks_edited'|'scam'|'risky'|'no_clear_signs'|'not_sure'|'incomplete';
+  verdict_key: 'looks_ai'|'looks_edited'|'scam'|'risky'|'no_clear_signs'|'not_sure'|'incomplete'|'looks_real';
+  image_assessment?:{file_origin?:{status:string;signer:string|null;trusted:boolean;declares_ai:boolean;declares_ai_edit?:boolean;evidence_id:string};model_readings?:Array<{name:string;value:number;note:string;evidence_id:string}>;category:string;score:number|null;alert_boundary:number|null;model:string;score_label:string;score_notice:string;bands:Array<{key:string;label:string;rule:string;enabled:boolean}>}|null;
   headline:string; reasons:Array<{text:string;evidence_id:string}>; next_steps:string[];
   level:Record<string,'low'|'medium'|'high'>; limits:string[]; details:Record<string,unknown>;
-  checks?:Array<{name:string;state:'warning'|'uncertain'|'incomplete';text:string;evidence_id:string}>;
+  checks?:Array<{name:string;state:'warning'|'uncertain'|'incomplete'|'pass';text:string;evidence_id:string}>;
   locales?:Record<string,Omit<ResultPresentation,'locales'|'details'>>;
 }
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';

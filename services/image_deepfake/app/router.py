@@ -39,7 +39,8 @@ async def run_image(data,scan_id,filename=None,enable_explanation=False):
 @router.get('/ready')
 async def ready():
     if worker.detector is None:raise HTTPException(503,'Image classifier unavailable; run image setup')
-    return {'status':'ready','classifier':'CommunityForensics-ViT',
+    return {'status':'ready','classifier':worker.detector.global_model.spec['id'],
+        'model_selection':worker.detector.model_name,
         'localizer_ready':worker.detector.localizer is not None and getattr(worker.detector.localizer,'ready',True),
         'calibration_version':worker.detector.config['version'],
         'authenticity_enabled':worker.detector.config['authenticity_enabled']}

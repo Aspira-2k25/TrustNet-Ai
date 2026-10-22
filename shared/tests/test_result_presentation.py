@@ -83,3 +83,63 @@ def test_ai_warning_and_edit_timeout_have_independent_visible_states():
     assert view['verdict_key']=='incomplete'
     assert view['headline']=='AI warning found. Edit check incomplete.'
     assert [c['state'] for c in view['checks']]==['warning','incomplete']
+
+
+def test_image_scale_exposes_real_boundary_and_never_guesses_authenticity():
+    item=record(module='image_deepfake',verdict='NO_STRONG_INDICATORS')
+    item['metadata']={'image_analysis':{'ai_policy_score':.12,'ai_decision_boundary':.5,'quality':{'adequate':True},'analysis_complete':True,'manipulation_prob':.01}}
+    scale=public_result(item)['image_assessment']
+    assert scale['score']==12 and scale['alert_boundary']==50
+    assert scale['category']=='uncertain'
+    assert [band['enabled'] for band in scale['bands']]==[False,False,True,True,True]
+    item['metadata']['image_analysis']['ai_checks_disagree']=True
+    assert public_result(item)['image_assessment']['score'] is None
+    item['status']='FAILED'
+    assert public_result(item)['image_assessment']['score'] is None
+
+
+def test_conflicting_model_readings_are_available_but_not_a_reliable_combined_score():
+    item=record(module='image_deepfake',verdict='INCONCLUSIVE',status='PARTIAL_SUCCESS',metadata={'image_analysis':{
+        'ai_raw_score':.2197122,'modern_generator_raw_score':.942399,'ai_policy_score':.74167,
+        'ai_checks_disagree':True,'quality':{'adequate':True},'analysis_complete':False,'manipulation_prob':None}})
+    view=public_result(item);scale=view['image_assessment']
+    assert view['verdict_key']=='incomplete' and scale['score'] is None
+    assert [reading['value'] for reading in scale['model_readings']]==[21.97,94.24]
+    for reading in scale['model_readings']:assert resolve(item,reading['evidence_id']) is not None
+    assert scale['category']=='uncertain'
+
+
+def test_verified_ai_origin_remains_visible_when_editing_is_incomplete():
+    item=record(module='image_deepfake',verdict='LIKELY_AI_GENERATED',status='PARTIAL_SUCCESS',metadata={'image_analysis':{
+        'analysis_complete':False,'manipulation_prob':None,'ai_checks_disagree':True,
+        'provenance':{'signature_trusted':True,'asserts_ai_generation':True,'signer':'OpenAI OpCo, LLC','c2pa_status':'present'}}})
+    view=public_result(item)
+    assert view['verdict_key']=='looks_ai'
+    assert view['headline']=='This is AI-generated'
+    assert view['image_assessment']['category']=='ai_generated'
+    assert view['checks'][1]['state']=='incomplete'
+    assert any(reason['evidence_id'].endswith('/provenance') for reason in view['reasons'])
+    item['metadata']['image_analysis']['provenance']['signature_trusted']=False
+    assert public_result(item)['verdict_key']=='incomplete'
+
+
+@pytest.mark.parametrize('signer',['OpenAI OpCo, LLC','Google LLC','Adobe Inc.','Example compliant provider'])
+def test_any_trusted_standard_ai_declaration_has_the_same_clear_verdict(signer):
+    item=record(module='image_deepfake',verdict='INCONCLUSIVE',status='PARTIAL_SUCCESS',metadata={'image_analysis':{
+        'analysis_complete':False,'manipulation_prob':None,
+        'provenance':{'signature_trusted':True,'asserts_ai_generation':True,'signer':signer,'c2pa_status':'present'}}})
+    view=public_result(item)
+    assert view['headline']=='This is AI-generated'
+    assert not any(reason['evidence_id']=='/verdict' for reason in view['reasons'])
+    assert view['image_assessment']['file_origin']['signer']==signer
+
+
+def test_signed_ai_edit_is_not_claimed_to_be_a_fully_generated_image():
+    item=record(module='image_deepfake',verdict='LIKELY_MANIPULATED',status='PARTIAL_SUCCESS',metadata={'image_analysis':{
+        'analysis_complete':False,'manipulation_prob':None,
+        'provenance':{'signature_trusted':True,'asserts_generative_edit':True,'asserts_ai_generation':False}}})
+    view=public_result(item)
+    assert view['headline']=='Contains AI edits' and view['verdict_key']=='looks_edited'
+    assert view['checks'][1]['state']=='incomplete'
+    item['metadata']['image_analysis']['provenance']['signature_trusted']=False
+    assert public_result(item)['verdict_key']=='incomplete'

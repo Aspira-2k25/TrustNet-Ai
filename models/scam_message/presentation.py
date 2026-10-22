@@ -29,9 +29,10 @@ def enrich(result, request):
     outside=(request.message_type=='email' or len(canonical_text)>1600) and not email_evaluated
 
     likely_threshold = 0.50 if request.message_type != 'email' else 0.78
-    verdict=('UNABLE_TO_ASSESS' if insufficient or (outside and score<threshold)
-             else 'SUSPICIOUS' if outside or result.confidence<.65 or threshold<=score<likely_threshold
-             else 'LIKELY_SCAM' if score>=likely_threshold else 'NO_STRONG_INDICATORS')
+    verdict = ('UNABLE_TO_ASSESS' if insufficient
+               else 'LIKELY_SCAM' if score >= likely_threshold
+               else 'SUSPICIOUS' if threshold <= score < likely_threshold
+               else 'NO_STRONG_INDICATORS')
     if meta.get('classifier_policy')=='multilingual-tfidf-v1':
         verdict=('UNABLE_TO_ASSESS' if insufficient or not meta.get('coverage',{}).get('supported')
                  else 'LIKELY_SCAM' if score>=threshold else 'NO_STRONG_INDICATORS')

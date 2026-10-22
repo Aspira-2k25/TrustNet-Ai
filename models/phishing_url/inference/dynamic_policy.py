@@ -86,9 +86,19 @@ def apply(result, url, threshold=None, observations=None):
     if assessed:
         result.status = StatusEnum.PARTIAL_SUCCESS
         result.error_code = result.error_message = None
+        is_established = False
+        reg_dom = str(report.get('registered_domain', '')).lower()
+        obs_age = signals.get('registration', {}).get('domain_age_days') or (observations or {}).get('domain_age_days')
+        if (obs_age is not None and obs_age >= 365) or reg_dom.endswith(('.edu', '.edu.in', '.ac.in', '.gov', '.gov.in')):
+            if not strong and not medium and not report.get('visual_domain_match'):
+                is_established = True
+        if is_established and not flagged:
+            score = min(score, 10.0)
+            review = False
+        else:
+            review = not flagged and (report['outcome'] == 'REVIEW' or score >= 25)
         result.risk_score = score
         result.native_score = score/100
-        review = not flagged and (report['outcome'] == 'REVIEW' or score >= 25)
         result.label = 'phishing' if flagged else 'unknown' if review else 'legitimate'
         result.verdict = 'SUSPICIOUS' if flagged else 'REVIEW_RECOMMENDED' if review else 'NO_STRONG_INDICATORS'
         meta['display_verdict'] = 'Phishing risk detected' if flagged else 'Some URL details need review' if review else 'Low phishing risk'

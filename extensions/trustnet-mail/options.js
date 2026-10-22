@@ -2,7 +2,17 @@
 (() => {
  const $=id=>document.getElementById(id),P=globalThis.TrustNetPresentation;
  let language='en',busy=false;
- const t=(en,hi)=>P.text(language,en,hi),rpc=request=>chrome.runtime.sendMessage(request);
+ const t=(en,hi)=>P.text(language,en,hi);
+ function rpc(request){
+  return new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(new Error('Extension response timed out. Reload TrustNet Mail from the extensions page and retry.')),15000);
+   Promise.resolve().then(()=>chrome.runtime.sendMessage(request)).then(response=>{
+    clearTimeout(timer);
+    if(!response||typeof response.ok!=='boolean')reject(new Error('Extension returned no response. Reload TrustNet Mail and retry.'));
+    else resolve(response);
+   },error=>{clearTimeout(timer);reject(error);});
+  });
+ }
  function copy(){
   $('heading').textContent=t('Connect TrustNet','TrustNet connect karein');
   $('intro').textContent=t('Start TrustNet, then sign in with your website account. Your password is not saved. Reconnect after a browser restart.','TrustNet start karein, phir website account se sign in karein. Password save nahi hota. Browser restart ke baad dobara connect karein.');
@@ -14,7 +24,7 @@
  }
  $('connect').onsubmit=async event=>{
   event.preventDefault();if(busy)return;busy=true;$('connect-button').disabled=true;$('status').textContent=t('Connecting...','Connect ho raha hai...');
-  try{const response=await rpc({action:'CONNECT',origin:$('origin').value,email:$('email').value.trim(),password:$('password').value});if(!response.ok)throw new Error(response.error);await status();}catch{$('status').textContent=t('Could not sign in. Check your account, password and local server.','Sign in nahi hua. Account, password aur local server check karein.');}finally{$('password').value='';busy=false;$('connect-button').disabled=false;}
+  try{const response=await rpc({action:'CONNECT',origin:$('origin').value,email:$('email').value.trim(),password:$('password').value});if(!response.ok)throw new Error(response.error);await status();$('status').textContent=t('Connected! Closing window...','Connected! Window band ho rahi hai...');setTimeout(()=>{try{window.close();}catch{}},1200);}catch(error){$('status').textContent=language==='hi'?'Sign in nahi hua. Account aur local server check karein. Extension ko reload karke dobara karein.':String(error?.message||'Could not sign in. Check your account, password and local server.');}finally{$('password').value='';busy=false;$('connect-button').disabled=false;}
  };
  $('disconnect').onclick=async()=>{try{await rpc({action:'DISCONNECT'});$('status').textContent=t('Disconnected. Saved login removed.','Disconnected. Saved login hata diya.');}catch{$('status').textContent=t('Could not disconnect. Reload the extension.','Disconnect nahi hua. Extension reload karein.');}};
  $('language').onchange=async()=>{language=$('language').value==='hi'?'hi':'en';try{await rpc({action:'SET_LANGUAGE',language});}catch{}copy();await status();};

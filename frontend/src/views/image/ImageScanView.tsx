@@ -19,6 +19,21 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
     const url=URL.createObjectURL(file);setPreview(url);
     return ()=>URL.revokeObjectURL(url);
   },[file]);
+  useEffect(()=>{
+    const handlePaste=(e:ClipboardEvent)=>{
+      if(busy)return;
+      const items=e.clipboardData?.items;
+      if(!items)return;
+      for(let i=0;i<items.length;i++){
+        if(items[i].type.startsWith('image/')){
+          const pasted=items[i].getAsFile();
+          if(pasted){select(pasted);break;}
+        }
+      }
+    };
+    window.addEventListener('paste',handlePaste);
+    return ()=>window.removeEventListener('paste',handlePaste);
+  },[busy]);
   const select=(value?:File)=>{
     if(!value)return;
     setError('');
