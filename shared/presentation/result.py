@@ -90,8 +90,11 @@ def public_result(record):
         elif not (verified_ai or verified_edit) and ai_markers:
             key = 'looks_ai'
         elif not (verified_ai or verified_edit) and verdict == 'NO_STRONG_INDICATORS':
-            key = 'no_clear_signs'
+            key = 'looks_real'
             reason('image_no_warning', '/verdict')
+        elif not (verified_ai or verified_edit) and not image.get('regions') and (image.get('ai_generated_prob') is not None and image.get('ai_generated_prob') < 0.20) and image.get('quality', {}).get('adequate') is True and not image.get('ai_checks_disagree') and not ai_markers:
+            key = 'looks_real'
+            reason('image_no_warning', '/metadata/image_analysis')
         # Authenticity is disabled until independently validated. Never upgrade old labels.
         if image.get('quality', {}).get('adequate') is False:
             reason('quality', '/metadata/image_analysis/quality/adequate')

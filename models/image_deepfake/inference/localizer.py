@@ -64,8 +64,17 @@ class TruForLocalizer:
         # Unnecessarily cropping a small photo changes the global detector's
         # distribution and inflates a maximum-of-tiles anomaly score.
         native=w*h<=393216
-        xs=[0] if native else tile_starts(w,self.tile,self.overlap)
-        ys=[0] if native else tile_starts(h,self.tile,self.overlap)
+        overlap=self.overlap
+        xs=[0] if native else tile_starts(w,self.tile,overlap)
+        ys=[0] if native else tile_starts(h,self.tile,overlap)
+        if not native and len(xs)*len(ys)>12:
+            overlap=32
+            xs=tile_starts(w,self.tile,overlap)
+            ys=tile_starts(h,self.tile,overlap)
+        if not native and len(xs)*len(ys)>16:
+            overlap=0
+            xs=tile_starts(w,self.tile,overlap)
+            ys=tile_starts(h,self.tile,overlap)
         if len(xs)*len(ys)>self.max_tiles:
             raise ValueError('Native image exceeds the bounded localization tile budget; no pixels were silently resized or skipped')
         heat=np.zeros((h,w),np.float32)

@@ -1,7 +1,7 @@
 """Explicit high-risk requests. Observations never masquerade as probabilities."""
 import re
 
-RULE_POLICY_VERSION='secret-negation-v3'
+RULE_POLICY_VERSION='secret-negation-v4-profit-request'
 
 SECRET=re.compile(r'\b(?:otp|one[ -]?time (?:password|code)|password|cvv|upi\s*pin|atm\s*pin)\b|पासवर्ड|ओटीपी|यूपीआई\s*पिन',re.I)
 SEND=re.compile(r'\b(?:share|send|tell|provide|forward|reveal|reply\s+with|bhej\w*|bata\w*|de\s*do|do\s*abhi)\b|भेज\w*|बताइ?\w*|बताएं|साझा\s*कर\w*|दे\s*द[ोें]',re.I)
@@ -10,6 +10,14 @@ PRIZE=re.compile(r'\b(?:won|winner|lottery|prize|inaam|inam|jeet\w*)\b|लॉट
 FEE=re.compile(r'\b(?:pay|payment|fee|deposit|bhej\w*|jama|processing)\b|शुल्क|फीस|जमा|भुगतान',re.I)
 RETURNS=re.compile(r'\b(?:guaranteed|double|risk.free|100\s*%)\b|गारंटी|दोगुन',re.I)
 INVEST=re.compile(r'\b(?:invest\w*|crypto|bitcoin|trading|return\w*|munafa|paisa)\b|निवेश|मुनाफा|पैसा',re.I)
+PROFIT=re.compile(r'\bprofits?\b',re.I)
+PAY_REQUEST=re.compile(r'\b(?:deposit|pay|send|transfer)\s+(?:[^.!?;\n]{0,45}?)(?:[₹$£€]|\b(?:rs\.?|inr|money|funds|amount|upi)\b|\d)',re.I)
+
+
+def profit_payment_request(text,start,end):
+    window=text[max(0,start-240):min(len(text),end+240)]
+    return any(not BEFORE_ACTION_NEGATION.search(window[:match.start()])
+               for match in PAY_REQUEST.finditer(window))
 
 # Negation must apply to the sharing action, not to an unrelated pretext such
 # as "KYC nahi hua". Keep offsets on the original Unicode text.
@@ -38,7 +46,8 @@ def analyze(text):
         elif PRIZE.search(value) and FEE.search(value):
             code='PRIZE_ADVANCE_FEE'
             reason='The message connects a prize or lottery to an upfront payment, a common advance-fee scam pattern.'
-        elif RETURNS.search(value) and INVEST.search(value):
+        elif RETURNS.search(value) and (INVEST.search(value) or
+                PROFIT.search(value) and profit_payment_request(text,clause.start(),clause.end())):
             code='GUARANTEED_INVESTMENT'
             reason='The message advertises guaranteed or doubled investment returns. Treat this as a fraud warning and verify independently.'
         if code:

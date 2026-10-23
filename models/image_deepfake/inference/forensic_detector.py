@@ -86,14 +86,15 @@ class ForensicDetector:
         local=None
         if self.localizer:
             try:
-                local=self.localizer.predict(image_bytes,time_budget=max(.1,22-(time.monotonic()-started)))
+                local_budget=int(os.getenv('IMAGE_LOCALIZER_TIMEOUT','75'))
+                local=self.localizer.predict(image_bytes,time_budget=max(.1,local_budget-(time.monotonic()-started)))
                 covered=local['inference_mode']=='native' and source['format']=='JPEG'
                 manipulation_raw=float(local['raw_score'])
                 manipulation_prob=calibrated(manipulation_raw,self.config['manipulation'])
                 with Image.open(io.BytesIO(image_bytes)) as image:
                     rgb=np.asarray(ImageOps.exif_transpose(image).convert('RGB'))
                 encoded,regions=assets(rgb,local['heatmap'],local['reliability'],self.config)
-                has_suspicious_pixel=bool(regions) or (manipulation_raw>=self.config['manipulation']['raw_alert'])
+                has_suspicious_pixel=bool(manipulation_raw is not None and manipulation_raw>=self.config['manipulation']['raw_alert'] and regions)
                 if not has_suspicious_pixel:
                     regions=[]
                     from models.image_deepfake.forensics.localization_output import encode_png

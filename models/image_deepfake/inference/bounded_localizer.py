@@ -5,16 +5,19 @@ model in a separate, resident process; discard all partial maps on timeout.
 """
 import atexit
 import multiprocessing as mp
+import os
 import threading
 import time
+
+DEFAULT_TIMEOUT = int(os.getenv('IMAGE_LOCALIZER_TIMEOUT', '75'))
 
 
 def _serve(connection):
     import torch
-    torch.set_num_threads(2)
+    torch.set_num_threads(min(4, os.cpu_count() or 4))
     try:
         from .localizer import TruForLocalizer
-        model=TruForLocalizer(time_budget=18)
+        model=TruForLocalizer(time_budget=DEFAULT_TIMEOUT)
         connection.send(('ready',None))
         while True:
             request=connection.recv()
@@ -31,7 +34,7 @@ def _serve(connection):
 
 
 class BoundedLocalizer:
-    def __init__(self,startup_timeout=90,request_timeout=20,worker=_serve):
+    def __init__(self,startup_timeout=90,request_timeout=DEFAULT_TIMEOUT,worker=_serve):
         # Cold weight loading under CPU/memory pressure is separate from the
         # per-image budget. Do not permanently disable editing after a slow boot.
         self.startup_timeout=startup_timeout;self.request_timeout=request_timeout
@@ -62,18 +65,19 @@ class BoundedLocalizer:
 
     def predict(self,data,time_budget=None):
         with self.lock:
-            started=time.monotonic()
             if self.process is None or not self.process.is_alive():
                 # Restart only for a new request, never retry the timed-out scan.
-                self._start(timeout=self.request_timeout)
+                self._start(timeout=self.startup_timeout)
+            started=time.monotonic()
             budget=min(self.request_timeout,time_budget if time_budget is not None else self.request_timeout)
-            budget=max(.01,budget-(time.monotonic()-started))
+            budget=max(.01,budget)
             try:
                 self.connection.send((data,budget))
-                if not self.connection.poll(budget):
+                if not self.connection.poll(budget + 0.1):
                     self.close();raise ValueError('Analysis incomplete: edit checker exceeded its CPU time limit. No partial mask is returned')
                 status,value=self.connection.recv()
                 if status!='ok':raise ValueError(str(value))
                 return value
             except (EOFError,BrokenPipeError,OSError):
                 self.close();raise ValueError('Analysis incomplete: edit checker stopped. No partial mask is returned')
+

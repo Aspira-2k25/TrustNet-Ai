@@ -145,8 +145,16 @@ def signed_source_declarations(active):
             return
         if isinstance(value,dict):value=value.get('@id',value.get('@value'))
         if not isinstance(value,str):return
-        match=re.fullmatch(r'https?://cv\.iptc\.org/newscodes/digitalsourcetype/([A-Za-z]+)',value)
-        kind=recognized.get(match.group(1)) if match else None
+        IPTCS = ('http://cv.iptc.org/newscodes/digitalsourcetype/', 'https://cv.iptc.org/newscodes/digitalsourcetype/')
+        if value in recognized:
+            kind = recognized[value]
+        elif any(value.startswith(p) for p in IPTCS):
+            term = value.rstrip('/').rsplit('/', 1)[-1]
+            kind = recognized.get(term)
+        elif ':' not in value and '/' not in value:
+            kind = recognized.get(value)
+        else:
+            kind = None
         if kind and len(declarations)<128:
             entry={'assertion':label,'source_type':value,'kind':kind}
             if entry not in declarations:declarations.append(entry)
@@ -161,7 +169,13 @@ def signed_source_declarations(active):
             actions=data.get('actions',[])
             if isinstance(actions,list):
                 for action in actions[:256]:
-                    if isinstance(action,dict):add(action.get('digitalSourceType'),label)
+                    if isinstance(action,dict):
+                        add(action.get('digitalSourceType'),label)
+                        desc = str(action.get('description', '')).lower()
+                        sw = str(action.get('softwareAgent', '')).lower()
+                        if ('generative' in desc or 'synthid' in desc or 'imagen' in desc or 'dall' in desc or 'generative' in sw) and len(declarations)<128:
+                            entry={'assertion':label,'source_type':'trainedAlgorithmicMedia','kind':'generation'}
+                            if entry not in declarations:declarations.append(entry)
         elif re.fullmatch(r'(?:c2pa\.metadata|stds\.iptc(?:\.photometadata)?)(?:\.v[0-9]+)?',label):
             nodes=[(data,{},0)];visited=0
             while nodes and visited<256:
@@ -200,7 +214,12 @@ def inspect_c2pa(data,mime_type):
                 signer=(active.get('signature_info') or {}).get('issuer'),
                 trust_source='Official C2PA trust list (pinned repository snapshot)',
                 validation_status=doc.get('validation_status',[]))
-            declarations=signed_source_declarations(active)
+            declarations=[]
+            for manifest in doc.get('manifests',{}).values():
+                if isinstance(manifest,dict):
+                    for decl in signed_source_declarations(manifest):
+                        if decl not in declarations:
+                            declarations.append(decl)
             output.update(source_declarations=declarations,
                 asserts_ai_generation=any(d['kind']=='generation' for d in declarations),
                 asserts_generative_edit=any(d['kind']=='generative_edit' for d in declarations))
