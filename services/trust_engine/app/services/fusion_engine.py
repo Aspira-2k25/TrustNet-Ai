@@ -60,10 +60,21 @@ class FusionEngine:
                 raise ValueError("Conflicting duplicate module report")
             unique[key] = result
         results = list(unique.values())
+        if (len(results) == 1 and results[0].module.value == 'image_deepfake'
+                and results[0].metadata.get('assessment_policy') == 'image-vit-v3'
+                and results[0].metadata.get('score_available') is False
+                and results[0].status == StatusEnum.PARTIAL_SUCCESS):
+            result = results[0]
+            return TrustScoreResult(scan_id=target_id, trust_risk_score=None, confidence=0,
+                risk_level=RiskLevelEnum.UNKNOWN, status='PARTIAL_SUCCESS', contradiction_flag=False,
+                reporting_modules=['image_deepfake'], evidence=[], explanation=result.explanation,
+                metadata={'score_available':False, 'confidence_available':False, 'assessment_policy':'image-vit-v3'},
+                timestamp=datetime.now(timezone.utc).isoformat())
         # Step 1: Normalization & Validation Pass
         valid_results = [
             r for r in results
             if r.status in (StatusEnum.SUCCESS, StatusEnum.PARTIAL_SUCCESS) and 0.0 <= r.risk_score <= 100.0
+            and not (r.module.value == 'image_deepfake' and r.metadata.get('score_available') is False)
         ]
 
         if not valid_results:
@@ -169,6 +180,23 @@ class FusionEngine:
                 fused_metadata['vision_analysis'] = r.metadata['vision_analysis']
                 break
 
+        image_v2 = [r for r in valid_results if r.module.value == 'image_deepfake'
+                    and r.metadata.get('assessment_policy') in {'image-screening-v2', 'image-vit-v3'}]
+        partial_image = any(r.status == StatusEnum.PARTIAL_SUCCESS for r in image_v2)
+        if image_v2:
+            confidence = 0.0
+            fused_metadata['confidence_available'] = False
+            fused_metadata['score_available'] = all(r.metadata.get('score_available', True) for r in image_v2)
+            fused_metadata['component_statuses'] = {r.module.value:r.status.value for r in valid_results}
+            if any(r.metadata.get('is_contradiction') for r in image_v2):
+                contradiction_flag = True
+                contradiction_details = 'Image classifier views disagree; manual review required.'
+            explanation = f'Screening index: {fused_risk:.1f}/100. Prediction confidence is not calibrated.'
+            if partial_image:
+                explanation += ' Image assessment is incomplete; inspect missing checks.'
+            if len(valid_results) == 1 and any(r.verdict in {'UNCERTAIN', 'UNSUPPORTED'} for r in image_v2):
+                risk_level = RiskLevelEnum.UNKNOWN
+
         return TrustScoreResult(
             scan_id=target_scan_id,
             trust_risk_score=fused_risk,
@@ -180,7 +208,8 @@ class FusionEngine:
             evidence=all_evidence,
             explanation=explanation,
             timestamp=datetime.now(timezone.utc).isoformat(),
-            metadata=fused_metadata
+            metadata=fused_metadata,
+            status='PARTIAL_SUCCESS' if partial_image else 'SUCCESS'
         )
 
 fusion_engine = FusionEngine()

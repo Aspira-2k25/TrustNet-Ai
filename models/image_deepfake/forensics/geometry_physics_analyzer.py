@@ -10,15 +10,7 @@ except ImportError:
     cv2 = None
 
 class GeometryPhysicsAnalyzer:
-    """
-    3D Geometry Plausibility & Structural Physics Branch.
-    Analyzes images for impossible structural intersections, edge density anomalies,
-    and severe bilateral asymmetry which often plague 2D generative models.
-
-    Note: By architectural design in the fusion pipeline, this analyzer specifically
-    evaluates non-face scenes (architecture, urban, environmental objects). When
-    human faces are present, it is skipped in favor of specialized facial anatomy forensics.
-    """
+    """Advisory ORB keypoint balance and edge-density proxies. No 3D geometry or physical support is reconstructed."""
     
     def __init__(self):
         self.is_available = cv2 is not None
@@ -98,7 +90,7 @@ class GeometryPhysicsAnalyzer:
                     "status": "APPLIED",
                     "is_geometry_violation": False,
                     "geometry_anomaly_score": float(round(total_anomaly, 2)),
-                    "finding": "Structural symmetry and ground-plane edge density are consistent with plausible 3D physics."
+                    "finding": "Edge-distribution proxy below threshold; 3D support and physical geometry are unverified."
                 }
                 
         except Exception as e:

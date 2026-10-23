@@ -4,18 +4,7 @@ from PIL import Image, ImageFilter
 from typing import Dict, Any
 
 class PixelMorphingAnalyzer:
-    """
-    Sub-Pixel Morphing & Micro-Particle Discontinuity Analyzer.
-    
-    Examines microscopic pixel-level anomalies typical of generative AI (GANs, Diffusion, Face Swapping):
-    1. Color Filter Array (CFA) Bayer Demosaicing Inconsistency:
-       Physical cameras interpolate RGB from 2x2 sensor grids (RGGB). AI synthesis creates RGB directly
-       in latent space, lacking physical sub-pixel interpolation correlation.
-    2. Micro-Edge Morphing Jitter:
-       Measures high-order 2nd derivative Laplacian edge jitter along pixel boundaries.
-    3. Micro-Patch Entropy Variance:
-       Measures Shannon entropy across 8x8 micro-blocks to catch localized pixel smoothing vs diffusion noise clusters.
-    """
+    """Green-channel parity, Laplacian and local-variance heuristics. These measurements do not verify a Bayer sensor or AI authorship."""
     def analyze(self, image_bytes: bytes) -> Dict[str, Any]:
         try:
             img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -28,7 +17,8 @@ class PixelMorphingAnalyzer:
                     "cfa_discontinuity_index": 0.1,
                     "micro_jitter_variance": 0.1,
                     "is_morphing_detected": False,
-                    "note": "Image resolution too small for sub-pixel CFA analysis."
+                    "status": "SKIPPED",
+                    "note": "Image resolution too small for pixel correlation analysis."
                 }
 
             r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
@@ -104,7 +94,7 @@ class PixelMorphingAnalyzer:
                 "micro_jitter_kurtosis": float(round(micro_jitter_kurtosis, 2)),
                 "entropy_variance_ratio": float(round(entropy_variance_ratio, 2)),
                 "is_morphing_detected": is_morphing_detected,
-                "note": "Sub-pixel morphing and Bayer CFA demosaicing inconsistencies detected at micro-particle level." if is_morphing_detected else "Uniform sub-pixel Bayer CFA correlation and natural micro-edge continuity verified."
+                "note": "Pixel correlation and edge heuristics crossed the configured anomaly threshold." if is_morphing_detected else "No pixel correlation anomaly crossed the configured threshold; sensor provenance is not verified."
             }
         except Exception as e:
             return {

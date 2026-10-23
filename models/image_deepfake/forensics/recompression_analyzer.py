@@ -90,10 +90,10 @@ class RecompressionAnalyzer:
             if is_recompressed:
                 finding = (
                     f"Periodic 8x8 DCT block grid discontinuity detected (ratio: {blockiness_ratio:.2f} >= {self.blockiness_threshold:.2f}). "
-                    "Social recompression (e.g. WhatsApp/Telegram) verified. Classical physical heuristic weights will be adaptively reduced."
+                    "Recompression heuristic triggered; platform and processing history are unverified. Fragile heuristic weights are reduced."
                 )
             else:
-                finding = f"8x8 DCT grid continuity verified (ratio: {blockiness_ratio:.2f}); single-generation or uncompressed capture."
+                finding = f"Recompression heuristic below threshold (DCT ratio: {blockiness_ratio:.2f}); processing history is unverified."
 
             return {
                 "status": "APPLIED",

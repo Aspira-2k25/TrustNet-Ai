@@ -18,6 +18,8 @@ class ImageDeepfakeSettings(BaseSettings):
         description="Local storage directory fallback"
     )
     MAX_IMAGE_SIZE_MB: int = 10
+    JWT_SECRET_KEY: str = 'trustnet_super_secret_jwt_key_for_development_purposes_only'
+    JWT_ALGORITHM: str = 'HS256'
     ENABLE_KAFKA_CONSUMER: bool = Field(default=True)
 
 settings = ImageDeepfakeSettings()

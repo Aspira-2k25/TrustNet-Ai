@@ -6,6 +6,7 @@ import {
   Globe, Mic, Film, MessageSquare
 } from 'lucide-react';
 import type { ScanRecord } from '../types';
+import { imageViewLines, imageClassifierLabel, analyzerObservation } from '../services/imageAssessment';
 import { assessmentVerdict } from '../services/verdict';
 import { ScamResult } from '../components/scam_message/ScamResult';
 import { ForensicRadarChart } from '../components/ForensicRadarChart';
@@ -30,7 +31,8 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   const isFailed = !result || !['SUCCESS','PARTIAL_SUCCESS'].includes(scan.status) || !['SUCCESS','PARTIAL_SUCCESS'].includes(result.status);
 
   const trustScore = scan.trust_score;
-  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
+  const riskScore = result?.module==='image_deepfake' ? result.risk_score : trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
+  const scoreAvailable = result?.metadata?.score_available !== false;
   const rawVerdict = result?.verdict || '';
   const isContradiction = Boolean(result?.metadata?.is_contradiction || trustScore?.contradiction_detected);
 
@@ -69,24 +71,20 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
   }
 
   semanticVerdict = assessmentVerdict(scan);
+  if(result?.module==='image_deepfake') {
+    semanticSubtext=result.explanation || 'No explanation supplied. This assessment does not establish authenticity.';
+    if(!scoreAvailable || ['REVIEW REQUIRED','NO ASSESSABLE FACE','RESCAN REQUIRED'].includes(semanticVerdict)) {
+      verdictColorClass='bg-amber-950/70 border-amber-800 text-amber-300'; VerdictIcon=HelpCircle;
+    }
+  }
 
   // Cross Domain Consistency Score & AI Model Status
   const consistencyPercent = typeof result?.metadata?.cross_domain_consistency === 'number' ? Math.round(result.metadata.cross_domain_consistency * 100) : null;
   const confidencePercent = Math.round((result?.confidence ?? 0) * 100);
   const hfStatus = result?.metadata?.hf_status || 'skipped';
-  const hfRisk = result?.metadata?.hf_risk_score;
   const hfModelName = result?.metadata?.hf_model || 'ViT Deepfake Classifier';
 
-  let hfDisplay = 'Unavailable (Local Forensics Active)';
-  if (hfStatus === 'applied' && typeof hfRisk === 'number') {
-    if (hfRisk <= 15.0) {
-      hfDisplay = `${(100 - hfRisk).toFixed(1)}% Real (Authentic)`;
-    } else if (hfRisk >= 70.0) {
-      hfDisplay = `${hfRisk.toFixed(1)}% Synthetic (Deepfake)`;
-    } else {
-      hfDisplay = `${hfRisk.toFixed(1)}% Risk (Ambiguous)`;
-    }
-  }
+  const hfDisplay = imageClassifierLabel(result);
 
   // Dynamic "Why This Result" Explanations
   const whyReasons: string[] = result?.metadata?.why_reasons || [];
@@ -343,7 +341,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
     }
 
     const narrative = visionAnalysis?.simple_explanation ||
-      `Analysis verdict: ${semanticVerdict}. Anomaly score: ${riskScore.toFixed(1)} out of 100 with cross-domain consistency ${consistencyPercent === null ? 'unavailable' : consistencyPercent + ' percent'}. ${whyReasons.join('. ')}`;
+      `Analysis verdict: ${semanticVerdict}. Anomaly score: ${riskScore.toFixed(2)} out of 100 with cross-domain consistency ${consistencyPercent === null ? 'unavailable' : consistencyPercent + ' percent'}. ${whyReasons.join('. ')}`;
 
     const utterance = new SpeechSynthesisUtterance(narrative);
     utterance.rate = 1.0;
@@ -445,18 +443,18 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           {/* Key Score */}
           <div className="flex items-center gap-6 shrink-0 bg-[#0b132b] px-5 py-3.5 rounded-xl border border-[#1e3a5f] shadow-3d-sm">
             <div className="flex flex-col items-center">
-              <TrustScoreGauge score={Math.round(riskScore)} riskLevel={trustScore?.risk_level || 'LOW'} size={72} />
+              {scoreAvailable ? <TrustScoreGauge score={riskScore} label="Model signal" riskLevel={semanticVerdict.includes('REVIEW') ? 'UNKNOWN' : trustScore?.risk_level || 'UNKNOWN'} size={72} /> : <span className="text-sm">Unavailable</span>}
               <span className="text-[10px] font-bold text-[#94a3b8] uppercase mt-0.5">Risk Score</span>
             </div>
             <div className="h-10 w-px bg-[#1e3a5f]" />
             <div className="text-right space-y-1">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Confidence (heuristic)</div>
-                <div className="text-base font-bold font-mono text-[#f8fafc]">{confidencePercent}%</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Prediction confidence</div>
+                <div className="text-base font-bold font-mono text-[#f8fafc]">{result?.module==='image_deepfake' ? 'Not calibrated' : `${confidencePercent}%`}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Anomaly Degree</div>
-                <div className="text-base font-bold font-mono text-[#f8fafc]">{riskScore.toFixed(1)} / 100</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#64748b] font-bold">Screening index</div>
+                <div className="text-base font-bold font-mono text-[#f8fafc]">{scoreAvailable ? `${riskScore.toFixed(2)} / 100` : 'Unavailable'}</div>
               </div>
             </div>
           </div>
@@ -474,7 +472,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
           ) : scan.result?.module === 'scam_message' ? (
             <div>Text Length: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes || 0} characters</span></div>
           ) : (
-            <div>File Size: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes ? `${(scan.file_size_bytes / 1024).toFixed(1)} KB` : 'Standard'}</span></div>
+            <div>File Size: <span className="text-[#f8fafc] font-bold">{scan.file_size_bytes ? `${(scan.file_size_bytes / 1024).toFixed(1)} KB` : 'Unavailable'}</span></div>
           )}
         </div>
 
@@ -547,8 +545,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
         </div>
 
         <ul className="space-y-2 text-sm">
+          {imageViewLines(result).map(line => <li key={line} className="p-3 rounded-lg border border-[#1e3a5f] text-[#cbd5e1] text-xs break-words">{line}</li>)}
+          {(result.analyzers || []).filter(item => item.status !== 'APPLIED').map((item,idx) => <li key={`availability-${idx}`} className="p-3 text-xs text-amber-300">{item.name}: {item.status} — {analyzerObservation(item)}</li>)}
           {whyReasons.map((reason, idx) => {
-            const isWarning = reason.startsWith('⚠') || reason.includes('disagree') || reason.includes('Conflicting');
+            const isWarning = reason.startsWith('⚠') || reason.includes('disagree') || reason.includes('Conflicting') || /unvalidated|not validated|review|unavailable|not run|uncalibrated|not calibrated|unverified|overfitting|experimental|not.*proof/i.test(reason);
             return (
               <li 
                 key={idx} 
@@ -656,7 +656,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
             <span>
               {isVisionSkipped 
                 ? 'Optional local vision reasoning was bypassed. Assessment uses the available engines; classifier status is shown below. Timing depends on the available services.'
-                : 'TrustNet Vision AI endpoint not connected or vision model not loaded. Forensic analysis was completed safely using local deterministic scanners (FFT, ELA, PRNU noise, Bayer CFA, Gabor texture, metadata).'}
+                : 'Optional vision analysis was not run. No vision-model conclusion is available; review the recorded classifier and analyzer statuses.'}
             </span>
           </div>
         )}
@@ -697,10 +697,10 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                   <span>Risk Score</span>
                 </div>
                 <div className="text-2xl font-extrabold text-foreground mb-1 font-mono">
-                  {riskScore.toFixed(1)} <span className="text-sm font-normal text-slate-400">/ 100</span>
+                  {riskScore.toFixed(2)} <span className="text-sm font-normal text-slate-400">/ 100</span>
                 </div>
                 <div className="text-[11px] text-slate-500 leading-tight">
-                  Weighted engine risk estimate; no empirical image calibration was fitted.
+                  Uncalibrated model signal; not a correctness probability.
                 </div>
               </div>
 
@@ -728,7 +728,7 @@ export const ReportView: React.FC<ReportViewProps> = ({ scan, onBack }) => {
                   {hfDisplay}
                 </div>
                 <div className="text-[11px] text-slate-500 leading-tight">
-                  {hfStatus === 'applied' ? `Evaluated via ${hfModelName}` : 'Inference performed with local fallback engines'}
+                  {hfStatus === 'applied' ? `Evaluated via ${hfModelName} (${result?.metadata?.inference_mode || 'local'})` : 'Classifier unavailable; no successful fallback is established'}
                 </div>
               </div>
             </div>

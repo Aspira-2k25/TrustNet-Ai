@@ -17,12 +17,14 @@ def get_efficientnet_transforms() -> transforms.Compose:
                              std=[0.229, 0.224, 0.225])
     ])
 
-def process_image_bytes(image_bytes: bytes) -> torch.Tensor:
+def process_image_bytes(image_bytes: bytes, validated: bool = False) -> torch.Tensor:
     """
     Decodes image bytes and applies EfficientNet transforms.
     Returns a tensor of shape (1, 3, 224, 224).
     """
-    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    from models.image_deepfake.preprocessing.validator import decode_image
+    from PIL import ImageOps
+    img = ImageOps.exif_transpose(Image.open(io.BytesIO(image_bytes))).convert('RGB') if validated else decode_image(image_bytes)
     transform = get_efficientnet_transforms()
     tensor = transform(img)
     # Add batch dimension

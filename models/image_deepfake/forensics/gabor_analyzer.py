@@ -140,7 +140,7 @@ class GaborTextureAnalyzer:
             finding_text = (
                 "Multi-scale Gabor filter bank detected anomalous directional texture clustering and synthetic micro-smoothing."
                 if is_texture_anomalous
-                else "Natural multi-orientation spatial-frequency texture distribution verified."
+                else "No texture anomaly crossed the configured threshold; camera origin is not verified."
             )
 
             return {

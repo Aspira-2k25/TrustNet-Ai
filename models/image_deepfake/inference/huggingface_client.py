@@ -25,6 +25,8 @@ class HuggingFaceDeepfakeClient:
         self.api_key = (api_key or os.getenv("HUGGINGFACE_API_KEY", "")).strip()
         self.face_model_name = (face_model_name or model_name or os.getenv("HF_DEEPFAKE_MODEL", "dima806/deepfake_vs_real_image_detection")).strip()
         self.model_name = self.face_model_name
+        if general_model_name is not None:
+            raise ValueError('Use a trained general_image CNN artifact; no second general ViT is implemented')
         self.general_model_name = None
 
         self.user_name: Optional[str] = None
@@ -34,28 +36,13 @@ class HuggingFaceDeepfakeClient:
         )
 
     def _validate_token(self):
-        if self.api_key and self.api_key.startswith("hf_"):
-            self.user_name = "HF User"
-            # Optional quick whoami check with strict timeout if possible
-            try:
-                import concurrent.futures
-                def _fetch_whoami():
-                    api = HfApi(token=self.api_key)
-                    return api.whoami()
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(_fetch_whoami)
-                    user_info = future.result(timeout=2.0)
-                    if isinstance(user_info, dict):
-                        self.user_name = user_info.get("name") or user_info.get("username") or user_info.get("fullname") or "Authenticated User"
-                    else:
-                        self.user_name = getattr(user_info, "name", "Authenticated User")
-            except Exception:
-                self.user_name = "HF User"
+        # Do not perform network I/O during construction or block startup on whoami.
+        self.user_name = 'Configured HF account' if self.api_key.startswith('hf_') else None
 
     def is_configured(self) -> bool:
         if getattr(self, "_api_depleted", False):
             return False
-        return bool(self.api_key and self.api_key.startswith("hf_"))
+        return os.getenv('IMAGE_ALLOW_HOSTED_INFERENCE', 'false').lower() == 'true' and bool(self.api_key and self.api_key.startswith('hf_'))
 
     def predict(self, image_bytes: bytes, has_face: bool = True, scene_type: str = "general_object") -> Dict[str, Any]:
         """
@@ -82,7 +69,7 @@ class HuggingFaceDeepfakeClient:
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "image/jpeg"
+            "Content-Type": "image/png" if image_bytes.startswith(b"\x89PNG") else "image/jpeg"
         }
 
         endpoint_url = f"https://router.huggingface.co/hf-inference/models/{target_model}"
@@ -93,30 +80,19 @@ class HuggingFaceDeepfakeClient:
 
             if res.status_code == 200:
                 data = res.json()
-                fake_score = 0.5
-                real_score = 0.5
-
-                if isinstance(data, list):
-                    for item in data:
-                        lbl = str(item.get("label", "")).upper()
-                        score = float(item.get("score", 0.5))
-                        if any(k in lbl for k in ["FAKE", "SYNTHETIC", "DEEPFAKE", "AI", "ARTIFICIAL", "LABEL_1"]):
-                            fake_score = score
-                        elif any(k in lbl for k in ["REAL", "ORIGINAL", "AUTHENTIC", "HUMAN", "LABEL_0"]):
-                            real_score = score
-
-                risk_score = round(fake_score * 100.0, 2)
-                confidence = max(fake_score, real_score)
-                label = "fake" if risk_score >= 50.0 else "real"
+                from models.image_deepfake.inference.classifier_contract import parse_binary_predictions
+                risk_score = parse_binary_predictions(data)
+                confidence = 0.0
+                label = 'fake' if risk_score >= 50 else 'real'
 
                 return {
                     "is_hf_applied": True,
                     "hf_risk_score": risk_score,
                     "hf_label": label,
                     "hf_confidence": round(confidence, 2),
-                    "model_name": target_model,
+                    "model_name": target_model, "revision": None, "inference_mode": "hosted_unpinned",
                     "user": self.user_name,
-                    "note": f"Hugging Face ({target_model}) evaluated image with {confidence*100:.1f}% confidence (User: {self.user_name})."
+                    "note": f"Hugging Face ({target_model}) fake score: {risk_score:.2f}/100. Scores are uncalibrated and do not verify camera origin."
                 }
 
             if res.status_code in [402, 403]:

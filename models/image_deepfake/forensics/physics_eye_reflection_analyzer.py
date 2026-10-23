@@ -10,12 +10,7 @@ except ImportError:
     cv2 = None
 
 class PhysicsEyeReflectionAnalyzer:
-    """
-    Optics & Sensor Physics Branch.
-    Analyzes corneal specular highlights (light reflections) in eyes.
-    AI generators often fail to render consistent light source physics, 
-    resulting in asymmetrical or multi-directional specular reflections.
-    """
+    """Compare bright-contour directions inside eye boxes. This advisory proxy does not reconstruct corneal optics or verify physical lighting."""
     
     def __init__(self):
         # We attempt to load OpenCV's default Haar cascades for eye detection if supported
@@ -152,7 +147,7 @@ class PhysicsEyeReflectionAnalyzer:
                         "status": "APPLIED",
                         "is_physics_violation": True,
                         "physics_anomaly_score": 0.65, # Reduced from 0.85 to prevent overriding real stunt photos
-                        "finding": f"Highly asymmetrical corneal specular reflections detected (Vector similarity: {dot_product:.2f}). Severe multi-directional lighting anomaly."
+                        "finding": f"Eye-box bright-region asymmetry proxy triggered (similarity: {dot_product:.2f}); lighting physics and AI authorship are unverified."
                     }
                 elif dot_product < 0.60:
                     return {
@@ -166,7 +161,7 @@ class PhysicsEyeReflectionAnalyzer:
                         "status": "APPLIED",
                         "is_physics_violation": False,
                         "physics_anomaly_score": 0.05,
-                        "finding": f"Specular reflections are physically consistent with a shared geometric light source (Similarity: {dot_product:.2f})."
+                        "finding": f"Eye-box bright-region directions agree under this heuristic (similarity: {dot_product:.2f}); physical lighting is unverified."
                     }
                     
             return {

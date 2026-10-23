@@ -101,3 +101,6 @@ runtime-logs/
 .env.*
 !.env.example
 !**/.env.example
+
+# Small pinned MIT YuNet detector required by local face validation (about 228 KiB).
+!models/image_deepfake/localization/face_detection_yunet_2023mar.onnx

@@ -99,7 +99,7 @@ export const TrustScoreGauge: React.FC<TrustScoreGaugeProps> = ({
 
       {/* Risk Level Badge */}
       <div className={`px-3.5 py-1 rounded-full text-xs font-semibold border ${getBadgeClasses(riskLevel)}`}>
-        {riskLevel} Risk
+        {riskLevel === 'UNKNOWN' ? 'Uncalibrated' : `${riskLevel} Risk`}
       </div>
     </div>
   );

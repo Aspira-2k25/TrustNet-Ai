@@ -79,7 +79,7 @@ def test_real_photo_with_corner_sticker_not_flagged_as_watermark():
     Must NOT produce a 90+ confirmed fake score, and must NOT detect watermark.
     """
     img_bytes = create_realistic_photo_with_corner_sticker()
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     detector.hf_client = MockViTClientReal()
     detector.local_vit = MockViTClientReal()
 
@@ -102,14 +102,14 @@ def test_telemetry_entries_are_never_identical():
     telemetry entries show independently-computed finding strings and NEVER duplicate.
     """
     img_bytes = create_realistic_photo_with_corner_sticker()
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     detector.hf_client = MockViTClientReal()
     detector.local_vit = MockViTClientReal()
 
     pred = detector.predict(img_bytes, filename="real_10.jpg")
 
-    meta_entry = next((a for a in pred.analyzers if a["name"] == "Provenance & Metadata Forensics"), None)
-    wm_entry = next((a for a in pred.analyzers if a["name"] == "Visual Watermark Icon Scanner"), None)
+    meta_entry = next((a for a in pred.analyzers if a["category"] == "metadata"), None)
+    wm_entry = next((a for a in pred.analyzers if a["category"] == "watermark"), None)
 
     assert meta_entry is not None
     assert wm_entry is not None
@@ -127,7 +127,7 @@ def test_watermark_hit_with_vit_real_clamps_to_uncertain_not_96():
     and NEVER jump to 96.0!
     """
     img_bytes = create_photo_with_sparkle_watermark()
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     detector.hf_client = MockViTClientReal()
     detector.local_vit = MockViTClientReal()
 
@@ -142,8 +142,8 @@ def test_watermark_hit_with_vit_real_clamps_to_uncertain_not_96():
     assert pred.verdict in ["UNCERTAIN", "UNCERTAIN / INCONCLUSIVE", "SUSPICIOUS / LOW-CONFIDENCE AI"]
 
     # Telemetry check: metadata and watermark findings remain completely distinct
-    meta_entry = next((a for a in pred.analyzers if a["name"] == "Provenance & Metadata Forensics"), None)
-    wm_entry = next((a for a in pred.analyzers if a["name"] == "Visual Watermark Icon Scanner"), None)
+    meta_entry = next((a for a in pred.analyzers if a["category"] == "metadata"), None)
+    wm_entry = next((a for a in pred.analyzers if a["category"] == "watermark"), None)
     assert meta_entry is not None
     assert wm_entry is not None
     assert meta_entry["finding"] != wm_entry["finding"]

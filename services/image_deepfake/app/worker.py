@@ -39,21 +39,20 @@ class ImageDeepfakeWorker:
         if ".." in norm_parts:
             return None, "Invalid storage key: directory traversal detected"
 
-        # Check direct path (e.g. absolute test path or existing filesystem path)
-        if os.path.isabs(storage_key) and os.path.exists(storage_key) and os.path.isfile(storage_key):
-            with open(storage_key, "rb") as f:
-                return f.read(), None
-
-        abs_storage_dir = os.path.abspath(self.storage_dir)
-        clean_key = os.path.normpath(storage_key.replace("/", os.sep)).lstrip(os.sep)
-        local_path = os.path.abspath(os.path.join(abs_storage_dir, clean_key))
-
-        if not local_path.startswith(abs_storage_dir):
-            return None, "Access denied: path traverses outside authorized storage directory"
-
-        if os.path.exists(local_path) and os.path.isfile(local_path):
-            with open(local_path, "rb") as f:
-                return f.read(), None
+        from pathlib import Path
+        from models.image_deepfake.preprocessing.validator import ImageValidator
+        root = Path(self.storage_dir).resolve()
+        if Path(storage_key).is_absolute() or ':' in storage_key:
+            return None, 'Absolute storage paths are forbidden'
+        local_path = (root / storage_key).resolve()
+        if not local_path.is_relative_to(root):
+            return None, 'Access denied: path traverses outside authorized storage directory'
+        if local_path.is_file():
+            limit = ImageValidator().max_size_bytes
+            with local_path.open('rb') as stream:
+                data = stream.read(limit + 1)
+            valid, error = ImageValidator().validate(data)
+            return (data, None) if valid else (None, error)
 
         return None, f"Image file not found for key: {storage_key}"
 
@@ -73,14 +72,16 @@ class ImageDeepfakeWorker:
             result = DetectionResult(
                 scan_id=scan_id,
                 module=ModuleEnum.image_deepfake,
-                detector_id="image_deepfake.efficientnet_b0.v1",
-                model_version="v1",
-                preprocessing_version="v1",
+                detector_id="image_deepfake."+self.detector.policy,
+                model_version=self.detector.policy,
+                preprocessing_version="not_applied",
                 native_score=0.0,
-                native_score_semantics=NativeScoreSemanticsEnum.probability_of_negative_class,
+                native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
                 risk_score=0.0,
                 confidence=0.0,
                 label="error",
+                verdict="UNKNOWN",
+                metadata={'assessment_policy':self.detector.policy,'score_available':False},
                 status=StatusEnum.FAILED,
                 evidence=[],
                 processing_time_ms=processing_time_ms,

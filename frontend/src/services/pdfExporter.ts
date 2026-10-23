@@ -1,3 +1,4 @@
+import { imageViewLines, analyzerObservation } from './imageAssessment';
 import { assessmentVerdict } from './verdict';
 import { jsPDF } from 'jspdf';
 import type { ScanRecord } from '../types';
@@ -20,13 +21,13 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
   const result = scan.result;
   const trustScore = scan.trust_score;
-  const riskScore = trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
+  const riskScore = result?.module==='image_deepfake' ? result.risk_score : trustScore?.trust_risk_score ?? result?.risk_score ?? 0;
   const visionAnalysis = scan.vision_analysis || result?.vision_analysis || result?.metadata?.vision_analysis || trustScore?.vision_analysis;
   const isVisionApplied = visionAnalysis?.status === 'APPLIED';
   const lmStudioModel = result?.metadata?.lm_studio_model || visionAnalysis?.model_name || 'Local Vision Model';
 
   const semanticVerdict = assessmentVerdict(scan);
-  const bannerBg = semanticVerdict.includes('MANIPULATED') ? [239,68,68] : semanticVerdict.includes('UNCERTAIN') ? [245,158,11] : [14,165,233];
+  const bannerBg = semanticVerdict.includes('MANIPULATED') ? [239,68,68] : (semanticVerdict.includes('UNCERTAIN') || semanticVerdict.includes('REVIEW')) ? [245,158,11] : [14,165,233];
   const bannerText = [255,255,255];
   const subtext = 'Automated screening; neither provenance nor correctness is verified.';
 
@@ -124,7 +125,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   doc.setFontSize(7.5);
   doc.text('RISK INDEX', pageWidth - margin - 5, y + 6.5, { align: 'right' });
   doc.setFontSize(13);
-  doc.text(`${riskScore.toFixed(1)} / 100`, pageWidth - margin - 5, y + 14, { align: 'right' });
+  doc.text(result?.metadata?.score_available===false ? 'Unavailable' : `${riskScore.toFixed(2)} / 100`, pageWidth - margin - 5, y + 14, { align: 'right' });
 
   y += 23;
 
@@ -143,11 +144,11 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   doc.setFontSize(8.5);
   doc.setTextColor(51, 65, 85); // Slate-700
 
-  const summaryText = trustScore?.explanation || result?.explanation || 'No explanation supplied. Missing evidence cannot establish authenticity.';
+  const summaryText = [result?.explanation || trustScore?.explanation || 'No explanation supplied. Missing evidence cannot establish authenticity.', ...imageViewLines(result), 'Prediction confidence: Not calibrated'].join('\n');
 
   const splitSummary = doc.splitTextToSize(summaryText, contentWidth);
-  doc.text(splitSummary, margin, y);
-  y += splitSummary.length * 4 + 4;
+  for(const part of splitSummary) { checkPageBreak(5); doc.text(part, margin, y); y += 4; }
+  y += 4;
 
   // 5. SECTION 2: MULTI-VECTOR ANALYZER TELEMETRY TABLE
   doc.setFont('helvetica', 'bold');
@@ -187,7 +188,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
   analyzers.forEach((analyzer, idx) => {
     const moduleNameLines = doc.splitTextToSize(analyzer.name, colModuleW);
-    const observationText = analyzer.finding || analyzer.reason || 'Nominal execution complete with no anomalies flagged.';
+    const observationText = analyzerObservation(analyzer);
     const observationLines = doc.splitTextToSize(observationText, colObsW);
 
     const lineCount = Math.max(moduleNameLines.length, observationLines.length);
@@ -242,7 +243,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   whyReasons.forEach((reason) => {
     const isWarning = reason.startsWith('⚠') || semanticVerdict.includes('MANIPULATED');
     const cleanedText = reason.replace(/^[✓⚠ℹ]\s*/, '');
-    const splitLine = doc.splitTextToSize(cleanedText, contentWidth - 25);
+    const splitLine = doc.splitTextToSize(cleanedText, contentWidth - 36);
     const itemHeight = Math.max(4.5, splitLine.length * 3.6 + 1);
 
     checkPageBreak(itemHeight);
@@ -258,7 +259,7 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
 
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 65, 85);
-    doc.text(splitLine, margin + 22, y);
+    doc.text(splitLine, margin + 34, y);
     y += itemHeight;
   });
 
@@ -271,18 +272,18 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
   let conclusionHeadline = '';
   let plainEnglishText = '';
 
-  if (semanticVerdict.includes('MANIPULATED') || semanticVerdict.includes('AI')) {
+  if (semanticVerdict === 'LIKELY AI-GENERATED' || semanticVerdict.includes('MANIPULATED')) {
     boxBg = [254, 242, 242]; // Light Red #fef2f2
     boxBorder = [252, 165, 165]; // Red border #fca5a5
     titleColor = [185, 28, 28]; // Dark Red #b91c1c
     conclusionHeadline = 'BOTTOM LINE: THIS IMAGE IS LIKELY AI-GENERATED OR ALTERED.';
     plainEnglishText = 'The recorded assessment indicates manipulation risk. Review the actual supplied evidence; this does not verify provenance or guarantee correctness.';
-  } else if (semanticVerdict.includes('AUTHENTIC')) {
+  } else if (semanticVerdict === 'LOW DETECTED AI SIGNAL') {
     boxBg = [236, 253, 245]; // Light Emerald #ecfdf5
     boxBorder = [110, 231, 183]; // Emerald border #6ee7b7
     titleColor = [4, 120, 87]; // Dark Emerald #047857
     conclusionHeadline = 'BOTTOM LINE: THIS IMAGE APPEARS AUTHENTIC AND GENUINE.';
-    plainEnglishText = 'The recorded assessment is consistent with real capture. It does not prove that the media is authentic or unaltered.';
+    plainEnglishText = 'The detector found a low AI signal. This does not establish real capture, authenticity or an unaltered original.';
   } else {
     boxBg = [254, 243, 199]; // Light Amber #fef3c7
     boxBorder = [252, 211, 77]; // Amber border #fcd34d
@@ -343,13 +344,13 @@ export function exportForensicPDFReport(scan: ScanRecord): void {
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(71, 85, 105);
-    doc.text('CHAIN OF CUSTODY & VERIFICATION DIGEST', margin + 4, footerY + 4.5);
+    doc.text('INPUT DIGEST — NOT VERIFIED PROVENANCE', margin + 4, footerY + 4.5);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
     doc.setTextColor(100, 116, 139);
-    doc.text(`UUID Hash: sha256:${scan.id}-${Date.now().toString(16)}`, margin + 4, footerY + 8.8);
-    doc.text(`Certified by: TrustNet Automated Forensic Core Engine v1.0.0`, margin + 4, footerY + 12.5);
+    doc.text(`Input SHA-256: ${result?.metadata?.input_sha256 || 'Unavailable'}`, margin + 4, footerY + 8.8);
+    doc.text('Automated screening report; no certification or verified chain of custody.', margin + 4, footerY + 12.5);
 
     // Digital Stamp Box
     doc.setDrawColor(79, 70, 229); // Indigo

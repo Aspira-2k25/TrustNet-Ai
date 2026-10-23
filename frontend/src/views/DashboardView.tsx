@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { assessmentVerdict } from '../services/verdict';
+import { assessmentVerdict, assessmentCategory } from '../services/verdict';
 import type { ScanRecord } from '../types';
 import { Search, ArrowUpRight, ShieldAlert, ShieldCheck, Activity, Image, Plus, Film, Mic, Globe, Star } from 'lucide-react';
 
@@ -14,8 +14,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ scans, onSelectSca
   const [selectedModalityFilter, setSelectedModalityFilter] = useState<'ALL' | 'image' | 'video' | 'audio' | 'url' | 'text'>('ALL');
 
   const totalScans = scans.length;
-  const threatScans = scans.filter((s) => s.result && ['SUCCESS','PARTIAL_SUCCESS'].includes(s.status) && (s.trust_score?.trust_risk_score ?? s.result.risk_score) >= 50).length;
-  const safeScans = scans.filter((s) => s.result && (s.trust_score?.trust_risk_score ?? s.result.risk_score) < 50 && s.status === 'SUCCESS').length;
+  const threatScans = scans.filter(s => assessmentCategory(s)==='high').length;
+  const safeScans = scans.filter(s => assessmentCategory(s)==='low').length;
 
   const filteredScans = scans.filter((s) => {
     const matchesSearch =

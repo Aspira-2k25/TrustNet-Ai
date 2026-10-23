@@ -5,7 +5,7 @@ Supports FaceForensics++ (c23/c40) and Celeb-DF v2.
 import os
 import json
 from typing import List, Tuple, Optional, Callable
-from PIL import Image
+from PIL import Image, ImageOps
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -52,7 +52,7 @@ class DeepfakeDataset(Dataset):
         else:
             try:
                 with Image.open(path) as source:
-                    img = source.convert("RGB")
+                    img = ImageOps.exif_transpose(source).convert("RGB")
             except Exception as exc:
                 raise ValueError(f"Missing/corrupt training sample: {path}") from exc
 

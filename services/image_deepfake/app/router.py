@@ -3,7 +3,7 @@ import os
 import uuid
 from typing import Optional
 from services.image_deepfake.app.config.settings import settings
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, status, Depends, Header
 from pydantic import BaseModel
 from PIL import Image as PILImage
 
@@ -14,7 +14,17 @@ from services.image_deepfake.app.worker import worker
 
 from starlette.concurrency import run_in_threadpool
 
-router = APIRouter(prefix="", tags=["Inference"])
+def authenticate(authorization: Optional[str] = Header(None)):
+    from shared.auth.verify_token import verify_token, TokenVerificationError
+    if not authorization:
+        raise HTTPException(401, 'Authentication required')
+    try:
+        return verify_token(authorization, secret_key=settings.JWT_SECRET_KEY,
+                            algorithm=settings.JWT_ALGORITHM, expected_type='access')['sub']
+    except TokenVerificationError:
+        raise HTTPException(401, 'Invalid access token')
+
+router = APIRouter(prefix="", tags=["Inference"], dependencies=[Depends(authenticate)])
 
 class DirectDetectKeyRequest(BaseModel):
     storage_key: str
@@ -28,7 +38,7 @@ async def detect_image_file(
     enable_explanation: bool = Form(False)
 ):
     request_id = generate_request_id()
-    image_bytes = await file.read()
+    image_bytes = await file.read(settings.MAX_IMAGE_SIZE_MB * 1024 * 1024 + 1)
     
     if len(image_bytes) == 0:
         raise HTTPException(
@@ -40,14 +50,11 @@ async def detect_image_file(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
         )
-    try:
-        img_check = PILImage.open(io.BytesIO(image_bytes))
-        img_check.verify()
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
-        )
+    from models.image_deepfake.preprocessing.validator import ImageValidator
+    valid, validation_error = ImageValidator().validate(image_bytes)
+    if not valid:
+        raise HTTPException(413 if 'exceeds' in str(validation_error).lower() else 400,
+            detail={'code':'INVALID_IMAGE_BYTES','message':validation_error})
 
     safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
 
@@ -60,7 +67,7 @@ async def detect_image_file(
     )
     if getattr(result, "status", None) and str(result.status).upper().endswith("FAILED"):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=503 if result.error_code == 'INFERENCE_BUSY' else status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": result.error_code or "INFERENCE_FAILED",
                 "message": result.error_message or "Deepfake detection failed during analysis."
@@ -75,23 +82,5 @@ async def detect_image_file(
 async def detect_image_key(
     req: DirectDetectKeyRequest
 ):
-    request_id = generate_request_id()
-    scan_id = req.scan_id or str(uuid.uuid4())
-    
-    image_bytes, error_err = worker.resolve_image_bytes(req.storage_key)
-    if error_err:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail={"code": "FILE_NOT_FOUND", "message": error_err}
-        )
-        
-    result = await run_in_threadpool(
-        worker.detector.predict,
-        image_bytes,
-        scan_id=scan_id,
-        enable_explanation=req.enable_explanation
-    )
-    return APIResponse(
-        data=result,
-        meta=ResponseMeta(request_id=request_id)
-    )
+    # Public callers cannot establish ownership of an internal worker storage key.
+    raise HTTPException(403, 'Storage-key inference is internal only; upload an image through the authenticated scan route.')

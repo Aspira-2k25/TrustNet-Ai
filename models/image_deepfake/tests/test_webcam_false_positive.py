@@ -88,7 +88,8 @@ def test_full_pipeline_on_real_camera_transformations():
     Image.fromarray(arr).save(buf, format="JPEG", quality=85)
     img_bytes = buf.getvalue()
 
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     res = detector.predict(img_bytes)
-    assert res.verdict == "AUTHENTIC"
+    assert res.verdict == "UNCERTAIN"
+    assert "trained_cnn" in res.metadata["missing_required_checks"]
     assert res.risk_score < 40.0

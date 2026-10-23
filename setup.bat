@@ -62,6 +62,16 @@ if "%INSTALL_MAIN_DEPS%"=="true" (
     echo [INFO] Preserving the existing main/image environment. No dependency upgrade requested.
 )
 
+echo Checking image face-localization runtime...
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\checks\verify-image-runtime.py"
+if errorlevel 1 (
+    echo Repairing image runtime with the tested OpenCV package...
+    "%~dp0.venv\Scripts\python.exe" -m pip install opencv-python==4.14.0.94 --timeout 120 --retries 5
+    if errorlevel 1 exit /b 1
+    "%~dp0.venv\Scripts\python.exe" "%~dp0scripts\checks\verify-image-runtime.py"
+    if errorlevel 1 exit /b 1
+)
+
 echo [3/5] Setting up scam detection environment (.venv-scam)...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\setup\install-scam.ps1"
 if errorlevel 1 (
@@ -115,6 +125,12 @@ call "%~dp0setup-scam.bat" %2 %3 %4 %5
 exit /b %errorlevel%
 
 :verify_all_only
+echo [VERIFICATION] Verifying image face-localization runtime...
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\checks\verify-image-runtime.py"
+if errorlevel 1 exit /b 1
+echo [VERIFICATION] Verifying selected image model runtime...
+"%~dp0.venv\Scripts\python.exe" "%~dp0scripts\checks\verify-image-model.py"
+if errorlevel 1 exit /b 1
 echo [VERIFICATION] Verifying scam model...
 "%~dp0.venv-scam\Scripts\python.exe" "%~dp0scripts\checks\verify-scam.py"
 if errorlevel 1 exit /b 1

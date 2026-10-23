@@ -36,7 +36,7 @@ class LMStudioVisionClient:
     ):
         self.base_url = (base_url or os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")).rstrip("/")
         self.configured_model = model_name or os.getenv("LM_STUDIO_MODEL", "")
-        self.timeout = int(timeout or os.getenv("LM_STUDIO_TIMEOUT_SECONDS", "1800"))
+        self.timeout = max(1, min(60, int(timeout or os.getenv("LM_STUDIO_TIMEOUT_SECONDS", "60"))))
         self.max_tokens = int(os.getenv("LM_STUDIO_MAX_TOKENS", "180"))
         self._cached_discovered_model: Optional[str] = None
 

@@ -41,6 +41,9 @@ app.add_middleware(
 app.middleware("http")(rate_limit_middleware)
 
 # Register Proxy Routers
+from shared.image_body_limit import ImageBodyLimit
+app.add_middleware(ImageBodyLimit, paths=['/api/v1/scans/analyze', '/api/v1/detect/file'])
+
 app.include_router(auth_proxy_router)
 app.include_router(scan_proxy_router)
 app.include_router(trust_proxy_router)

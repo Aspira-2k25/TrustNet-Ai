@@ -51,6 +51,9 @@ app.add_middleware(
 )
 
 # Include Scan Router
+from shared.image_body_limit import ImageBodyLimit
+app.add_middleware(ImageBodyLimit, paths=['/scans/analyze'])
+
 app.include_router(scan_router)
 app.include_router(link_inspection_router)
 

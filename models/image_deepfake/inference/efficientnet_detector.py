@@ -45,986 +45,377 @@ class BaseDetector:
 
 
 class EfficientNetDetector(BaseDetector):
-    """
-    Production Multi-Signal Forensic Image Deepfake Detector.
-    Fuses spatial convolutional neural representations (EfficientNet-B0), Hugging Face transformer models,
-    2D Fourier frequency residuals (FFT with 1/f^alpha baseline), Gabor multi-orientation texture bank,
-    Error Level Analysis (ELA), PRNU sensor pattern noise, Face X-Ray boundary analysis,
-    sub-pixel CFA micro-particle morphing, and semantic scene context (Nature, Architecture, Anime, Objects).
-    """
-
-    def __init__(self, enable_explainability: bool = True):
-        try:
-            weights = models.EfficientNet_B0_Weights.DEFAULT
-            self.model = models.efficientnet_b0(weights=weights)
-        except Exception:
-            self.model = models.efficientnet_b0(pretrained=True)
-            
-        self.model.eval()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model.to(self.device)
-        self.enable_explainability = enable_explainability
-        
-        if self.enable_explainability:
-            self.grad_cam = GradCAM(self.model)
-        else:
-            self.grad_cam = None
-
-        self.freq_analyzer = FrequencyAnalyzer()
-        self.ela_analyzer = ELAAnalyzer()
-        self.noise_analyzer = NoiseAnalyzer()
-        self.face_analyzer = FaceAnalyzer()
-        self.pixel_analyzer = PixelMorphingAnalyzer()
-        self.gabor_analyzer = GaborTextureAnalyzer()
-        self.scene_analyzer = SceneContextAnalyzer()
-        self.metadata_analyzer = MetadataAnalyzer()
-        self.watermark_analyzer = WatermarkIconAnalyzer()
-        self.recompression_analyzer = RecompressionAnalyzer()
-        self.physics_analyzer = PhysicsEyeReflectionAnalyzer()
-        self.geometry_analyzer = GeometryPhysicsAnalyzer()
-        self.stego_analyzer = SteganographyAnalyzer()
+    """Versioned screening policy. Heuristics are observations, never authenticity votes."""
+    def __init__(self, enable_explainability=True, policy=None, evaluation_candidate=False):
+        import threading
+        import os
+        from types import SimpleNamespace
+        from models.image_deepfake.inference.artifact import TrainedImageModel
+        self.policy = policy or os.getenv('IMAGE_ASSESSMENT_POLICY', 'image-vit-v3')
+        self.evaluation_candidate = evaluation_candidate
+        if self.policy not in {'image-vit-v3', 'image-screening-v2', 'image-general-v4'}:
+            raise ValueError('Unknown image assessment policy')
+        self._lock = threading.Lock()
+        self.cnn = (TrainedImageModel() if self.policy == 'image-screening-v2' else
+                    SimpleNamespace(model=None, device='cpu', ready=False, manifest={}, error=None))
+        self.model = self.cnn.model
+        self.device = self.cnn.device
+        self.enable_explainability = False
+        self.grad_cam = None  # No ImageNet heatmap is presented as deepfake attribution.
+        for name, factory in (
+            ('freq_analyzer', FrequencyAnalyzer), ('ela_analyzer', ELAAnalyzer),
+            ('noise_analyzer', NoiseAnalyzer), ('face_analyzer', lambda: FaceAnalyzer(localization='haar' if self.policy == 'image-screening-v2' else 'yunet')),
+            ('pixel_analyzer', PixelMorphingAnalyzer), ('gabor_analyzer', GaborTextureAnalyzer),
+            ('scene_analyzer', SceneContextAnalyzer), ('metadata_analyzer', MetadataAnalyzer),
+            ('watermark_analyzer', WatermarkIconAnalyzer), ('recompression_analyzer', RecompressionAnalyzer),
+            ('physics_analyzer', PhysicsEyeReflectionAnalyzer), ('geometry_analyzer', GeometryPhysicsAnalyzer),
+            ('stego_analyzer', SteganographyAnalyzer)):
+            setattr(self, name, factory())
+        from models.image_deepfake.inference.general_image_client import GeneralImageClient
+        self.general_client = GeneralImageClient() if self.policy == 'image-general-v4' else None
         self.hf_client = HuggingFaceDeepfakeClient()
-        self.local_vit = LocalViTDeepfakeDetector()
+        self.local_vit = self.hf_client.local_detector
         self.lm_studio_client = LMStudioVisionClient()
 
-    def _synthesize_explanation(
-        self,
-        verdict: str = "AUTHENTIC",
-        risk_score: float = 0.0,
-        has_face: bool = False,
-        scene_type: str = "general_object",
-        scene_res: Optional[Dict[str, Any]] = None,
-        strong_signals: Optional[List[str]] = None,
-        face_res: Optional[Dict[str, Any]] = None,
-        physics_res: Optional[Dict[str, Any]] = None,
-        meta_res: Optional[Dict[str, Any]] = None,
-        watermark_res: Optional[Dict[str, Any]] = None,
-        stego_res: Optional[Dict[str, Any]] = None,
-        vision_res: Optional[Dict[str, Any]] = None,
-        hf_res: Optional[Dict[str, Any]] = None,
-        is_hf_face_real: bool = False,
-        **kwargs
-    ) -> str:
-        """
-        Synthesizes a crisp, natural, human-understandable explanation ("chota and simple")
-        explaining why an image is authentic or fake.
-        """
+    def readiness(self):
+        localization = self.face_analyzer.localizer.ready if self.face_analyzer.localizer else bool(self.face_analyzer.cascades and self.face_analyzer.eye_cascade is not None)
+        if self.policy == 'image-general-v4':
+            from models.image_deepfake.inference.general_policy import load
+            state = self.general_client.readiness()
+            operating = load(self.general_client.identity(), self.face_analyzer.localizer.identity, allow_candidate=self.evaluation_candidate)
+            return {**state, 'policy':self.policy, 'localization':localization, 'decision_policy_validated':operating['validated'], 'decision_policy_note':operating['reason']}
+        if self.policy == 'image-vit-v3':
+            from models.image_deepfake.inference.vit_policy import load_policy
+            loaded = self.local_vit._get_pipeline() is not None
+            operating = load_policy(allow_candidate=self.evaluation_candidate, expected_revision=self.local_vit.revision)
+            if operating['validated'] and operating.get('processor_sha256') != (self.local_vit.processor_identity or {}).get('sha256'):
+                operating = {**operating, 'validated': False, 'reason': 'Runtime processor does not match the evaluated policy.'}
+            return {'ready': bool(loaded and localization), 'vit_ready': loaded,
+                    'localization': localization, 'policy': self.policy,
+                    'model_error': self.local_vit._load_error,
+                    'decision_policy_validated': operating['validated'],
+                    'decision_policy_note': operating['reason']}
+        return {'ready': bool(self.cnn.ready and localization),
+                'trained_cnn': self.cnn.ready, 'model_error': self.cnn.error,
+                'localization': localization, 'policy': 'image-screening-v2'}
+
+    @staticmethod
+    def _normalize(result, score_key=None):
+        import math
+        result = dict(result)
+        message = str(result.get('finding') or result.get('note') or result.get('reason') or '')
+        state = result.get('status', 'APPLIED')
+        if 'fallback:' in message.lower() or state in {'FALLBACK', 'FAILED', 'UNAVAILABLE'}:
+            state = 'UNAVAILABLE'
+        if score_key and state == 'APPLIED':
+            value = result.get(score_key)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 1:
+                state = 'UNAVAILABLE'
+        result.pop('confidence', None)
+        result['status'] = state
+        if state != 'APPLIED' and score_key:
+            result[score_key] = None
+        return result
+
+    def predict(self, input_data, scan_id=None, filename=None, enable_explanation=False):
+        # Bound peak allocations and prevent shared mutable model state crossing requests.
+        if not self._lock.acquire(blocking=False):
+            return DetectionResult(scan_id=scan_id or str(uuid.uuid4()),module=ModuleEnum.image_deepfake,
+                detector_id='image_deepfake.vit.v3' if self.policy == 'image-vit-v3' else 'image_deepfake.screening.v2',model_version=self.policy,preprocessing_version=self.policy,
+                native_score=0,native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
+                risk_score=0,confidence=0,label='unknown',verdict='UNKNOWN',status=StatusEnum.FAILED,
+                timestamp=datetime.now(timezone.utc).isoformat(),error_code='INFERENCE_BUSY',
+                metadata={'assessment_policy':self.policy, 'score_available':False},
+                error_message='Image worker is busy; retry after the current scan completes.')
         try:
-            scene_res = scene_res or {}
-            strong_signals = strong_signals or []
-            face_res = face_res or {}
-            physics_res = physics_res or {}
-            meta_res = meta_res or {}
-            watermark_res = watermark_res or {}
-            stego_res = stego_res or {}
-            vision_res = vision_res or {}
-            hf_res = hf_res or {}
+            return self._predict(input_data, scan_id, filename, enable_explanation)
+        finally:
+            self._lock.release()
 
-            # If LM Studio local vision was applied and generated an explanation, prioritize it
-            if vision_res.get("status") == "APPLIED" and vision_res.get("simple_explanation"):
-                return str(vision_res["simple_explanation"]).strip()
+    def _predict_vit(self, original, canonical, scan_id, filename, observations, jobs, started, explain):
+        import hashlib
+        from models.image_deepfake.inference.vit_policy import load_policy, scope_state
+        face = observations['face']
+        scope = scope_state(face)
+        # Local candidate revision is established by loading its validated artifact.
+        if scope == 'SUPPORTED':
+            self.local_vit._get_pipeline()
+        operating = load_policy(allow_candidate=self.evaluation_candidate, expected_revision=self.local_vit.revision)
+        hf = {'is_hf_applied': False, 'note': 'Face model was not run outside assessed face scope.'}
+        # One local backend owns all views. A skipped scope never falls through.
+        if scope == 'SUPPORTED':
+            full = self.local_vit.predict(canonical)
+            hf = self.local_vit.predict_views(canonical, face['bounding_boxes'], full)
+        if operating['validated'] and operating.get('processor_sha256') != (self.local_vit.processor_identity or {}).get('sha256'):
+            operating = {**operating, 'validated': False, 'reason': 'Runtime processor does not match the evaluated policy.'}
+        if face.get('localization_method') == 'opencv_yunet':
+            operating = {**operating, 'validated':False, 'reason':'Face localizer changed; operating point requires independent revalidation.'}
+        views = hf.get('face_predictions', [])
+        scores = [v['risk_score'] for v in views if v.get('status') == 'APPLIED']
+        score = max(scores) if scores else None
+        complete = (scope == 'SUPPORTED' and 0 < len(views) == len(face['bounding_boxes']) <= 4
+                    and all(v.get('status') == 'APPLIED' for v in views))
+        missing = []
+        if scope != 'SUPPORTED':
+            missing.append(scope.lower())
+        elif not complete:
+            missing.append('detected_face_views')
+        if score is None and scope == 'SUPPORTED':
+            missing.append('vit_classifier')
+        # Cross-view disagreement stays visible; no unvalidated numeric cutoff is used.
+        frame = hf.get('full_frame_prediction', {'status': 'SKIPPED', 'risk_score': None})
+        decisions = []
+        if operating['validated']:
+            decisions = ['high' if s >= operating['high'] else 'low' if s < operating['low'] else 'review'
+                         for s in scores]
+        disagreement = len(set(d for d in decisions if d != 'review')) > 1
+        if score is None or not complete or not operating['validated'] or disagreement:
+            verdict = 'UNSUPPORTED' if scope == 'NO_ASSESSABLE_FACE' else 'UNCERTAIN'
+        else:
+            verdict = ('LIKELY_AI_MANIPULATED' if score >= operating['high'] else
+                       'LOW_MANIPULATION_SIGNAL' if score < operating['low'] else 'UNCERTAIN')
+        reasons = []
+        if scope == 'NO_ASSESSABLE_FACE':
+            reasons.append('No assessable face detected. This face model cannot assess whole-image authorship; missed faces remain possible.')
+        elif scope == 'LOCALIZATION_UNAVAILABLE':
+            reasons.append('Face localization is unavailable; image authorship was not assessed.')
+        if missing and scope == 'SUPPORTED':
+            reasons.append('Required face assessment incomplete: ' + ', '.join(missing) + '.')
+        if not operating['validated']:
+            reasons.append(operating['reason'])
+        if disagreement:
+            reasons.append('Assessed face decisions disagree; manual review required.')
+        reasons.append('Face scores are uncalibrated. The full-image score is diagnostic only; no camera provenance is established.')
+        vision = {'status': 'SKIPPED'}
+        if explain:
+            try:
+                vision = self.lm_studio_client.analyze(original, forensic_evidence={}, scene_type=observations['scene'].get('scene_type', 'unknown'))
+            except Exception as error:
+                vision = {'status': 'UNAVAILABLE', 'reason': str(error)}
+        telemetry = [{'name': name, 'category': key, 'status': observations[key]['status'],
+                      'finding': observations[key].get('finding') or observations[key].get('note'),
+                      'reason': observations[key].get('reason'), 'measurement': observations[key].get(field)}
+                     for key, name, engine, field, blob in jobs]
+        telemetry.append({'name': 'Pinned local face ViT', 'category': 'primary_ml',
+                          'status': 'APPLIED' if score is not None else 'SKIPPED' if scope != 'SUPPORTED' else 'UNAVAILABLE',
+                          'finding': 'Face classifier only; full-frame result is diagnostic.', 'reason': hf.get('note') if score is None else None})
+        telemetry.append({'name': 'LM Studio advisory vision', 'category': 'local_vision_reasoning',
+                          'status': vision.get('status', 'UNAVAILABLE'), 'finding': vision.get('simple_explanation')})
+        advisory_missing = [key for key, value in observations.items() if key != 'face' and value['status'] != 'APPLIED']
+        metadata = {
+            'assessment_policy': self.policy, 'scope': 'human-face screening', 'scope_state': scope,
+            'score_available': score is not None, 'score_definition': 'Maximum assessed face ViT fake score; not whole-image authorship or confidence.',
+            'confidence_available': False, 'confidence_definition': 'Not calibrated',
+            'decision_policy_validated': operating['validated'], 'decision_policy': operating,
+            'input_sha256': hashlib.sha256(original).hexdigest(),
+            'preprocessing': 'exif-rgb-canonical-png; model-specific AutoImageProcessor',
+            'hf_status': 'applied' if score is not None else 'unavailable', 'hf_risk_score': score,
+            'hf_model': self.local_vit.model_name, 'hf_revision': self.local_vit.revision,
+            'processor': getattr(self.local_vit, 'processor_identity', None),
+            'localization_identity': face.get('localization_identity'),
+            'generator_metadata': observations['metadata'],
+            'inference_mode': 'local',
+            'face_count': face.get('face_count', 0), 'face_boxes': face.get('bounding_boxes', []),
+            'localization_available': face.get('localization_available', False),
+            'model_views': {'full_frame': frame, 'faces': views, 'policy': 'face-max-v3',
+                            'disagreement': disagreement, 'coverage_complete': complete,
+                            'coverage_scope': 'detected regions only; missed faces cannot be counted'},
+            'missing_required_checks': missing, 'advisory_unavailable': advisory_missing,
+            'is_contradiction': disagreement, 'cross_domain_consistency': None,
+            'why_reasons': reasons, 'vision_analysis': vision, 'observations': observations,
+            'source_retention': 'not retained; upload again to inspect the original',
+            'file_safety': {**observations['file_safety'], 'payload_detected': bool(observations['file_safety'].get('is_stego_detected')),
+                            'affects_authorship_score': False},
+            'decision_trace': [{'rule': 'face_max', 'score': score, 'frame_affects_decision': False},
+                               {'rule': 'validated_operating_point_required', 'validated': operating['validated'], 'verdict': verdict}],
+        }
+        return DetectionResult(scan_id=scan_id, module=ModuleEnum.image_deepfake,
+            detector_id='image_deepfake.vit.v3', model_version=self.local_vit.revision,
+            preprocessing_version='face-crop-autoimageprocessor-v3',
+            native_score=(score or 0) / 100, native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
+            risk_score=score or 0, confidence=0, label='fake' if verdict == 'LIKELY_AI_MANIPULATED' else 'low_signal' if verdict == 'LOW_MANIPULATION_SIGNAL' else 'unknown',
+            verdict=verdict, status=StatusEnum.SUCCESS if complete else StatusEnum.PARTIAL_SUCCESS,
+            has_face=bool(face.get('has_face')), explanation=' '.join(reasons), metadata=metadata,
+            analyzers=telemetry, evidence=[], vision_analysis=vision,
+            processing_time_ms=int((time.monotonic() - started) * 1000), timestamp=datetime.now(timezone.utc).isoformat())
 
-            # 1. Deterministic metadata provenance
-            if meta_res.get("provenance_verified", False):
-                gen_name = meta_res.get("generator_name") or "AI Generative Model"
-                return f"AI generation confirmed: verified metadata signature and provenance markers from {gen_name} detected."
-
-            # 2. Covert steganography payload indicator
-            if stego_res.get("is_stego_detected"):
-                return f"Covert data payload detected: {stego_res.get('finding')}"
-
-            # 3. Visual watermark icon: only report when verdict is AI manipulated and not certified authentic face
-            if watermark_res.get("is_watermark_found") and verdict == "LIKELY_AI_MANIPULATED" and not is_hf_face_real:
-                loc = watermark_res.get("watermark_location") or "corner"
-                return f"Synthetic media indicator: visual watermark icon signature detected in {loc} region."
-
-            # 3. Verdict-based explanations
-            if verdict == "LIKELY_AI_MANIPULATED":
-                hf_risk = float(hf_res.get("hf_risk_score") or 0.0)
-                if has_face and (face_res.get("is_manipulated_face") or (hf_res.get("is_hf_applied") and hf_risk >= 70.0)):
-                    return "Face-related features and available classifier outputs raise manipulation risk; they do not verify AI generation."
-                if has_face and physics_res.get("is_physics_violation"):
-                    return "Manipulated facial composition: corneal specular reflections and eye lighting vectors are physically inconsistent with the scene."
-                if scene_type in ["anime_illustration", "digital_art"] or (not has_face and float(scene_res.get("scene_anomaly_score") or 0.0) >= 0.60):
-                    return "Heuristic scene and texture signals raise manipulation risk; they do not identify a generator or verify AI authorship."
-                if strong_signals:
-                    primary = str(strong_signals[0]).lower()
-                    return f"Heuristic image risk is elevated; reported signal: {primary}. This is not verified provenance."
-                return "Available image signals indicate possible manipulation. Review analyzer availability; this does not verify provenance."
-
-            elif verdict == "UNCERTAIN":
-                return "Borderline forensic signals: subtle compression artifacts or conflicting evidence between neural models and physical sensors. Manual verification recommended."
-
-            else:  # AUTHENTIC or LIKELY_AUTHENTIC
-                if has_face:
-                    face_cnt = face_res.get("face_count", 1)
-                    return f"Image consistent with human photography: seamless facial boundary continuity across {face_cnt} face(s), natural optical lens characteristics, and consistent lighting."
-                if scene_type in ["anime_illustration", "digital_art"]:
-                    return "Illustration-related features were observed. Low manipulation signal cannot establish human or AI authorship."
-                if scene_type == "nature_landscape":
-                    return "Landscape-related heuristic features were observed; source authenticity is not verified."
-                return "Low detected manipulation signal does not establish an authentic or unaltered camera capture."
-        except Exception as synth_err:
-            logger.warning(f"[EXPLANATION SYNTHESIS] Error generating explanation: {synth_err}")
-            return "Explanation unavailable; inspect the recorded result and analyzer availability."
-
-    def predict(
-        self,
-        input_data: bytes,
-        scan_id: Optional[str] = None,
-        filename: Optional[str] = None,
-        enable_explanation: bool = False
-    ) -> DetectionResult:
-        start_time = time.time()
-        
-        if scan_id is None:
-            scan_id = str(uuid.uuid4())
-
+    def _predict(self, input_data, scan_id, filename, enable_explanation):
+        import io
+        import hashlib
+        from PIL import Image
+        from models.image_deepfake.preprocessing.validator import canonical_bytes
+        started = time.monotonic()
+        scan_id = scan_id or str(uuid.uuid4())
         try:
-            # 1. Base Semantic, Provenance & Independent Forensic Analyzers (Parallel Thread Pool)
-            with ThreadPoolExecutor(max_workers=7) as executor:
-                future_scene = executor.submit(self.scene_analyzer.analyze, input_data)
-                future_meta = executor.submit(self.metadata_analyzer.analyze, input_data, filename)
-                future_watermark = executor.submit(self.watermark_analyzer.analyze, input_data)
-                future_recomp = executor.submit(self.recompression_analyzer.analyze, input_data)
-                future_face = executor.submit(self.face_analyzer.analyze, input_data)
-                future_freq = executor.submit(self.freq_analyzer.analyze, input_data)
-                future_pixel = executor.submit(self.pixel_analyzer.analyze, input_data)
-                future_gabor = executor.submit(self.gabor_analyzer.analyze, input_data)
-                future_ela = executor.submit(self.ela_analyzer.analyze, input_data)
-                future_noise = executor.submit(self.noise_analyzer.analyze, input_data)
-                future_stego = executor.submit(self.stego_analyzer.analyze, input_data)
-
-                scene_res = future_scene.result()
-                meta_res = future_meta.result()
-                watermark_res = future_watermark.result()
-                recompression_res = future_recomp.result()
-                face_res = future_face.result()
-                freq_res = future_freq.result()
-                pixel_res = future_pixel.result()
-                gabor_res = future_gabor.result()
-                ela_res = future_ela.result()
-                noise_res = future_noise.result()
-                stego_res = future_stego.result()
-
-            logger.info("[FORENSICS] Metadata complete")
-            logger.info("[FORENSICS] Compression complete")
-            logger.info("[FORENSICS] ELA complete")
-            logger.info("[FORENSICS] Noise analysis complete")
-            logger.info("[FORENSICS] Steganography analysis complete")
-
-            already_recompressed = bool(recompression_res.get("already_recompressed", False))
-            scene_type = scene_res.get("scene_type", "general_object")
-            scene_label = scene_res.get("scene_label", "General Media / Photographic Content")
-            is_digital_art = scene_type in ["anime_illustration", "digital_art"]
-            is_screenshot = scene_type == "screenshot"
-
-            # 2. Face Detection & Gating
-            has_face = bool(face_res.get("has_face", False))
-
-            # Digital art face guard: face cascades and skin-tone fallbacks produce false
-            # positives on illustrated characters (warm-toned anime backgrounds match skin
-            # YCbCr ranges, and cartoon outlines trigger boundary discontinuity).
-            if is_digital_art and has_face:
-                has_face = False
-                face_res = {
-                    "has_face": False,
-                    "face_count": 0,
-                    "bounding_boxes": [],
-                    "status": "SKIPPED",
-                    "reason": "Face detection reset: digital art/illustration scene where facial landmark forensics are not applicable.",
-                    "boundary_anomaly_score": 0.0,
-                    "skin_edge_variance": 0.0,
-                    "is_manipulated_face": False,
-                    "finding": None
-                }
-
-            # 3. Optics / Geometry conditional branch
-            if has_face:
-                physics_res = self.physics_analyzer.analyze(input_data)
-                geometry_res = {
-                    "status": "SKIPPED",
-                    "is_geometry_violation": False,
-                    "geometry_anomaly_score": 0.0,
-                    "finding": "Human face subject detected; 3D structural perspective analysis skipped in favor of facial forensics."
-                }
-            else:
-                physics_res = {
-                    "status": "SKIPPED",
-                    "is_physics_violation": False,
-                    "physics_anomaly_score": 0.0,
-                    "finding": "No human eyes detected; corneal specular reflection parallax analysis skipped."
-                }
-                geometry_res = self.geometry_analyzer.analyze(input_data)
-
-            # External Transformer inference (dual-model: face specialist vs general synthetic detector + local fallback)
-            hf_res = self.hf_client.predict(input_data, has_face=has_face, scene_type=scene_type)
-            if not hf_res.get("is_hf_applied"):
-                hf_res = self.local_vit.predict(input_data, has_face=has_face, scene_type=scene_type)
-
-            # 4. LM Studio Local Vision Reasoning with Compact Forensic Evidence (Only when enable_explanation is True)
-            compact_evidence = {
-                "has_face": has_face,
-                "face_count": face_res.get("face_count", 0),
-                "face_boundary_anomaly_score": face_res.get("boundary_anomaly_score", 0.0),
-                "physics_anomaly_score": physics_res.get("physics_anomaly_score", 0.0),
-                "geometry_anomaly_score": geometry_res.get("geometry_anomaly_score", 0.0),
-                "spectral_anomaly_score": freq_res.get("spectral_anomaly_score", 0.0),
-                "ela_anomaly_score": ela_res.get("ela_anomaly_score", 0.0),
-                "noise_anomaly_score": noise_res.get("noise_anomaly_score", 0.0),
-                "pixel_morphing_score": pixel_res.get("pixel_morphing_score", 0.0),
-                "gabor_anomaly_score": gabor_res.get("gabor_anomaly_score", 0.0),
-                "is_watermark_found": watermark_res.get("is_watermark_found", False),
-                "already_recompressed": already_recompressed,
-                "metadata_ai_found": meta_res.get("is_ai_signature_found", False),
-            }
-            if enable_explanation:
-                vision_res = self.lm_studio_client.analyze(
-                    image_bytes=input_data,
-                    forensic_evidence=compact_evidence,
-                    scene_type=scene_type
-                )
-            else:
-                vision_res = {
-                    "status": "SKIPPED",
-                    "visual_verdict": "skipped",
-                    "confidence": 0.0,
-                    "model_name": None,
-                    "observations": [],
-                    "simple_explanation": None,
-                    "reason": "Fast Scan mode selected (LM Studio AI vision explanation skipped for instant analysis)."
-                }
-
-            # 5. Extract deep CNN feature embeddings via PyTorch EfficientNet-B0 backbone
-            tensor = process_image_bytes(input_data).to(self.device)
-            with torch.no_grad():
-                features = self.model.features(tensor)
-                feature_variance = float(torch.var(features).item())
-
-            # 6. Scientific Multi-Signal Conditional Fusion
-            anomaly_weights: List[Tuple[float, float]] = []
-
-            # Adaptive Recompression Scaling: When heavy social recompression (8x8 DCT) is detected,
-            # single-generation physical heuristics (FFT, CFA, Gabor, ELA, PRNU) are flattened.
-            # Downweight this cluster by 0.50x and shift authority to ML classifiers, watermark, and scene.
-            phys_scale = 0.50 if already_recompressed else 1.0
-
-            # Frequency DFT (radial power-law baseline + periodic spikes)
-            freq_w = (0.12 if is_digital_art else 0.20) * phys_scale
-            anomaly_weights.append((freq_res["spectral_anomaly_score"], freq_w))
-            
-            # Sub-Pixel CFA & micro-jitter
-            pixel_w = (0.12 if is_digital_art else 0.16) * phys_scale
-            anomaly_weights.append((pixel_res["pixel_morphing_score"], pixel_w))
-
-            # Multi-scale Gabor Texture Bank
-            gabor_w = (0.08 if (is_digital_art or is_screenshot) else 0.16) * phys_scale
-            anomaly_weights.append((gabor_res["gabor_anomaly_score"], gabor_w))
-
-            # Compression ELA: De-emphasized for digital art / screenshots / recompressed
-            ela_w = (0.05 if (is_digital_art or is_screenshot) else 0.12) * phys_scale
-            anomaly_weights.append((ela_res["ela_anomaly_score"], ela_w))
-
-            # Sensor Pattern Noise: De-emphasized for non-camera digital graphics / recompressed
-            noise_w = (0.04 if (is_digital_art or is_screenshot) else 0.10) * phys_scale
-            anomaly_weights.append((noise_res["noise_anomaly_score"], noise_w))
-
-            # Facial boundary & Corneal optics (Only when applied)
-            if face_res.get("status") == "APPLIED":
-                anomaly_weights.append((face_res["boundary_anomaly_score"], 0.25))
-
-            if physics_res.get("status") == "APPLIED":
-                anomaly_weights.append((physics_res["physics_anomaly_score"], 0.20))
-
-            # Geometry Physics (Only when applied)
-            if geometry_res.get("status") == "APPLIED":
-                anomaly_weights.append((geometry_res["geometry_anomaly_score"], 0.18))
-
-            # Semantic scene context: weight shifted up when recompressed or non-human
-            scene_w = 0.35 if (is_digital_art or not has_face) else (0.22 if already_recompressed else 0.12)
-            anomaly_weights.append((scene_res["scene_anomaly_score"], scene_w))
-
-            # External / Local Vision Transformer Model (dual-model: face specialist vs general synthetic detector)
-            is_face_scenario = has_face or (scene_type in ["photograph_portrait", "portrait"])
-            is_face_specialist = "dima806" in str(hf_res.get("model_name", "dima806")).lower()
-
-            if hf_res.get("is_hf_applied", False):
-                hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
-                hf_anomaly = hf_risk_val / 100.0
-                if is_face_scenario:
-                    # High authority for human face scenes where dima806 is trained and specialized
-                    hf_w = 0.48 if already_recompressed else 0.40
-                    anomaly_weights.append((hf_anomaly, hf_w))
-                else:
-                    # For non-human scenes (cats, dogs, landscapes, digital art), dima806 is face-only.
-                    # It must NEVER force a non-human AI creation to 'authentic' by outputting a false 'real' score!
-                    if not is_face_specialist:
-                        # Dedicated general synthetic detector
-                        hf_w = 0.35 if already_recompressed else 0.28
-                        anomaly_weights.append((hf_anomaly, hf_w))
-                    elif hf_risk_val >= 75.0:
-                        # dima806 only votes on non-face scenes if it actively caught severe generative artifacts
-                        anomaly_weights.append((hf_anomaly, 0.25))
-
-            # LM Studio Local Vision Reasoning (Only when applied)
-            vision_anomaly = 0.50
-            if vision_res.get("status") == "APPLIED":
-                verdict_str = vision_res.get("visual_verdict", "inconclusive").lower()
-                vision_conf = float(vision_res.get("confidence", 0.75))
-                if verdict_str == "suspicious":
-                    vision_anomaly = max(0.60, min(0.95, vision_conf))
-                elif verdict_str == "authentic":
-                    vision_anomaly = max(0.05, min(0.40, 1.0 - vision_conf))
-                else:
-                    vision_anomaly = 0.50
-                
-                vision_w = 0.20 if is_digital_art else 0.18
-                anomaly_weights.append((vision_anomaly, vision_w))
-
-            # Pixel-Level Corner Watermark Icon Scanner (standard weighted vote: 0.15)
-            anomaly_weights.append((float(watermark_res.get("watermark_anomaly_score", 0.0)), 0.15))
-
-            # Compute normalized weighted average
-            total_weight = sum(w for _, w in anomaly_weights)
-            weighted_anomaly = sum(s * w for s, w in anomaly_weights) / max(1e-6, total_weight)
-
-            is_hf_applied = bool(hf_res.get("is_hf_applied", False))
-            hf_risk_float = float(hf_res.get("hf_risk_score", 50.0))
-            is_hf_real = is_hf_applied and (hf_risk_float <= 25.0) and (is_face_scenario or not is_face_specialist)
-            is_hf_fake = is_hf_applied and (hf_risk_float >= 70.0)
-            is_hf_face_real = is_hf_real and is_face_scenario
-            is_hf_face_fake = is_hf_fake and is_face_scenario
-            max_active_signal = max((s for s, _ in anomaly_weights), default=0.0)
-
-            # Count genuinely independent strong synthetic indicators across distinct physical domains
-            strong_signals = []
-            strong_domains = set()
-
-            # Watermark corroboration (participates as normal strong signal/domain, NO hard override)
-            if watermark_res.get("is_watermark_found") and watermark_res.get("watermark_anomaly_score", 0.0) >= 0.60:
-                strong_signals.append(f"Visual watermark icon detected ({watermark_res.get('watermark_location')})")
-                strong_domains.add("visual_provenance")
-
-            if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.60:
-                strong_signals.append("2D Fourier periodic grid artifacts / 1/f^alpha deviation")
-                strong_domains.add("frequency")
-
-            if pixel_res.get("is_morphing_detected") and pixel_res.get("pixel_morphing_score", 0) >= 0.60:
-                strong_signals.append("Sub-pixel CFA demosaicing discontinuity")
-                strong_domains.add("sensor_microstructure")
-
-            if gabor_res.get("is_texture_anomalous") and gabor_res.get("gabor_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Multi-scale Gabor filter bank texture anomaly")
-                strong_domains.add("spatial_texture")
-
-            if noise_res.get("is_synthetic_noise") and noise_res.get("noise_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Non-physical sensor noise distribution")
-                strong_domains.add("sensor_microstructure")
-
-            if ela_res.get("is_anomalous") and ela_res.get("ela_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Non-uniform Error Level Analysis surface across foreground and background")
-                strong_domains.add("compression_splicing")
-
-            if face_res.get("is_manipulated_face") and face_res.get("boundary_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Facial boundary blending discontinuity (Face X-Ray)")
-                strong_domains.add("face_anatomy")
-
-            if physics_res.get("is_physics_violation") and physics_res.get("physics_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Asymmetrical corneal specular reflection vectors")
-                strong_domains.add("physical_optics_geometry")
-
-            if geometry_res.get("is_geometry_violation") and geometry_res.get("geometry_anomaly_score", 0) >= 0.60:
-                strong_signals.append("Geometric structural asymmetry / missing contact shadow")
-                strong_domains.add("physical_optics_geometry")
-
-            if stego_res.get("is_stego_detected"):
-                strong_signals.append(f"Covert steganography: {stego_res.get('finding')}")
-                strong_domains.add("covert_steganography")
-
-            if is_digital_art and scene_res.get("scene_anomaly_score", 0.0) >= 0.70:
-                strong_signals.append(f"AI Digital Art & Latent Diffusion Texture: {scene_res.get('finding')}")
-                strong_domains.add("generative_art_synthesis")
-
-            if hf_res.get("is_hf_applied", False) and float(hf_res.get("hf_risk_score", 0.0)) >= 70.0:
-                model_name_str = hf_res.get("model_name") or "Transformer"
-                strong_signals.append(f"Vision Transformer ({model_name_str}) high synthetic probability")
-                strong_domains.add("learned_deep_learning")
-
-            if vision_res.get("status") == "APPLIED":
-                v_verdict = vision_res.get("visual_verdict", "inconclusive").lower()
-                v_conf = float(vision_res.get("confidence", 0.0))
-                if v_verdict == "suspicious" and v_conf >= 0.70:
-                    model_tag = vision_res.get("model_name") or "Local Vision"
-                    strong_signals.append(f"LM Studio Local Vision ({model_tag}) visual anomaly detection")
-                    strong_domains.add("visual_semantic_reasoning")
-
-            # Distinct physical domain count (excludes learned neural classifiers, vision models, watermark heuristics, and steganography)
-            physical_domains = strong_domains - {"learned_deep_learning", "visual_semantic_reasoning", "visual_provenance", "covert_steganography"}
-            physical_domain_count = len(physical_domains)
-            # Independent non-facial physical domain set (prevents facial boundary from self-corroborating)
-            secondary_physical_domains = physical_domains - {"face_anatomy"}
-
-            strong_domain_count = len(strong_domains)
-            strong_signal_count = len(strong_signals)
-            if meta_res.get("provenance_verified", False):
-                strong_signal_count += 3
-                strong_domains.add("provenance_metadata")
-                strong_domain_count += 2
-                physical_domain_count += 2
-
-            if max_active_signal >= 0.75 and not is_hf_real:
-                weighted_anomaly = max(weighted_anomaly, max_active_signal * 0.85)
-
-            # Cross-Domain Consistency Score (CDCF): Measures cross-modal agreement
-            # across Spatial (Gabor/CFA/Noise), Frequency (FFT), Compression (ELA), ML (HF), and Vision
-            domain_scores = [
-                (pixel_res["pixel_morphing_score"] + gabor_res["gabor_anomaly_score"] + noise_res["noise_anomaly_score"]) / 3.0,
-                freq_res["spectral_anomaly_score"],
-                ela_res["ela_anomaly_score"]
+            canonical = canonical_bytes(input_data)
+            jobs = [
+                ('scene', 'Scene color/texture heuristic', self.scene_analyzer, 'scene_anomaly_score', canonical),
+                ('metadata', 'Editable metadata clues', self.metadata_analyzer, 'metadata_anomaly_score', input_data),
+                ('watermark', 'Corner shape heuristic', self.watermark_analyzer, 'watermark_anomaly_score', canonical),
+                ('recompression', 'DCT block-grid heuristic', self.recompression_analyzer, 'recompression_score', input_data),
+                ('face', 'Detected face boundary gradient heuristic', self.face_analyzer, 'boundary_anomaly_score', canonical),
+                ('frequency', 'Frequency residual heuristic', self.freq_analyzer, 'spectral_anomaly_score', canonical),
+                ('pixel', 'Pixel correlation heuristic', self.pixel_analyzer, 'pixel_morphing_score', canonical),
+                ('gabor', 'Gabor texture heuristic', self.gabor_analyzer, 'gabor_anomaly_score', canonical),
+                ('ela', 'JPEG recompression difference heuristic', self.ela_analyzer, 'ela_anomaly_score', canonical),
+                ('noise', 'High-pass noise residual heuristic', self.noise_analyzer, 'noise_anomaly_score', canonical),
+                ('file_safety', 'File trailer and bit-plane inspection', self.stego_analyzer, 'stego_anomaly_score', input_data),
             ]
-            if hf_res.get("is_hf_applied"):
-                domain_scores.append(float(hf_res.get("hf_risk_score", 50.0)) / 100.0)
-            if vision_res.get("status") == "APPLIED":
-                domain_scores.append(vision_anomaly)
-
-            cross_domain_spread = float(np.std(domain_scores))
-            cross_domain_consistency = float(round(max(0.60, min(0.98, 1.0 - cross_domain_spread * 0.45)), 2))
-
-            # Multi-Vector Corroboration Calibration (Requires >= 2 Distinct Physical Domains):
-            is_hf_fake = hf_res.get("is_hf_applied", False) and (float(hf_res.get("hf_risk_score", 50.0)) >= 75.0)
-            is_vision_real = (vision_res.get("status") == "APPLIED" and 
-                              vision_res.get("visual_verdict") == "authentic" and 
-                              float(vision_res.get("confidence", 0.0)) >= 0.75)
-            is_vision_fake = (vision_res.get("status") == "APPLIED" and 
-                              vision_res.get("visual_verdict") == "suspicious" and 
-                              float(vision_res.get("confidence", 0.0)) >= 0.75)
-            ai_model_flags_fake = is_hf_fake or is_vision_fake
-            ai_model_confirms_real = is_hf_real or is_vision_real
-            is_contradiction = False
-
-            # 1. Immediate override for deterministic AI provenance markers (ChatGPT / DALL-E / Midjourney / prompts in metadata)
-            if meta_res.get("provenance_verified", False):
-                weighted_anomaly = max(0.96, weighted_anomaly)
-                is_contradiction = False
-            else:
-                # 2. Evidential Multimodal Corroboration & Calibration:
-
-                # (0) Deterministic Covert Steganography Payload:
-                if stego_res.get("is_stego_detected"):
-                    weighted_anomaly = max(0.85, weighted_anomaly)
-                    is_contradiction = False
-
-                # (a) Dedicated ViT detects Deepfake Human Face (Screenshot 3 - Child Deepfake):
-                elif is_hf_face_fake:
-                    # dima806 ViT is specialized on human faces and certified synthetic deepfake >= 70%.
-                    # Even if seamless crop (physical_domain_count == 0), trust the neural ViT head (>= 0.78).
-                    if len(secondary_physical_domains) >= 1 or face_res.get("is_manipulated_face"):
-                        weighted_anomaly = max(0.86, weighted_anomaly)
-                    else:
-                        weighted_anomaly = max(0.78, weighted_anomaly)
-                    is_contradiction = False
-
-                # (b) High-Confidence Authentic Human Capture (Screenshot 1 - Real portrait with glasses/shadows):
-                elif is_hf_face_real and len(secondary_physical_domains) == 0:
-                    # Webcam/portrait false-positive suppression:
-                    # When ViT certifies Real (>=80%) and zero physical anomalies exist, single boundary spikes
-                    # (e.g. spectacles/shadows/lighting or background clutter) must not flip an authentic camera photo to Uncertain.
-                    weighted_anomaly = min(0.16, weighted_anomaly)
-                    is_contradiction = False
-
-                # (c) Facial boundary discontinuity confirmed by secondary physical or AI signals:
-                elif face_res.get("is_manipulated_face") and float(face_res.get("boundary_anomaly_score", 0.0)) >= 0.65:
-                    if len(secondary_physical_domains) >= 1 or is_vision_fake:
-                        weighted_anomaly = max(0.78, weighted_anomaly)
-                    elif is_hf_face_real:
-                        # ViT says real and physical checks clean -> suppress boundary noise
-                        weighted_anomaly = min(0.18, weighted_anomaly)
-                        is_contradiction = False
-                    else:
-                        # Isolated boundary finding without neural confirmation -> cautious border
-                        weighted_anomaly = max(0.48, min(0.58, weighted_anomaly))
-                        is_contradiction = True
-
-                # (d) Two or more independent physical domains corroborate manipulation:
-                elif physical_domain_count >= 2:
-                    weighted_anomaly = max(0.74, min(0.98, weighted_anomaly * 1.15))
-                    if is_hf_face_real:
-                        is_contradiction = True
-
-                # (e) AI Generative Art / Synthetic Non-Human Scene (Screenshot 4 - AI Cat in hoodie):
-                elif (not has_face) and (scene_res.get("scene_anomaly_score", 0.0) >= 0.60 or is_digital_art or not is_face_scenario) and not watermark_res.get("is_watermark_found"):
-                    if is_hf_applied and hf_risk_float <= 25.0:
-                        # ViT explicitly certifies photographic authenticity (e.g. real photo with sticker)
-                        if physical_domain_count <= 1:
-                            weighted_anomaly = min(0.48, weighted_anomaly)
-                        else:
-                            is_contradiction = True
-                            weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-                    elif pixel_res.get("is_morphing_detected") or noise_res.get("is_synthetic_noise") or freq_res.get("is_synthetic_pattern"):
-                        weighted_anomaly = max(0.76, weighted_anomaly)
-                    elif scene_res.get("scene_anomaly_score", 0.0) >= 0.65:
-                        weighted_anomaly = max(0.74, weighted_anomaly)
-                    elif scene_res.get("scene_anomaly_score", 0.0) >= 0.50 and meta_res.get("is_exif_missing"):
-                        weighted_anomaly = max(0.68, weighted_anomaly)
-
-                # (f) Vision Reasoning flags fake, corroborated by physical or scene domains:
-                elif is_vision_fake and (physical_domain_count >= 1 or scene_res.get("scene_anomaly_score", 0.0) >= 0.60):
-                    weighted_anomaly = max(0.72, weighted_anomaly)
-
-                # (g) Both vision model and ViT flag fake:
-                elif is_hf_fake and is_vision_fake:
-                    weighted_anomaly = max(0.82, weighted_anomaly)
-
-                # (h) Watermark icon detected:
-                elif watermark_res.get("is_watermark_found") and watermark_res.get("watermark_anomaly_score", 0.0) >= 0.65:
-                    if is_hf_real or is_hf_face_real or (is_hf_applied and hf_risk_float <= 25.0):
-                        # Contradiction: watermark icon present, but ViT certifies photographic authenticity.
-                        # Do not jump to 96% fake; clamp to uncertain / contradiction band (48-52%)
-                        is_contradiction = True
-                        weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-                    else:
-                        weighted_anomaly = max(0.75, weighted_anomaly)
-
-                # (i) Clear authentic capture: model confirms real, no physical anomalies and no watermark:
-                elif ai_model_confirms_real and physical_domain_count <= 1 and not face_res.get("is_manipulated_face") and not watermark_res.get("is_watermark_found"):
-                    weighted_anomaly = min(0.18, weighted_anomaly)
-
-                # (j) Natural lens and sensor verified with zero physical anomalies:
-                elif physical_domain_count == 0 and max_active_signal < 0.40 and not is_hf_fake:
-                    has_camera_hardware = not meta_res.get("is_exif_missing") and ("camera" in str(meta_res.get("finding", "")).lower() or meta_res.get("raw_software_tag"))
-                    if has_camera_hardware or is_hf_face_real:
-                        weighted_anomaly = min(0.16, weighted_anomaly)
-                    elif not has_face and meta_res.get("is_exif_missing"):
-                        # Unverified web image with missing camera sensor metadata: maintain neutral baseline
-                        weighted_anomaly = max(0.38, min(0.52, weighted_anomaly))
-                    else:
-                        weighted_anomaly = min(0.25, weighted_anomaly)
-
-                # Flag contradiction if neural classifiers or vision reasoning strongly disagree:
-                if (is_hf_real and is_vision_fake) or (is_hf_fake and is_vision_real):
-                    is_contradiction = True
-                    # When vision model contradicts clean physical scans + ViT (0 physical anomalies):
-                    if physical_domain_count == 0 and is_hf_real and is_vision_fake:
-                        weighted_anomaly = max(0.48, min(0.52, weighted_anomaly))
-
-            logger.info("[FUSION] Evidence combined")
-
-            # Calculate Native Score P(REAL) in [0.01, 0.99]
-            native_score = float(round(max(0.01, min(0.99, 1.0 - weighted_anomaly)), 4))
-            risk_score = float(round((1.0 - native_score) * 100.0, 2))
-
-            # Confidence is derived from the variance/consistency of active signals
-            active_scores = [s for s, _ in anomaly_weights]
-            score_spread = float(np.std(active_scores)) if len(active_scores) > 1 else 0.1
-            confidence = float(round(max(0.70, min(0.98, 0.92 - score_spread * 0.35)), 2))
-
-            # 4-Level Semantic Result Structure:
-            # 1. is_contradiction OR 40.0 <= risk_score < 62.0: UNCERTAIN (Amber)
-            # 2. >= 62.0: LIKELY_AI_MANIPULATED (Red)
-            # 3. >= 22.0: LIKELY_AUTHENTIC (Sky/Cyan)
-            # 4. < 22.0: AUTHENTIC (Green)
-            if is_contradiction or (40.0 <= risk_score < 62.0):
-                verdict = "UNCERTAIN"
-                label = "uncertain"
-            elif risk_score >= 62.0:
-                verdict = "LIKELY_AI_MANIPULATED"
-                label = "fake"
-            elif risk_score >= 22.0:
-                verdict = "LIKELY_AUTHENTIC"
-                label = "real"
-            else:
-                verdict = "AUTHENTIC"
-                label = "real"
-
-            # Dynamic "Why This Result" Explanations:
-            why_reasons: List[str] = []
-
-            # 1. Deterministic AI Provenance Flag (Top priority)
-            if meta_res.get("provenance_verified", False):
-                why_reasons.append(f"Deterministic AI generator signature detected ({meta_res.get('generator_name')}).")
-
-            # 2. Deterministic Covert Steganography Flag
-            if stego_res.get("is_stego_detected"):
-                why_reasons.append(f"Covert data payload detected: {stego_res.get('finding')}")
-
-            if is_contradiction:
-                why_reasons.append("Conflicting Evidence: Learned AI models and local physical forensic analyzers disagree. Manual verification recommended.")
-
-            # Vision Reasoning (LM Studio Local Vision)
-            if vision_res.get("status") == "APPLIED":
-                simple_exp = vision_res.get("simple_explanation")
-                if simple_exp:
-                    why_reasons.append(f"Visual reasoning: {simple_exp}")
-                elif vision_res.get("observations"):
-                    why_reasons.append(f"Visual reasoning: {vision_res['observations'][0]}")
-            elif vision_res.get("status") == "SKIPPED":
-                why_reasons.append("Available image engines completed without optional vision reasoning; see actual classifier availability.")
-            else:
-                why_reasons.append("Vision analysis unavailable. Result is based on available forensic checks.")
-
-            if hf_res.get("is_hf_applied", False) and has_face:
-                hf_risk_val = float(hf_res.get("hf_risk_score", 50.0))
-                if hf_risk_val <= 20.0:
-                    why_reasons.append(f"Vision Transformer AI model indicates authentic photography ({100-hf_risk_val:.1f}% real confidence).")
-                elif hf_risk_val >= 70.0:
-                    why_reasons.append(f"Vision Transformer AI model indicates high synthetic deepfake probability ({hf_risk_val:.1f}% risk).")
-            elif not has_face and scene_res.get("scene_anomaly_score", 0.0) >= 0.60:
-                why_reasons.append(f"Scene heuristic observation: {scene_res.get('finding')}")
-            elif is_digital_art and scene_res.get("scene_anomaly_score", 0.0) >= 0.60:
-                why_reasons.append(f"Scene analysis: {scene_res.get('finding')}")
-
-            if freq_res.get("is_synthetic_pattern") and freq_res.get("spectral_anomaly_score", 0) >= 0.50:
-                why_reasons.append("2D Fourier spectrum exhibits periodic grid spikes / un-natural frequency energy concentration.")
-            elif not is_digital_art:
-                why_reasons.append("2D Fourier power spectrum follows natural optical lens 1/f^alpha roll-off.")
-
-            if pixel_res.get("is_morphing_detected") and pixel_res.get("pixel_morphing_score", 0) >= 0.50:
-                why_reasons.append("Sub-pixel Bayer CFA correlation broken (indicates synthetic diffusion/upscaling).")
-            elif not is_digital_art:
-                why_reasons.append("Sub-pixel Bayer CFA demosaicing and micro-edge continuity verified.")
-
-            if ela_res.get("is_anomalous") and ela_res.get("ela_anomaly_score", 0) >= 0.50:
-                why_reasons.append("Error Level Analysis detected non-uniform compression disparities consistent with splicing.")
-            elif not is_digital_art:
-                why_reasons.append("Error Level Analysis confirms homogeneous single-source compression.")
-
-            if face_res.get("has_face"):
-                if face_res.get("is_manipulated_face"):
-                    why_reasons.append("Face X-Ray boundary analysis detected localized blending step gradients.")
-                else:
-                    why_reasons.append(f"Seamless facial skin tone and boundary transitions verified across {face_res.get('face_count')} face(s).")
-
-            # Keep top 4 most informative reasons
-            why_reasons = why_reasons[:4]
-
-            # 7. Structured Evidence Items
-            evidence: List[EvidenceItem] = []
-            
-            if self.enable_explainability and self.grad_cam is not None:
+            observations, analyzers = {}, []
+            # At most two full-resolution analyzers allocate simultaneously.
+            def run(job):
+                key, name, engine, score_key, blob = job
                 try:
-                    grad_evidence = self.grad_cam.generate_evidence(tensor, risk_score=risk_score)
-                    evidence.extend(grad_evidence)
-                except Exception as cam_err:
-                    logger.warning(f"[GRAD-CAM] Explainability heatmap skipped: {cam_err}")
-
-            # EfficientNet Backbone Feature note
-            evidence.append(EvidenceItem(
-                feature_or_region="efficientnet_spatial_backbone",
-                contribution=float(round(min(1.0, feature_variance / 5.0), 2)),
-                human_readable_note=f"EfficientNet-B0 extracted 1280-dim convolutional feature embeddings (spatial variance: {feature_variance:.2f})."
-            ))
-
-            if vision_res.get("status") == "APPLIED":
-                evidence.append(EvidenceItem(
-                    feature_or_region=f"lm_studio_vision ({vision_res.get('visual_verdict', 'inconclusive')})",
-                    contribution=float(round(vision_anomaly, 2)),
-                    human_readable_note=str(vision_res.get("simple_explanation") or f"Visual reasoning identified: {'; '.join(vision_res.get('observations', [])[:2])}")
-                ))
-
-            if hf_res.get("is_hf_applied", False):
-                hf_risk_val = float(hf_res.get("hf_risk_score") or 50.0)
-                evidence.append(EvidenceItem(
-                    feature_or_region="huggingface_transformer",
-                    contribution=float(round(hf_risk_val / 100.0, 2)),
-                    human_readable_note=str(hf_res.get("note") or f"Evaluated against Hugging Face {getattr(self.hf_client, 'face_model_name', getattr(self.hf_client, 'model_name', 'Transformer'))}.")
-                ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="semantic_scene_context",
-                contribution=float(round(float(scene_res.get("scene_anomaly_score") or 0.0), 2)),
-                human_readable_note=f"Scene classified as [{scene_res.get('scene_label', 'Unknown')}]: {scene_res.get('finding', 'Context evaluated.')}"
-            ))
-
-            if watermark_res.get("is_watermark_found") and (not is_hf_face_real or verdict == "LIKELY_AI_MANIPULATED"):
-                evidence.append(EvidenceItem(
-                    feature_or_region=f"visual_watermark_icon ({watermark_res.get('watermark_location', 'corner')})",
-                    contribution=float(round(float(watermark_res.get("watermark_anomaly_score") or 0.85) * 0.15, 2)),
-                    human_readable_note=str(watermark_res.get("finding") or "Visual watermark icon detected in image corner.")
-                ))
-
-            if float(meta_res.get("metadata_anomaly_score") or 0.0) > 0.1:
-                evidence.append(EvidenceItem(
-                    feature_or_region="provenance_metadata",
-                    contribution=float(round(float(meta_res.get("metadata_anomaly_score") or 0.0), 2)),
-                    human_readable_note=str(meta_res.get("finding") or "Metadata provenance markers evaluated.")
-                ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="subpixel_morphing_cfa",
-                contribution=float(round(float(pixel_res.get("pixel_morphing_score") or 0.0), 2)),
-                human_readable_note=str(pixel_res.get("note") or "Sub-pixel Bayer CFA evaluation completed.")
-            ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="gabor_wavelet_textures",
-                contribution=float(round(float(gabor_res.get("gabor_anomaly_score") or 0.0), 2)),
-                human_readable_note=str(gabor_res.get("finding") or "Gabor texture bank evaluation completed.")
-            ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="fft_spectral_residuals",
-                contribution=float(round(float(freq_res.get("spectral_anomaly_score") or 0.0), 2)),
-                human_readable_note=str(freq_res.get("finding") or "FFT frequency spectrum analysis completed.")
-            ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="compression_error_variance",
-                contribution=float(round(float(ela_res.get("ela_anomaly_score") or 0.0), 2)),
-                human_readable_note=str(ela_res.get("note") or "Error Level Analysis completed.")
-            ))
-
-            evidence.append(EvidenceItem(
-                feature_or_region="sensor_noise_consistency",
-                contribution=float(round(float(noise_res.get("noise_anomaly_score") or 0.0), 2)),
-                human_readable_note=str(noise_res.get("note") or "Sensor noise consistency evaluation completed.")
-            ))
-
-            if face_res.get("status") == "APPLIED":
-                evidence.append(EvidenceItem(
-                    feature_or_region="facial_boundary_warping",
-                    contribution=float(round(float(face_res.get("boundary_anomaly_score") or 0.0), 2)),
-                    human_readable_note=str(face_res.get("finding") or "Facial landmark boundary evaluation complete.")
-                ))
-                
-                if physics_res.get("status") == "APPLIED":
-                    evidence.append(EvidenceItem(
-                        feature_or_region="physics_corneal_specular_reflection",
-                        contribution=float(round(float(physics_res.get("physics_anomaly_score") or 0.0), 2)),
-                        human_readable_note=str(physics_res.get("finding") or "Corneal specular reflection physics evaluated.")
-                    ))
-
-            if geometry_res.get("status") == "APPLIED":
-                evidence.append(EvidenceItem(
-                    feature_or_region="physics_3d_geometry_support",
-                    contribution=float(round(float(geometry_res.get("geometry_anomaly_score") or 0.0), 2)),
-                    human_readable_note=str(geometry_res.get("finding") or "3D structural geometry evaluation completed.")
-                ))
-
-            if stego_res.get("is_stego_detected"):
-                evidence.append(EvidenceItem(
-                    feature_or_region="covert_steganography_payload",
-                    contribution=float(round(float(stego_res.get("stego_anomaly_score") or 0.95), 2)),
-                    human_readable_note=str(stego_res.get("finding") or "Covert steganographic payload detected.")
-                ))
-
-            # 8. Complete Analyzers Telemetry List
-            analyzers = [
-                {
-                    "name": "ImageNet EfficientNet-B0 feature extractor",
-                    "category": "primary_ml",
-                    "status": "APPLIED",
-                    "finding": f"Extracted 1280-dim convolutional spatial representations (variance: {feature_variance:.2f}). Deepfake head pending dedicated training."
-                },
-                {
-                    "name": f"LM Studio Local Vision ({vision_res.get('model_name') or 'Qwen-VL'})",
-                    "category": "local_vision_reasoning",
-                    "status": vision_res.get("status", "UNAVAILABLE"),
-                    "reason": None if vision_res.get("status") == "APPLIED" else "LM Studio local endpoint not running or model not loaded; forensic analysis completed using deterministic scanners.",
-                    "finding": vision_res.get("simple_explanation") or (
-                        f"Visual verdict: {vision_res.get('visual_verdict', 'inconclusive')} "
-                        f"(confidence: {float(vision_res.get('confidence') or 0.0)*100:.0f}%). "
-                        f"{len(vision_res.get('observations') or [])} visual observation(s)."
-                        if vision_res.get("status") == "APPLIED"
-                        else "Vision analysis unavailable. Result is based on available forensic checks."
-                    )
-                },
-                {
-                    "name": f"Hugging Face AI Hub ({hf_res.get('model_name') or getattr(self.hf_client, 'face_model_name', 'Transformer')})",
-                    "category": "primary_ml",
-                    "status": "APPLIED" if hf_res.get("is_hf_applied") else "SKIPPED",
-                    "reason": None if hf_res.get("is_hf_applied") else "Hugging Face API unavailable or rate-limited; deferred to local forensic engines.",
-                    "finding": hf_res.get("note") or "Model evaluation completed."
-                },
-                {
-                    "name": f"Semantic Scene Context: {scene_res.get('scene_label', 'General Media')}",
-                    "category": "semantic_forensics",
-                    "status": "APPLIED",
-                    "finding": scene_res.get("finding", "Scene classified.")
-                },
-                {
-                    "name": "Provenance & Metadata Forensics",
-                    "category": "metadata_forensics",
-                    "status": "APPLIED",
-                    "finding": meta_res.get("finding", "Metadata evaluated.")
-                },
-                {
-                    "name": "Visual Watermark Icon Scanner",
-                    "category": "visual_provenance",
-                    "status": watermark_res.get("status", "APPLIED"),
-                    "reason": None if watermark_res.get("is_watermark_found") else "No corner watermark icon signature detected.",
-                    "finding": watermark_res.get("finding", "No watermark detected.")
-                },
-                {
-                    "name": "Social Re-Compression & DCT Grid Analyzer",
-                    "category": "compression_history",
-                    "status": recompression_res.get("status", "APPLIED"),
-                    "reason": None if already_recompressed else "Single-generation or uncompressed capture.",
-                    "finding": recompression_res.get("finding", "Grid continuity verified.")
-                },
-                {
-                    "name": "Sub-Pixel CFA & Micro-Particle Morphing Analyzer",
-                    "category": "micro_forensics",
-                    "status": "APPLIED",
-                    "finding": pixel_res.get("note", "Bayer CFA correlation verified.")
-                },
-                {
-                    "name": "Multi-Scale Gabor Filter Bank Texture Analyzer",
-                    "category": "texture_forensics",
-                    "status": gabor_res.get("status", "APPLIED"),
-                    "finding": gabor_res.get("finding", "Texture distribution verified.")
-                },
-                {
-                    "name": "FFT High-Frequency Residual & Radial Decay Analyzer",
-                    "category": "frequency",
-                    "status": freq_res.get("status", "APPLIED"),
-                    "finding": freq_res.get("finding", "Fourier spectrum evaluated.")
-                },
-                {
-                    "name": "Error Level Analysis (ELA)",
-                    "category": "compression",
-                    "status": "APPLIED",
-                    "finding": ela_res.get("note", "Compression surface evaluated.")
-                },
-                {
-                    "name": "Sensor Pattern Noise (PRNU)",
-                    "category": "sensor_forensics",
-                    "status": "APPLIED",
-                    "finding": noise_res.get("note", "Sensor noise evaluated.")
-                },
-                {
-                    "name": "Face Landmark & Boundary Warping (Face X-Ray)",
-                    "category": "face_forensics",
-                    "status": face_res.get("status", "SKIPPED"),
-                    "reason": face_res.get("reason"),
-                    "finding": face_res.get("finding")
-                },
-                {
-                    "name": "Optics Physics: Corneal Specular Parallax",
-                    "category": "physics_engine",
-                    "status": physics_res.get("status", "SKIPPED"),
-                    "reason": physics_res.get("reason"),
-                    "finding": physics_res.get("finding")
-                },
-                {
-                    "name": "Geometry Physics: Support & Structural Symmetry",
-                    "category": "physics_engine",
-                    "status": geometry_res.get("status", "SKIPPED"),
-                    "reason": geometry_res.get("reason"),
-                    "finding": geometry_res.get("finding")
-                },
-                {
-                    "name": "Covert Steganography: LSB & File Trailer Scanner",
-                    "category": "steganography_forensics",
-                    "status": stego_res.get("status", "APPLIED"),
-                    "reason": None if stego_res.get("is_stego_detected") else "No covert payload or anomalous LSB bit patterns detected.",
-                    "finding": stego_res.get("finding", "Clean (No hidden steganographic payload detected).")
-                }
-            ]
-
-            processing_time_ms = int((time.time() - start_time) * 1000)
-
-            metadata_payload = {
-                "scene_label": scene_label,
-                "generator_name": meta_res.get("generator_name") or meta_res.get("raw_software_tag"),
-                "confidence_definition": "Heuristic signal agreement, not calibrated correctness probability",
-                "provenance_verified": False,
-                "ai_signature_found": bool(meta_res.get("provenance_verified", False)),
-                "exif_missing": bool(meta_res.get("is_exif_missing")),
-                "metadata_anomaly_score": float(meta_res.get("metadata_anomaly_score") or 0.0),
-                "metadata_finding": meta_res.get("finding"),
-                "feature_variance": feature_variance,
-                "strong_signal_count": strong_signal_count,
-                "strong_signals": strong_signals,
-                "face_count": face_res.get("face_count", 0),
-                "cross_domain_consistency": cross_domain_consistency,
-                "gabor_anomaly_score": float(gabor_res.get("gabor_anomaly_score") or 0.0),
-                "why_reasons": why_reasons,
-                "is_contradiction": is_contradiction,
-                "spectral_decay_slope": float(freq_res.get("spectral_decay_slope") or 2.0),
-                "hf_model": hf_res.get("model_name"),
-                "hf_risk_score": float(hf_res.get("hf_risk_score") or 0.0) if hf_res.get("hf_risk_score") is not None else None,
-                "hf_status": "applied" if hf_res.get("is_hf_applied") else "skipped",
-                "watermark_found": bool(watermark_res.get("is_watermark_found")),
-                "watermark_location": watermark_res.get("watermark_location"),
-                "watermark_anomaly_score": float(watermark_res.get("watermark_anomaly_score") or 0.0),
-                "already_recompressed": bool(already_recompressed),
-                "recompression_score": float(recompression_res.get("recompression_score") or 0.0),
-                "blockiness_ratio": float(recompression_res.get("blockiness_ratio") or 1.0),
-                "stego_detected": bool(stego_res.get("is_stego_detected")),
-                "stego_payload_type": stego_res.get("payload_type"),
-                "stego_payload_size": int(stego_res.get("payload_size_bytes") or 0),
-                "stego_method": stego_res.get("stego_method"),
-                "stego_preview": stego_res.get("extracted_preview"),
-                "stego_finding": stego_res.get("finding"),
-                "lm_studio_status": vision_res.get("status", "UNAVAILABLE"),
-                "lm_studio_model": vision_res.get("model_name"),
-                "vision_analysis": vision_res
+                    value = engine.analyze(blob, filename) if key == 'metadata' else engine.analyze(blob)
+                    return key, self._normalize(value, score_key)
+                except Exception as error:
+                    return key, {'status': 'UNAVAILABLE', score_key: None, 'reason': str(error)}
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                observations.update(pool.map(run, jobs))
+            face = observations['face']
+            boxes = face.get('bounding_boxes', [])
+            has_face = bool(face.get('has_face')) and face['status'] == 'APPLIED'
+            scene = observations['scene']
+            scene_type = scene.get('scene_type', 'unknown')
+            if self.policy == 'image-general-v4':
+                from models.image_deepfake.inference.general_screening import predict
+                return predict(self, input_data, canonical, scan_id, observations, jobs, started)
+            if self.policy == 'image-vit-v3':
+                return self._predict_vit(input_data, canonical, scan_id, filename, observations,
+                                         jobs, started, enable_explanation)
+            hf = self.hf_client.predict(canonical, has_face=has_face, scene_type=scene_type)
+            if not hf.get('is_hf_applied'):
+                hf = self.local_vit.predict(canonical, has_face=has_face, scene_type=scene_type)
+            if has_face and hasattr(self.local_vit, 'predict_views'):
+                hf = self.local_vit.predict_views(canonical, boxes, hf)
+            cnn = {'status': 'UNAVAILABLE', 'risk_score': None, 'reason': self.cnn.error}
+            cnn_views = []
+            if self.cnn.ready:
+                if self.cnn.manifest['scope'] == 'general_image':
+                    cnn_views.append(self.cnn.predict(canonical))
+                elif has_face:
+                    image = Image.open(io.BytesIO(canonical))
+                    for x, y, w, h in sorted(boxes, key=lambda b:b[2]*b[3], reverse=True)[:4]:
+                        if min(w, h) < 48 or x < 0 or y < 0 or x+w > image.width or y+h > image.height:
+                            continue
+                        stream = io.BytesIO(); image.crop((x,y,x+w,y+h)).save(stream, format='PNG')
+                        cnn_views.append(self.cnn.predict(stream.getvalue()))
+                if cnn_views:
+                    cnn = max(cnn_views, key=lambda value:value['risk_score'])
+            required = ['frequency', 'pixel', 'gabor', 'ela', 'noise', 'scene']
+            missing = [key for key in required if observations[key]['status'] != 'APPLIED']
+            if face.get('localization_available') is False or face['status'] == 'UNAVAILABLE':
+                missing.append('localization')
+            if cnn['status'] != 'APPLIED':
+                missing.append('trained_cnn')
+            if hf.get('inference_mode') == 'hosted_unpinned':
+                missing.append('secondary_model_revision')
+            if has_face and (hf.get('view_coverage_complete') is False or len(boxes) > 4):
+                missing.append('detected_face_views')
+            if scene_type in {'portrait','photograph_portrait'} and not has_face:
+                missing.append('portrait_localization')
+            # A face specialist cannot establish whole-scene authorship without a located face.
+            if self.cnn.ready and self.cnn.manifest['scope'] == 'face' and not has_face:
+                missing.append('face_model_scope')
+            vit_available = bool(hf.get('is_hf_applied'))
+            vit_score = float(hf['hf_risk_score']) if vit_available else None
+            if vit_score is not None and (not np.isfinite(vit_score) or not 0 <= vit_score <= 100):
+                vit_available, vit_score = False, None
+            model_scores = [v['risk_score'] for v in cnn_views]
+            if has_face and vit_score is not None:
+                model_scores.append(vit_score)
+            disagreement = bool(hf.get('model_view_disagreement')) or bool(
+                model_scores and min(model_scores) <= 25 and max(model_scores) >= 70)
+            # The trained checkpoint is the primary classifier. The ViT is a visible
+            # diagnostic fallback when that artifact is missing, never a substitute.
+            risk = float(cnn['risk_score'] if cnn['status'] == 'APPLIED' else vit_score if vit_score is not None else 50)
+            risk = round(risk, 2)
+            incomplete = bool(missing)
+            verdict = ('UNCERTAIN' if incomplete or disagreement or 40 <= risk < 62 else
+                       'LIKELY_AI_MANIPULATED' if risk >= 62 else 'LOW_MANIPULATION_SIGNAL')
+            label = 'uncertain' if verdict == 'UNCERTAIN' else 'fake' if risk >= 62 else 'low_signal'
+            reasons = []
+            if disagreement: reasons.append('Full-image, face, or trained-model scores disagree; manual review required.')
+            if missing: reasons.append('Required assessment unavailable: ' + ', '.join(sorted(set(missing))) + '.')
+            reasons.append('Model scores are uncalibrated; low signal does not establish authenticity.')
+            explanation = ' '.join(reasons)
+            vision = {'status':'SKIPPED', 'model_name':None, 'simple_explanation':None}
+            if enable_explanation:
+                try:
+                    vision = self.lm_studio_client.analyze(input_data, forensic_evidence={}, scene_type=scene_type)
+                except Exception as error:
+                    vision = {'status':'UNAVAILABLE','reason':str(error)}
+                reasons.append('Optional vision observations are advisory and do not change the screening score.')
+            # Eye/geometry proxies are optional observations, not physical proof or scoring votes.
+            extra_engine = self.physics_analyzer if has_face else self.geometry_analyzer
+            extra_key = 'physics' if has_face else 'geometry'
+            try:
+                observations[extra_key] = self._normalize(extra_engine.analyze(canonical))
+            except Exception as error:
+                observations[extra_key] = {'status':'UNAVAILABLE','reason':str(error)}
+            extra = observations[extra_key]
+            extra['proxy_threshold_crossed'] = extra.pop('is_physics_violation', extra.pop('is_geometry_violation', False))
+            extra['proxy_score'] = extra.pop('physics_anomaly_score', extra.pop('geometry_anomaly_score', None))
+            for key,name,engine,score_key,blob in jobs:
+                value = observations[key]
+                analyzers.append({'name':name, 'category':key, 'status':value['status'],
+                                  'finding':value.get('finding') or value.get('note'),
+                                  'reason':value.get('reason'), 'measurement':value.get(score_key)})
+            analyzers.extend([
+                {'name':'Trained EfficientNet-B0 classifier', 'category':'primary_ml', 'status':cnn['status'],
+                 'finding':f"Fake score: {cnn['risk_score']}/100" if cnn['status']=='APPLIED' else None,
+                 'reason':cnn.get('reason')},
+                {'name':'Face ViT classifier', 'category':'secondary_ml', 'status':'APPLIED' if vit_available else 'UNAVAILABLE',
+                 'finding':hf.get('note'), 'reason':None if vit_available else hf.get('note')},
+                {'name':'LM Studio advisory vision', 'category':'local_vision_reasoning', 'status':vision.get('status','UNAVAILABLE'),
+                 'finding':vision.get('simple_explanation'), 'reason':vision.get('reason')},
+                {'name':'Eye highlight proxy' if has_face else 'Edge-distribution proxy', 'category':'advisory_proxy',
+                 'status':observations[extra_key]['status'], 'finding':observations[extra_key].get('finding')},
+            ])
+            file_safety = observations['file_safety']
+            metadata = {
+                'assessment_policy':'image-screening-v2', 'confidence_available':False,
+                'confidence_definition':'Correctness confidence has not been calibrated.',
+                'score_definition':'Primary trained CNN score; diagnostic ViT fallback when the primary artifact is unavailable. Heuristics and file safety do not vote.',
+                'input_sha256':hashlib.sha256(input_data).hexdigest(),
+                'preprocessing':'exif-rgb-still-resize224-imagenet-v2',
+                'cnn_status':cnn['status'], 'cnn_risk_score':cnn['risk_score'],
+                'cnn_artifact':{key:self.cnn.manifest.get(key) for key in ('architecture','scope','weights_sha256','dataset_index_sha256','preprocessing','data_kind')}, 'cnn_error':self.cnn.error,
+                'hf_status':'applied' if vit_available else 'unavailable', 'hf_risk_score':vit_score,
+                'hf_model':hf.get('model_name'), 'hf_revision':None if hf.get('inference_mode')=='hosted_unpinned' else getattr(self.local_vit,'revision',None),
+                'face_count':face.get('face_count',0), 'face_boxes':boxes,
+                'localization_available':face.get('localization_available',False),
+                'scene_label':scene.get('scene_label'), 'scene_type':scene_type,
+                'model_views':{'full_frame':hf.get('full_frame_prediction',{'risk_score':vit_score}),
+                    'faces':hf.get('face_predictions',[]), 'cnn':cnn_views,
+                    'policy':'frame-and-faces-v2', 'disagreement':disagreement,
+                    'coverage_complete':not incomplete, 'coverage_scope':'detected regions only; undiscovered faces cannot be counted'},
+                'missing_required_checks':sorted(set(missing)), 'is_contradiction':disagreement,
+                'cross_domain_consistency':None, 'provenance_verified':False, 'ai_signature_found':False,
+                'why_reasons':reasons, 'vision_analysis':vision, 'lm_studio_status':vision.get('status'),
+                'lm_studio_model':vision.get('model_name'),
+                'watermark_found':bool(observations['watermark'].get('is_watermark_found')),
+                'watermark_anomaly_score':observations['watermark'].get('watermark_anomaly_score'),
+                'file_safety':{'status':file_safety['status'], 'payload_detected':bool(file_safety.get('is_stego_detected')),
+                    'finding':file_safety.get('finding'), 'affects_authorship_score':False},
+                'source_retention':'not retained; upload again to inspect the original',
+                'decision_trace':[{'rule':'primary_cnn' if cnn['status']=='APPLIED' else 'diagnostic_vit_fallback',
+                    'score':risk, 'artifact_ready':self.cnn.ready},
+                    {'rule':'abstain_on_missing_or_disagreement', 'missing':sorted(set(missing)),
+                     'disagreement':disagreement, 'verdict':verdict}],
+                'observations':observations,
             }
-
-            explanation_summary = self._synthesize_explanation(
-                verdict=verdict,
-                risk_score=risk_score,
-                has_face=has_face,
-                scene_type=scene_type,
-                scene_res=scene_res,
-                strong_signals=strong_signals,
-                face_res=face_res,
-                physics_res=physics_res,
-                meta_res=meta_res,
-                watermark_res=watermark_res,
-                stego_res=stego_res,
-                vision_res=vision_res,
-                hf_res=hf_res,
-                is_hf_face_real=is_hf_face_real
-            )
-
-            logger.info(f"[RESULT] Final verdict generated: {verdict} (Risk: {risk_score}%, Confidence: {confidence*100:.0f}%)")
-
-            return DetectionResult(
-                scan_id=scan_id,
-                module=ModuleEnum.image_deepfake,
-                detector_id="image_deepfake.efficientnet_b0.v1",
-                model_version="v1.0.0",
-                preprocessing_version="v1.0.0",
-                native_score=native_score,
-                native_score_semantics=NativeScoreSemanticsEnum.probability_of_negative_class,
-                risk_score=risk_score,
-                confidence=confidence,
-                label=label,
-                status=StatusEnum.SUCCESS,
-                evidence=evidence,
-                analyzers=analyzers,
-                has_face=has_face,
-                verdict=verdict,
-                explanation=explanation_summary,
-                vision_analysis=vision_res,
-                metadata=metadata_payload,
-                processing_time_ms=processing_time_ms,
-                timestamp=datetime.now(timezone.utc).isoformat()
-            )
-                
-        except Exception as e:
-            import traceback
-            logger.exception(f"[DETECTOR ERROR] predict() failed: {e}")
-            traceback.print_exc()
-            processing_time_ms = int((time.time() - start_time) * 1000)
-            return DetectionResult(
-                scan_id=scan_id,
-                module=ModuleEnum.image_deepfake,
-                detector_id="image_deepfake.efficientnet_b0.v1",
-                model_version="v1.0.0",
-                preprocessing_version="v1.0.0",
-                native_score=0.0,
-                native_score_semantics=NativeScoreSemanticsEnum.probability_of_negative_class,
-                risk_score=0.0,
-                confidence=0.0,
-                label="error",
-                status=StatusEnum.FAILED,
-                evidence=[],
-                analyzers=[],
-                metadata={"error": str(e)},
-                processing_time_ms=processing_time_ms,
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                error_code="INFERENCE_FAILED",
-                error_message=str(e)
-            )
+            return DetectionResult(scan_id=scan_id,module=ModuleEnum.image_deepfake,
+                detector_id='image_deepfake.screening.v2',model_version='v2',preprocessing_version=metadata['preprocessing'],
+                native_score=risk/100,native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
+                risk_score=risk,confidence=0,label=label,verdict=verdict,explanation=explanation,
+                status=StatusEnum.PARTIAL_SUCCESS if incomplete else StatusEnum.SUCCESS,
+                has_face=has_face,evidence=[],analyzers=analyzers,metadata=metadata,vision_analysis=vision,
+                processing_time_ms=int((time.monotonic()-started)*1000),timestamp=datetime.now(timezone.utc).isoformat())
+        except Exception as error:
+            return DetectionResult(scan_id=scan_id,module=ModuleEnum.image_deepfake,
+                detector_id='image_deepfake.vit.v3' if self.policy == 'image-vit-v3' else 'image_deepfake.screening.v2',model_version=self.policy,preprocessing_version=self.policy,
+                native_score=0,native_score_semantics=NativeScoreSemanticsEnum.anomaly_score,
+                risk_score=0,confidence=0,label='unknown',verdict='UNKNOWN',status=StatusEnum.FAILED,
+                timestamp=datetime.now(timezone.utc).isoformat(),error_code='INFERENCE_FAILED',error_message=str(error),
+                metadata={'assessment_policy':self.policy, 'score_available':False})

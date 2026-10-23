@@ -11,23 +11,7 @@ except ImportError:
 
 
 class SteganographyAnalyzer:
-    """
-    Covert Data & Steganography Forensic Analyzer.
-    
-    Detects secret payloads, covert data channels, and hidden files concealed inside images:
-    1. EOF Trailing Payload Injection:
-       Detects extra binary data/archives/executables appended after standard image
-       end-of-file markers (JPEG 0xFFD9, PNG IEND, GIF 0x3B).
-    2. LSB (Least Significant Bit) Steganographic Substitution:
-       Evaluates Westfeld's Chi-Square (χ²) Pairs of Values (PoVs) test and bit-plane
-       entropy to detect high-density LSB substitution (Steghide, OpenStego, etc.).
-    3. Plaintext/ASCII Embedded Header Extraction:
-       Attempts recovery of readable ASCII text or known magic headers (ZIP, RAR, PDF, EXE)
-       from trailing bytes or sequential LSB bitstreams.
-       
-    Designed with strict conservative gates to guarantee ZERO false positives on genuine
-    camera photos, digital artwork, and standard web images.
-    """
+    """Inspect file trailers and bit-plane statistics for payload indicators. Signature matches and heuristics do not guarantee malicious content, actual embedded file types, or zero false positives."""
 
     # Magic file signatures for appended payloads
     MAGIC_SIGNATURES = [
@@ -255,7 +239,7 @@ class SteganographyAnalyzer:
                 "payload_size_bytes": 0,
                 "stego_method": None,
                 "extracted_preview": None,
-                "finding": "No covert steganographic payloads or EOF trailing data detected (LSB bit-plane entropy and file boundaries verified)."
+                "finding": "No trailer or bit-plane anomaly crossed the configured thresholds; absence of hidden payloads is not established."
             }
 
         except Exception as e:

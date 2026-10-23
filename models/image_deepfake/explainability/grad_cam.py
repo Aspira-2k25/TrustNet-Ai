@@ -116,9 +116,9 @@ class GradCAM:
             feature_or_region=f"visual_saliency_heatmap ({region_desc})",
             contribution=contribution,
             human_readable_note=(
-                f"ImageNet top-class Grad-CAM (not fused deepfake attribution) concentrated in {region_desc} "
+                f"Standalone class-activation Grad-CAM (not fused risk attribution) concentrated in {region_desc} "
                 f"(peak intensity: {peak_intensity:.2f}, spatial mean: {mean_intensity:.2f}). "
-                f"This visualization explains an ImageNet class activation; it does not detect blending or explain fused risk."
+                f"This visualization explains the selected model class activation; it does not detect blending or explain fused risk."
             )
         )
         return [item]

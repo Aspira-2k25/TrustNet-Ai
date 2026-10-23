@@ -87,21 +87,21 @@ def test_huggingface_client_skips_face_only_model_on_non_face():
     assert "image does not contain a human face" in res["note"]
 
 def test_efficientnet_detector_evaluates_chatgpt_image_as_ai():
-    detector = EfficientNetDetector(enable_explainability=False)
+    detector = EfficientNetDetector(enable_explainability=False, policy='image-screening-v2')
     raw_bytes = create_sample_png_bytes()
     
     result = detector.predict(raw_bytes, scan_id="test-chatgpt-scan", filename="ChatGPT Image Mar 2, 2026, 11_11_56 PM.png")
     
-    assert result.status == StatusEnum.SUCCESS
+    assert result.status == StatusEnum.PARTIAL_SUCCESS
     neutral = detector.predict(raw_bytes, scan_id="test-camera", filename="camera.png")
     assert result.risk_score == neutral.risk_score
     assert result.verdict == neutral.verdict
     assert result.label == neutral.label
     assert result.metadata.get("ai_signature_found") is False
 
-def test_real_restaurant_photo_evaluated_as_authentic():
+def test_drawn_portrait_without_localized_face_is_incomplete():
     from PIL import ImageDraw
-    detector = EfficientNetDetector(enable_explainability=False)
+    detector = EfficientNetDetector(enable_explainability=False, policy='image-screening-v2')
     
     # Create realistic photo-like image with a person, table, cake, and natural gradients
     img = Image.new("RGB", (512, 512), (90, 60, 110))
@@ -129,8 +129,10 @@ def test_real_restaurant_photo_evaluated_as_authentic():
     
     result = detector.predict(buffer.getvalue(), scan_id="test-restaurant-scan", filename="WhatsApp Image 2026-08-16 at 5.25.34 PM.jpeg")
     
-    assert result.status == StatusEnum.SUCCESS
+    assert result.status == StatusEnum.PARTIAL_SUCCESS
     assert result.risk_score <= 25.0
-    assert result.verdict in ("AUTHENTIC", "LIKELY_AUTHENTIC")
-    assert result.label == "real"
+    assert result.verdict == 'UNCERTAIN'
+    assert result.label == 'uncertain'
+    assert result.metadata['face_count'] == 0
+    assert result.metadata['model_views']['coverage_complete'] is False
 

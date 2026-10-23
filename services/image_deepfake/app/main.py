@@ -45,7 +45,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from shared.image_body_limit import ImageBodyLimit
+app.add_middleware(ImageBodyLimit, paths=['/detect/file'])
+
 app.include_router(detection_router)
+
+@app.get('/ready')
+async def readiness():
+    from services.image_deepfake.app.worker import worker
+    state = worker.detector.readiness()
+    return JSONResponse(status_code=200 if state['ready'] else 503, content=state)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):

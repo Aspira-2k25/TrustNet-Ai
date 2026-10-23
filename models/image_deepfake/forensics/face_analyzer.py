@@ -10,20 +10,14 @@ except ImportError:
 
 
 class FaceAnalyzer:
-    """
-    Facial Landmark, Alignment & Boundary Discontinuity (Face X-Ray) Forensic Analyzer.
-    
-    In face-swap deepfakes and AI face synthesis (e.g. DeepFaceLab, FaceSwap, InsightFace, SimSwap),
-    the generated face must be composited back into the target video/image frame.
-    This compositing process inevitably introduces subtle boundary artifacts:
-    1. Facial Perimeter Step Gradient: Discontinuous derivative along the jawline, hairline, and neck.
-    2. Blending Feathering & Color Disparity: Mismatch between inner facial skin tone/noise and outer background.
-    3. Multi-Scale Texture Inconsistency: Micro-smoothing inside the face mask compared to surrounding hair/skin.
-    """
+    """Cascade proposals with eye-pair filtering and a boundary-gradient proxy. No trained Face X-Ray model or facial landmark reconstruction is used."""
 
-    def __init__(self):
+    def __init__(self, localization="haar"):
+        from models.image_deepfake.inference.face_localizer import FaceLocalizer
+        self.localizer = FaceLocalizer() if localization == "yunet" else None
         self.cascades = []
-        if cv2 is not None:
+        self.eye_cascade = None
+        if cv2 is not None and hasattr(cv2, 'CascadeClassifier') and hasattr(cv2, 'data'):
             cascade_names = [
                 'haarcascade_frontalface_alt2.xml',
                 'haarcascade_frontalface_default.xml',
@@ -39,6 +33,12 @@ class FaceAnalyzer:
                         self.cascades.append(cascade)
                 except Exception:
                     pass
+            try:
+                eyes = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+                if not eyes.empty():
+                    self.eye_cascade = eyes
+            except Exception:
+                pass
 
     def _rotate_image_and_get_matrix(self, img_gray: np.ndarray, angle: float):
         h, w = img_gray.shape[:2]
@@ -56,10 +56,14 @@ class FaceAnalyzer:
 
     def detect_faces(self, gray_np: np.ndarray, color_arr: Optional[np.ndarray] = None) -> List[Tuple[int, int, int, int]]:
         """
-        Robust multi-pass face detection using contrast-equalized cascades,
-        multi-angle tilt compensation (+/-15, +/-25 deg), and distance-transform skin topography fallback.
+        Multi-pass cascade detection with contrast equalization and tilt compensation.
+        Skin-colored regions are never substituted for verified detector proposals.
         """
-        if cv2 is None:
+        if self.localizer is not None:
+            if color_arr is None:
+                raise ValueError("RGB input required for YuNet")
+            return self.localizer.detect(color_arr)
+        if cv2 is None or not self.cascades or self.eye_cascade is None:
             return []
 
         detected_boxes: List[Tuple[int, int, int, int]] = []
@@ -70,6 +74,20 @@ class FaceAnalyzer:
             by = max(0, min(h - 1, int(by)))
             bw = max(16, min(w - bx, int(bw)))
             bh = max(16, min(h - by, int(bh)))
+
+            # Require a plausible eye pair before treating a cascade proposal as a face.
+            # Low-confidence/profile regions are left unassessed, never replaced by skin blobs.
+            face = gray_np[by:by + bh, bx:bx + bw]
+            eyes = self.eye_cascade.detectMultiScale(
+                face, scaleFactor=1.1, minNeighbors=4, minSize=(12, 12)
+            )
+            centers = [(ex + ew / 2, ey + eh / 2) for ex, ey, ew, eh in eyes
+                       if ey + eh / 2 < bh * 0.65]
+            if not any(0.15 * bw < abs(ax - bx2) < 0.75 * bw
+                       and abs(ay - by2) < bh * 0.2
+                       for i, (ax, ay) in enumerate(centers)
+                       for bx2, by2 in centers[i + 1:]):
+                return
 
             # IoU-based non-maximum suppression
             for (ox, oy, ow, oh) in detected_boxes:
@@ -121,96 +139,18 @@ class FaceAnalyzer:
             if len(detected_boxes) > 0:
                 return detected_boxes
 
-        # 3. Distance-Transform Skin Topography & Multi-Peak Face Proposal (Universal Fallback)
-        if len(detected_boxes) == 0 and color_arr is not None:
-            r = color_arr[:, :, 0].astype(np.float32)
-            g = color_arr[:, :, 1].astype(np.float32)
-            b = color_arr[:, :, 2].astype(np.float32)
-            cb = 128.0 - 0.168736 * r - 0.331264 * g + 0.5 * b
-            cr = 128.0 + 0.5 * r - 0.418688 * g - 0.081312 * b
-            # Real human skin has moderate R-G difference (10-75) and R/(G+1) <= 2.2; reject saturated red clothing
-            skin_mask = ((cr >= 130) & (cr <= 175) & (cb >= 75) & (cb <= 128) & (r > 45) & (r > g) & ((r - g) <= 75) & (r / (g + 1.0) <= 2.2)).astype(np.uint8) * 255
-            
-            # Reject full-screen flat surfaces or scenes with negligible skin
-            skin_coverage = float(np.mean(skin_mask > 0))
-            if skin_coverage > 0.85 or skin_coverage < 0.015:
-                return []
-
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-            skin_clean = cv2.morphologyEx(skin_mask, cv2.MORPH_CLOSE, kernel)
-            skin_clean = cv2.morphologyEx(skin_clean, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
-            
-            dist = cv2.distanceTransform(skin_clean, cv2.DIST_L2, 5)
-            d_copy = dist.copy()
-            
-            def is_valid_face_candidate(bx: int, by: int, bw: int, bh: int) -> bool:
-                if bw < 28 or bh < 28:
-                    return False
-                crop = gray_np[by:by+bh, bx:bx+bw]
-                if crop.size == 0:
-                    return False
-                # 1. Flat Canvas / Plain Wall Rejection:
-                # Genuine human faces exhibit internal luminance variance (eyes, nose, mouth, hair).
-                # Uniform background surfaces, solid peach/beige canvas, or plain walls have near-zero luminance std.
-                crop_std = float(np.std(crop))
-                if crop_std < 14.0:
-                    return False
-
-                # 2. Skin Patch Internal Color Variation:
-                if color_arr is not None:
-                    c_crop = color_arr[by:by+bh, bx:bx+bw]
-                    c_skin = skin_mask[by:by+bh, bx:bx+bw] > 0
-                    if np.mean(c_skin) < 0.20:
-                        return False
-                    skin_pts = c_crop[c_skin]
-                    if len(skin_pts) > 20:
-                        skin_std = float(np.std(skin_pts))
-                        # Flat uniform color with zero tonal shading -> non-face canvas / wall surface
-                        if skin_std < 10.0:
-                            return False
-
-                # 3. Facial Feature Ocular Contrast:
-                # In human facial topography, upper 65% contains eyes/brows which are significantly darker
-                upper_half = crop[:int(bh * 0.65), :]
-                if upper_half.size > 0:
-                    upper_contrast = float(np.max(upper_half)) - float(np.min(upper_half))
-                    if upper_contrast < 25.0:
-                        return False
-
-                return True
-
-            for _ in range(4):
-                min_v, max_v, min_l, max_l = cv2.minMaxLoc(d_copy)
-                if max_v < min(h, w) * 0.08:
-                    break
-                px, py = max_l
-                radius = int(max_v * 1.6)
-                bx = max(0, int(px) - radius)
-                by = max(0, int(py) - radius)
-                bw = min(w - bx, radius * 2)
-                bh = min(h - by, radius * 2)
-                if bw >= 24 and bh >= 24 and (bw * bh < h * w * 0.85):
-                    if is_valid_face_candidate(bx, by, bw, bh):
-                        add_box(bx, by, bw, bh)
-                cv2.circle(d_copy, (int(px), int(py)), int(max_v * 1.4), 0.0, -1)
-
-            # Connected component contour bounding boxes fallback
-            if len(detected_boxes) == 0:
-                contours, _ = cv2.findContours(skin_clean, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                img_area = h * w
-                for c in contours:
-                    area = cv2.contourArea(c)
-                    if img_area * 0.015 < area < img_area * 0.85:
-                        cx, cy, cw, ch = cv2.boundingRect(c)
-                        aspect = float(ch) / max(1, cw)
-                        if 0.5 <= aspect <= 2.2:
-                            if is_valid_face_candidate(cx, cy, cw, ch):
-                                add_box(cx, cy, cw, ch)
-
         return detected_boxes
 
     def analyze(self, image_bytes: bytes) -> Dict[str, Any]:
         try:
+            if cv2 is None or (self.localizer is not None and not self.localizer.ready) or (self.localizer is None and (not self.cascades or self.eye_cascade is None)):
+                return {
+                    "has_face": False, "face_count": 0, "bounding_boxes": [],
+                    "status": "UNAVAILABLE", "localization_available": False,
+                    "reason": "Face localization unavailable: OpenCV face/eye cascade API or model resources are missing.",
+                    "boundary_anomaly_score": 0.0, "skin_edge_variance": 0.0,
+                    "is_manipulated_face": False, "finding": None,
+                }
             img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             arr = np.array(img)
             h, w, _ = arr.shape
@@ -225,8 +165,12 @@ class FaceAnalyzer:
             if not has_face:
                 return {
                     "has_face": False,
+                    "localization_available": True,
                     "face_count": 0,
                     "bounding_boxes": [],
+                    "localization_method": "opencv_yunet" if self.localizer is not None else "opencv_haar",
+                    "localization_identity": self.localizer.identity if self.localizer else {"strategy":"haar-eye-pair-crop-v1"},
+                    "rejected_proposals": self.localizer.rejected if self.localizer else [],
                     "status": "SKIPPED",
                     "reason": "No human facial region identified via computer vision face detector.",
                     "boundary_anomaly_score": 0.0,
@@ -306,11 +250,15 @@ class FaceAnalyzer:
             finding_text = (
                 f"High-frequency blending discontinuities and boundary step gradients detected across {face_count} face(s)."
                 if is_manipulated_face
-                else f"Natural facial skin texture and seamless boundary transitions verified across {face_count} face(s)."
+                else f"No boundary anomaly crossed the configured threshold across {face_count} face(s)."
             )
 
             return {
                 "has_face": True,
+                "localization_available": True,
+                "localization_method": "opencv_yunet" if self.localizer is not None else "opencv_haar",
+                "localization_identity": self.localizer.identity if self.localizer else {"strategy":"haar-eye-pair-crop-v1"},
+                "rejected_proposals": self.localizer.rejected if self.localizer else [],
                 "face_count": face_count,
                 "bounding_boxes": detected_boxes,
                 "status": "APPLIED",
@@ -326,8 +274,9 @@ class FaceAnalyzer:
                 "has_face": False,
                 "face_count": 0,
                 "bounding_boxes": [],
-                "status": "FALLBACK",
-                "reason": f"Face analysis fallback: {str(e)}",
+                "status": "UNAVAILABLE",
+                "localization_available": False,
+                "reason": f"Face analysis unavailable: {str(e)}",
                 "boundary_anomaly_score": 0.0,
                 "skin_edge_variance": 0.0,
                 "is_manipulated_face": False,

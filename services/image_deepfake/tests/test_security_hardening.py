@@ -13,8 +13,8 @@ def anyio_backend():
     return "asyncio"
 
 @pytest.fixture
-async def client():
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as c:
+async def client(authorized_headers):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test", headers=authorized_headers) as c:
         yield c
 
 @pytest.mark.anyio

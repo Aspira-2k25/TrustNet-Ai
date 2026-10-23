@@ -59,7 +59,7 @@ class ELAAnalyzer:
             finding_text = (
                 "Non-uniform Error Level Analysis surface across foreground and background."
                 if is_anomalous
-                else "Homogeneous compression surface consistent with single-source capture."
+                else "No ELA anomaly crossed the configured threshold; source authenticity is not verified."
             )
 
             return {

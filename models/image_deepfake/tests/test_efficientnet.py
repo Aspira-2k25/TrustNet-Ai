@@ -8,7 +8,7 @@ from shared.constants.status import StatusEnum
 from shared.constants.native_score_semantics import NativeScoreSemanticsEnum
 
 def test_efficientnet_detector_success():
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     img_bytes = create_mock_image_bytes(format="JPEG")
     
     scan_id = str(uuid.uuid4())
@@ -16,19 +16,20 @@ def test_efficientnet_detector_success():
     
     assert isinstance(result, DetectionResult)
     assert result.scan_id == scan_id
-    assert result.status == StatusEnum.SUCCESS
+    assert result.status == StatusEnum.PARTIAL_SUCCESS
     assert result.error_code is None
     assert result.error_message is None
     assert 0.0 <= result.risk_score <= 100.0
     assert 0.0 <= result.native_score <= 1.0
-    assert result.native_score_semantics == NativeScoreSemanticsEnum.probability_of_negative_class
-    # Validate universal risk_score inversion formula: risk_score = round((1 - native_score) * 100)
-    expected_risk = round((1.0 - result.native_score) * 100.0, 2)
+    assert result.native_score_semantics == NativeScoreSemanticsEnum.anomaly_score
+    assert result.confidence == 0.0
+    assert result.metadata['confidence_available'] is False
+    expected_risk = round(result.native_score * 100.0, 2)
     assert abs(result.risk_score - expected_risk) < 1e-4
-    assert result.detector_id == "image_deepfake.efficientnet_b0.v1"
+    assert result.detector_id == "image_deepfake.screening.v2"
 
 def test_efficientnet_detector_failure():
-    detector = EfficientNetDetector()
+    detector = EfficientNetDetector(policy='image-screening-v2')
     
     scan_id = str(uuid.uuid4())
     # Pass invalid bytes to trigger an exception
@@ -42,7 +43,7 @@ def test_efficientnet_detector_failure():
 
 
 def test_efficientnet_detector_reduces_false_positive_on_photographic_scene():
-    detector = EfficientNetDetector(enable_explainability=False)
+    detector = EfficientNetDetector(enable_explainability=False, policy='image-screening-v2')
 
     from PIL import Image, ImageDraw
     import io
@@ -80,8 +81,11 @@ def test_efficientnet_detector_reduces_false_positive_on_photographic_scene():
     photo_result = detector.predict(make_photo_like_image(), scan_id='photo-regression')
     synthetic_result = detector.predict(make_synthetic_pattern_image(), scan_id='synthetic-regression')
 
-    assert photo_result.status == StatusEnum.SUCCESS
-    assert synthetic_result.status == StatusEnum.SUCCESS
+    # A drawn oval is not a confirmed face. Portrait coverage remains incomplete.
+    assert photo_result.status == StatusEnum.PARTIAL_SUCCESS
+    assert synthetic_result.status == StatusEnum.PARTIAL_SUCCESS
+    assert synthetic_result.metadata['model_views']['coverage_complete'] is False
     assert photo_result.risk_score < 40.0
     assert photo_result.risk_score < synthetic_result.risk_score
-    assert photo_result.label == 'real'
+    assert photo_result.label == 'uncertain'
+    assert photo_result.metadata['model_views']['coverage_complete'] is False

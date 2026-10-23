@@ -4,11 +4,7 @@ from PIL import Image, ImageFilter
 from typing import Dict, Any
 
 class NoiseAnalyzer:
-    """
-    Sensor Pattern Noise & CFA Demosaicing Analyzer.
-    Real digital cameras introduce Photo-Response Non-Uniformity (PRNU) and Bayer color filter demosaicing correlations.
-    Generative AI synthesis lacks physical sensor noise and exhibits unnatural smoothness or artificial noise injection.
-    """
+    """Single-image blur-residual statistics. This is not reference-sensor PRNU matching or camera provenance verification."""
     def analyze(self, image_bytes: bytes) -> Dict[str, Any]:
         try:
             img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -33,7 +29,7 @@ class NoiseAnalyzer:
                 "noise_std": float(round(noise_std, 2)),
                 "noise_kurtosis": float(round(noise_kurtosis, 2)),
                 "is_synthetic_noise": is_synthetic_noise,
-                "note": "Atypical high-pass sensor noise distribution lacking physical CMOS/CCD sensor characteristics." if is_synthetic_noise else "Consistent Bayer filter demosaicing and uniform sensor noise distribution."
+                "note": "High-pass noise heuristic crossed the configured anomaly threshold." if is_synthetic_noise else "No noise anomaly crossed the configured threshold; camera sensor origin is not verified."
             }
         except Exception as e:
             return {

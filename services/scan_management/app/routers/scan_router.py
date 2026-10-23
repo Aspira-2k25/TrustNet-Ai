@@ -87,7 +87,7 @@ async def analyze_image_direct(
     """
     request_id = generate_request_id()
     scan_id = f"scan-{uuid.uuid4().hex[:10]}"
-    file_bytes = await file.read()
+    file_bytes = await file.read(settings.MAX_IMAGE_SIZE_MB * 1024 * 1024 + 1)
 
     if len(file_bytes) == 0:
         raise HTTPException(
@@ -100,15 +100,11 @@ async def analyze_image_direct(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail={"code": "FILE_TOO_LARGE", "message": f"File exceeds maximum allowed size of {settings.MAX_IMAGE_SIZE_MB}MB"}
         )
-    try:
-        img_check = PILImage.open(io.BytesIO(file_bytes))
-        img_check.verify()
-    except Exception as e:
-        logger.error(f"[SCAN ROUTER] Image verification failed: {type(e).__name__}: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "INVALID_IMAGE_BYTES", "message": "File header/magic bytes do not match a valid image"}
-        )
+    from models.image_deepfake.preprocessing.validator import ImageValidator
+    valid, validation_error = ImageValidator().validate(file_bytes)
+    if not valid:
+        raise HTTPException(413 if 'exceeds' in str(validation_error).lower() else 400,
+            detail={'code':'INVALID_IMAGE_BYTES','message':validation_error})
 
     safe_filename = os.path.basename(file.filename or "uploaded_media.jpg")
 
@@ -124,7 +120,7 @@ async def analyze_image_direct(
     if getattr(detection_res.status, "value", str(detection_res.status)) not in ("SUCCESS", "PARTIAL_SUCCESS"):
         logger.error(f"[SCAN ROUTER] Forensic detection failed for scan {scan_id}: {detection_res.error_code} - {detection_res.error_message}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=503 if detection_res.error_code == 'INFERENCE_BUSY' else status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": detection_res.error_code or "INFERENCE_FAILED",
                 "message": detection_res.error_message or "Deepfake detection failed during analysis."
@@ -133,6 +129,8 @@ async def analyze_image_direct(
     
     risk_score = detection_res.risk_score
     risk_level = "CRITICAL" if risk_score >= 75 else ("HIGH" if risk_score >= 50 else ("MEDIUM" if risk_score >= 25 else "LOW"))
+    if detection_res.verdict in {'UNCERTAIN', 'UNSUPPORTED'}:
+        risk_level = 'UNKNOWN'
 
     is_contradiction = bool(detection_res.metadata.get("is_contradiction", False)) if detection_res.metadata else False
 
@@ -148,10 +146,10 @@ async def analyze_image_direct(
 
     trust_score_data = {
         "scan_id": scan_id,
-        "trust_risk_score": risk_score,
+        "trust_risk_score": risk_score if detection_res.metadata.get('score_available', True) else None,
         "risk_level": risk_level,
         "reporting_modules": ["image_deepfake"],
-        "module_scores": {"image_deepfake": risk_score},
+        "module_scores": {"image_deepfake": risk_score if detection_res.metadata.get("score_available", True) else None},
         "confidence": detection_res.confidence,
         "contradiction_detected": is_contradiction,
         "contradiction_flag": is_contradiction,
@@ -159,14 +157,14 @@ async def analyze_image_direct(
         "evidence": [item.model_dump() for item in detection_res.evidence],
         "explanation": detection_res.explanation,
         "vision_analysis": vision_data,
-        "metadata": {"vision_analysis": vision_data} if vision_data else {},
+        "metadata": {"vision_analysis": vision_data, "score_available": detection_res.metadata.get("score_available", True), "assessment_policy": detection_res.metadata.get("assessment_policy"), "confidence_available": False},
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
     scan_record = {
         "id": scan_id,
         "user_id": user_id,
-        "status": "SUCCESS",
+        "status": detection_res.status.value,
         "content_type": "image",
         "filename": file.filename or "uploaded_media.jpg",
         "file_size_bytes": len(file_bytes),
@@ -179,7 +177,7 @@ async def analyze_image_direct(
     }
 
     from services.scan_management.app.db_models.scan import Scan, ScanAssessment
-    db.add(Scan(id=scan_id, user_id=user_id, status="SUCCESS", content_type="image",
+    db.add(Scan(id=scan_id, user_id=user_id, status=detection_res.status.value, content_type="image",
                 filename=safe_filename, file_size_bytes=len(file_bytes), mime_type=file.content_type))
     db.add(ScanAssessment(scan_id=scan_id, assessment={"result": detection_res.model_dump(mode="json"), "trust_score": trust_score_data, "dimensions": {"width": width, "height": height}}))
     try:

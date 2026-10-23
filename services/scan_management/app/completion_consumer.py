@@ -24,6 +24,8 @@ async def persist_completion(event,session):
     trust['module_scores']={result.module.value:result.risk_score if result.status.value == 'SUCCESS' else None};trust['contradiction_detected']=trust['contradiction_flag']
     if result.module.value == 'phishing' and result.status.value == 'PARTIAL_SUCCESS':
         trust['module_scores']['phishing'] = result.risk_score
+    if result.module.value == 'image_deepfake' and result.status.value == 'PARTIAL_SUCCESS':
+        trust['module_scores']['image_deepfake'] = result.risk_score if result.metadata.get('score_available', True) else None
     assessment = {'result':result.model_dump(mode='json'),'trust_score':trust}
     if saved:
         saved.assessment = {**saved.assessment, **assessment}

@@ -6,6 +6,7 @@ from PIL import Image
 
 from models.image_deepfake.explainability.grad_cam import GradCAM
 from models.image_deepfake.inference.efficientnet_detector import EfficientNetDetector
+from models.image_deepfake.training.train import build_model
 from models.image_deepfake.preprocessing.transforms import process_image_bytes
 from shared.schemas.evidence import EvidenceItem
 
@@ -16,8 +17,8 @@ def create_sample_image_bytes() -> bytes:
     return buf.getvalue()
 
 def test_grad_cam_heatmap_generation():
-    detector = EfficientNetDetector(enable_explainability=False)
-    grad_cam = GradCAM(detector.model)
+    model = build_model(pretrained=False)  # Standalone utility fixture, not a served attribution.
+    grad_cam = GradCAM(model)
     
     img_bytes = create_sample_image_bytes()
     tensor = process_image_bytes(img_bytes)
@@ -31,8 +32,8 @@ def test_grad_cam_heatmap_generation():
     assert np.max(heatmap) <= 1.0
 
 def test_grad_cam_evidence_generation():
-    detector = EfficientNetDetector(enable_explainability=False)
-    grad_cam = GradCAM(detector.model)
+    model = build_model(pretrained=False)  # Standalone utility fixture, not a served attribution.
+    grad_cam = GradCAM(model)
     
     img_bytes = create_sample_image_bytes()
     tensor = process_image_bytes(img_bytes)
@@ -49,13 +50,13 @@ def test_grad_cam_evidence_generation():
     assert len(item.human_readable_note) > 0
 
 def test_detector_integration_with_grad_cam():
-    detector = EfficientNetDetector(enable_explainability=True)
+    detector = EfficientNetDetector(enable_explainability=True, policy='image-screening-v2')
     img_bytes = create_sample_image_bytes()
     
     scan_id = str(uuid.uuid4())
     result = detector.predict(img_bytes, scan_id=scan_id)
     
-    assert result.status.value == "SUCCESS"
-    assert len(result.evidence) >= 1
-    assert isinstance(result.evidence[0], EvidenceItem)
-    assert "visual_saliency" in result.evidence[0].feature_or_region
+    assert result.status.value == "PARTIAL_SUCCESS"
+    assert result.evidence == []
+    assert detector.grad_cam is None
+    assert detector.model is None

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
+from gateway.app.middleware.auth_middleware import get_authenticated_user
 from fastapi.responses import Response
 from gateway.app.core.proxy_client import forward_request
 from gateway.app.config.settings import settings
 
-router = APIRouter(prefix="/api/v1/detect", tags=["Deepfake Detection Proxy"])
+router = APIRouter(prefix="/api/v1/detect", tags=["Deepfake Detection Proxy"], dependencies=[Depends(get_authenticated_user)])
 
 @router.api_route("", methods=["GET", "POST"])
 @router.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])

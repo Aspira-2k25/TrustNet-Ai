@@ -20,9 +20,20 @@ if (!(Test-Path -LiteralPath $taskPython)) {
 }
 
 Write-Host '[2/3] Installing isolated phishing runtime dependencies...' -ForegroundColor Cyan
-& $taskPython -m pip install -r (Join-Path $taskRoot 'services/phishing_url/requirements-runtime.txt')
-if ($LASTEXITCODE -ne 0) {
-    throw 'Phishing dependency installation failed.'
+$taskInstallSucceeded = $false
+for ($taskAttempt = 1; $taskAttempt -le 3; $taskAttempt++) {
+    # Retry the full install too: older pip versions do not resume timed-out downloads.
+    & $taskPython -m pip install --timeout 120 --retries 5 -r (Join-Path $taskRoot 'services/phishing_url/requirements-runtime.txt')
+    if ($LASTEXITCODE -eq 0) {
+        $taskInstallSucceeded = $true
+        break
+    }
+    if ($taskAttempt -lt 3) {
+        Write-Warning "Dependency installation attempt $taskAttempt failed; retrying with cached downloads..."
+    }
+}
+if (-not $taskInstallSucceeded) {
+    throw 'Phishing dependency installation failed after 3 attempts. Check your internet connection and rerun .\setup-phishing.bat; completed downloads are cached.'
 }
 
 Write-Host '[3/3] Checking and verifying phishing model artifacts...' -ForegroundColor Cyan

@@ -124,7 +124,7 @@ class FrequencyAnalyzer:
             finding_text = (
                 "Periodic grid artifacts and high-frequency radial power-law deviation detected in 2D DFT spectrum."
                 if is_synthetic_pattern
-                else "Uniform radial frequency roll-off consistent with optical lens capture."
+                else "No spectral anomaly crossed the configured threshold; optical capture is not verified."
             )
 
             return {

@@ -203,7 +203,7 @@ class WatermarkIconAnalyzer:
                     "watermark_location": best_hit,
                     "watermark_type": f"Corner AI Watermark ({location_str})",
                     "finding": f"Small pointed/symmetric icon detected in the {location_str} corner "
-                               f"(confidence {best_score*100:.0f}%), with convexity-defect notches consistent with "
+                               f"(uncalibrated shape score {best_score:.2f}), with convexity-defect notches consistent with "
                                f"a star/sparkle-style glyph. Treated as a single corroborating signal, not a "
                                f"confirmed provenance match.",
                 }
