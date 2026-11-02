@@ -31,7 +31,11 @@ async def run_image(data,scan_id,filename=None,enable_explanation=False):
         global active
         active-=1
     future.add_done_callback(finished)
-    try:return await asyncio.wait_for(asyncio.shield(future),29)
+    try:
+        return await asyncio.wait_for(
+            asyncio.shield(future),
+            settings.IMAGE_INFERENCE_TIMEOUT_SECONDS
+        )
     except asyncio.TimeoutError:raise HTTPException(504,'Image analysis timed out; computation remains bounded to one active request')
     except (ValueError,OSError) as exc:raise HTTPException(400,{'code':'INVALID_IMAGE_BYTES','message':str(exc)})
     except Exception:raise HTTPException(503,'Image inference failed; check service logs')

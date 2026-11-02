@@ -81,6 +81,8 @@ async def analyze_image_direct(file: UploadFile = File(...), enable_explanation:
             response=await client.post(settings.IMAGE_SERVICE_URL.rstrip('/')+'/detect/file',
                 files={'file':(safe_filename,file_bytes,source['mime_type'])},data={'scan_id':scan_id,'enable_explanation':str(enable_explanation).lower()})
         if response.status_code!=200:
+            if response.status_code == 429:
+                raise HTTPException(429, 'Image analysis is currently busy; please wait for the current analysis to finish')
             raise HTTPException(response.status_code,'Image inference unavailable; retry or check image service readiness')
         detection=DetectionResult.model_validate(response.json()['data'])
     except httpx.TimeoutException:raise HTTPException(504,'Image analysis timed out; retry later')

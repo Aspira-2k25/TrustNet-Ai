@@ -45,7 +45,8 @@ class HttpClient {
     const abort=()=>controller.abort();
     if(options.signal?.aborted)controller.abort();
     else options.signal?.addEventListener('abort',abort,{once:true});
-    const timer=setTimeout(()=>controller.abort(),40000);
+    const timeoutMs = (options as any)?.timeoutMs ?? 150000;
+    const timer=setTimeout(()=>controller.abort(new Error('Request timed out after 150 seconds. Image analysis on CPU can take up to a minute.')),timeoutMs);
     let response:Response;
     try {response = await fetch(url, {
       ...options,

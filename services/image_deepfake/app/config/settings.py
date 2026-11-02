@@ -18,6 +18,10 @@ class ImageDeepfakeSettings(BaseSettings):
         description="Local storage directory fallback"
     )
     MAX_IMAGE_SIZE_MB: int = 10
+    IMAGE_INFERENCE_TIMEOUT_SECONDS: float = Field(
+        default=120,
+        description="Maximum time allowed for one image inference request"
+    )
     ENABLE_KAFKA_CONSUMER: bool = Field(default=False)
     KAFKA_ENABLED: bool = False
 

@@ -41,12 +41,12 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
     if(value.size>10*1024*1024){setError('This image exceeds 10 MB. Choose a smaller original file.');return;}
     setFile(value);
   };
-  async function analyze(){
-    if(!file)return;
+  async function analyze(selectedFile: File|null = file){
+    if(!selectedFile||busy)return;
     if(!httpClient.getToken()){setError('Sign in using the button above before running an assessment.');return;}
     setBusy(true);setError('');
     try{
-      const scan=await scanApi.uploadImageScan(file,includeAttention);
+      const scan=await scanApi.uploadImageScan(selectedFile,includeAttention);
       onScanCompleted(scan);onViewReport(scan);
     }catch(e){setError(e instanceof Error?e.message:'Image assessment failed. Try again.');}
     finally{setBusy(false);}
@@ -62,7 +62,7 @@ export function ImageScanView({onScanCompleted,onViewReport}:Props) {
     <label className="attention-option"><input type="checkbox" checked={includeAttention} disabled={busy} onChange={e=>setIncludeAttention(e.target.checked)}/> {t('Show where the model looked','Model ne kahan dekha dikhayein')}</label>
     <p>{t('Where the model looked (not where the edit is). This can add a few seconds.','Model ne kahan dekha (yeh edit ki jagah nahi hai). Ismein kuch seconds aur lag sakte hain.')}</p>
     {error&&<p role="alert" className="error-message">{error}</p>}
-    <div className="input-actions"><p>{t('Small or heavily compressed images may not give a clear answer.','Chhoti ya compressed image se saaf jawab nahi mil sakta.')}</p><button className="primary-button" disabled={!file||busy} onClick={analyze}>{busy?'Examining image…':'Analyze image'}</button></div>
+    <div className="input-actions"><p>{t('Small or heavily compressed images may not give a clear answer.','Chhoti ya compressed image se saaf jawab nahi mil sakta.')}</p><button className="primary-button" disabled={!file||busy} onClick={()=>analyze()}>{busy?'Examining image…':'Analyze image'}</button></div>
     {busy&&<p role="status" className="loading-message">{t('Checking the original image for AI and editing signs. A check that cannot finish will be shown as incomplete.','Original image mein AI aur editing ke sanket check ho rahe hain. Adhura check saaf bataya jayega.')}</p>}
   </section>;
 }
