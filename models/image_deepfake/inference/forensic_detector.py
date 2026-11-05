@@ -94,7 +94,7 @@ class ForensicDetector:
                 with Image.open(io.BytesIO(image_bytes)) as image:
                     rgb=np.asarray(ImageOps.exif_transpose(image).convert('RGB'))
                 encoded,regions=assets(rgb,local['heatmap'],local['reliability'],self.config)
-                has_suspicious_pixel=bool(manipulation_raw is not None and manipulation_raw>=self.config['manipulation']['raw_alert'] and regions)
+                has_suspicious_pixel=bool(regions)
                 if not has_suspicious_pixel:
                     regions=[]
                     from models.image_deepfake.forensics.localization_output import encode_png
@@ -154,7 +154,7 @@ class ForensicDetector:
         except (ValueError,OSError,RuntimeError,MemoryError,cv2.error) as exc:
             analysis['supporting_forensics']={'affects_verdict':False,'notice':f'Classical diagnostics unavailable ({type(exc).__name__}).'}
 
-        if enable_explanation and time.monotonic()-started<25 and hasattr(self.global_model,'explain'):
+        if enable_explanation and hasattr(self.global_model,'explain'):
             try:
                 head=self.modern_head if (self.config['ai'].get('mode')=='isotonic_feature_head' and model_name!='dima806') else None
                 attention=self.global_model.explain(image_bytes,feature_head=head)

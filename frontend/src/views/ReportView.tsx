@@ -13,13 +13,6 @@ const percent=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)?`
 
 export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
   const {t}=useResultLanguage();
-  const [layer,setLayer]=useState<Layer>('original');
-  const [zoom,setZoom]=useState(1);
-  const [source,setSource]=useState('');
-  const [imageError,setImageError]=useState('');
-  const [originalSource,setOriginalSource]=useState('');
-  const [comparison,setComparison]=useState(50);
-  const [advanced,setAdvanced]=useState(false);
   const result=scan.result;
   const meta=result?.metadata||{};
   const current=result?.detector_id==='image_deepfake.evidence.v2';
@@ -30,6 +23,14 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
   const reasons:string[]=image.reasons||[current?result?.explanation||'Evidence unavailable.':'This historical report used the previous detector. Run a new assessment for separate AI and localization evidence.'];
   const paths=image.assets||{};
   const hasRegions=Array.isArray(image.regions)&&image.regions.length>0;
+  const defaultLayer: Layer = paths.attention ? 'attention' : (paths.overlay && hasRegions) ? 'overlay' : 'original';
+  const [layer,setLayer]=useState<Layer>(defaultLayer);
+  const [zoom,setZoom]=useState(1);
+  const [source,setSource]=useState('');
+  const [imageError,setImageError]=useState('');
+  const [originalSource,setOriginalSource]=useState('');
+  const [comparison,setComparison]=useState(50);
+  const [advanced,setAdvanced]=useState(false);
   const comparisonPath=diagnosticLayers.includes(layer)?paths.diagnostic_original:image.original_url;
   const canCompare=layer!=='original'&&layer!=='frequency'&&!!comparisonPath;
   const layerPath=layer==='original'?image.original_url:paths[layer];
@@ -78,7 +79,7 @@ export function ReportView({scan,onBack}:{scan:ScanRecord;onBack:()=>void}) {
       <div className="image-workbench">
         <div className="viewer-intro"><h3>{t('Compare views')}</h3>{canCompare&&<p>{t('Drag to compare with the original.')}</p>}</div>
         <div className="viewer-controls" role="group" aria-label={t("Image view")}>
-          {(['original','overlay','heatmap','mask','attention','ela','noise','frequency','repetition','gabor'] as Layer[]).filter(value=>(!['ela','noise','frequency','repetition','gabor'].includes(value)||advanced)&&(value==='original'||!!paths[value]&&(!['mask'].includes(value)||hasRegions))).map(value=><button key={value} aria-pressed={layer===value} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
+          {(['original','overlay','heatmap','mask','attention','ela','noise','frequency','repetition','gabor'] as Layer[]).filter(value=>(!['ela','noise','frequency','repetition','gabor'].includes(value)||advanced)&&(value==='original'||!!paths[value]&&(value!=='overlay'||hasRegions))).map(value=><button key={value} aria-pressed={layer===value} onClick={()=>{setLayer(value);setZoom(1);}}>{labels[value]}</button>)}
           <label className="advanced-views"><input type="checkbox" checked={advanced} onChange={e=>{setAdvanced(e.target.checked);if(!e.target.checked&&diagnosticLayers.includes(layer))setLayer(paths.attention?'attention':'original');}}/>{t("Advanced forensic views")}</label>
           <label>{t("Zoom")} <select value={zoom} onChange={e=>setZoom(Number(e.target.value))}><option value={1}>100%</option><option value={1.5}>150%</option><option value={2}>200%</option><option value={3}>300%</option></select></label>
         </div>

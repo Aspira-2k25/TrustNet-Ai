@@ -67,10 +67,10 @@ test('high reference reading below a decision boundary never becomes a High AI w
  assert(!('risk_score' in record.result.presentation.details));
  assert.equal(record.result.presentation.checks[0].state,'uncertain');
 });
-test('image opens on the original and offers a labelled AI explanation without invented regions',()=>{
+test('image offers a labelled AI explanation comparison slider without invented regions',()=>{
  const record=scan('INCONCLUSIVE',{original_url:'/api/v1/scans/scan-unit/image/original',assets:{attention:'/api/v1/scans/scan-unit/image/attention'}});
  const html=render(record);
- assert(html.includes('aria-pressed="true">Original</button>'));assert(html.includes('>AI explanation</button>'));assert(!html.includes('type="range"'));
+ assert(html.includes('aria-pressed="true">AI explanation</button>'));assert(html.includes('>Original</button>'));assert(html.includes('type="range"'));
  assert(!html.includes('>Mask</button>'));assert(!html.includes('>Heatmap</button>'));
  assert(html.includes('not edited pixels'));assert(html.includes('Grad-CAM on the Vision Transformer'));
 });
